@@ -2,20 +2,34 @@ import { useState, useEffect, useRef } from 'react'
 
 /**
  * Wraps the Web Speech API (SpeechRecognition).
- * Returns { supported, listening, error, start, stop }.
- * onResult(transcript) is called when speech is recognised.
+ * Creates a fresh instance on every start() call — required by Chrome.
+ * Uses a ref for onResult to always call the latest version (no stale closures).
  */
 export function useVoiceInput({ onResult }) {
-  const [supported, setSupported] = useState(false)
-  const [listening, setListening] = useState(false)
-  const [error, setError]         = useState(null)
-  const recognitionRef            = useRef(null)
+  const [supported, setSupported]   = useState(false)
+  const [listening, setListening]   = useState(false)
+  const [error, setError]           = useState(null)
+  const recognitionRef              = useRef(null)
+  const onResultRef                 = useRef(onResult)
 
+  // Keep onResult ref current every render so we never call a stale version
+  useEffect(() => { onResultRef.current = onResult })
+
+  // Detect support once on mount
   useEffect(() => {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SR) return  // Firefox and other unsupported browsers
+    if (window.SpeechRecognition || window.webkitSpeechRecognition) {
+      setSupported(true)
+    }
+  }, [])
 
-    setSupported(true)
+  function start() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SR || listening) return
+
+    // Abort any leftover instance before creating a new one
+    if (recognitionRef.current) {
+      try { recognitionRef.current.abort() } catch (_) {}
+    }
 
     const rec = new SR()
     rec.continuous      = false
@@ -32,7 +46,7 @@ export function useVoiceInput({ onResult }) {
       }
       setListening(false)
       setError(null)
-      if (transcripts.length > 0) onResult(transcripts[0])
+      if (transcripts.length > 0) onResultRef.current(transcripts[0])
     }
 
     rec.onerror = (event) => {
@@ -43,26 +57,30 @@ export function useVoiceInput({ onResult }) {
     rec.onend = () => setListening(false)
 
     recognitionRef.current = rec
-    return () => rec.abort()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  function start() {
-    if (!recognitionRef.current || listening) return
-    setError(null)
     try {
-      recognitionRef.current.start()
+      rec.start()
       setListening(true)
     } catch {
-      // recognition already started — ignore
+      setListening(false)
     }
   }
 
   function stop() {
-    if (recognitionRef.current && listening) {
-      recognitionRef.current.stop()
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop() } catch (_) {}
       setListening(false)
     }
   }
+
+  // Clean up on unmount
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        try { recognitionRef.current.abort() } catch (_) {}
+      }
+    }
+  }, [])
 
   return { supported, listening, error, start, stop }
 }
