@@ -8,11 +8,11 @@ import { useGame } from '../context/GameContext.jsx'
  */
 export function useTimer() {
   const { state, dispatch } = useGame()
-  const { phase, timeRemaining, roundNumber } = state
+  const { phase, timeRemaining, roundNumber, paused } = state
   const intervalRef = useRef(null)
 
   useEffect(() => {
-    if (phase !== 'playing') {
+    if (phase !== 'playing' || paused) {
       clearInterval(intervalRef.current)
       return
     }
@@ -22,12 +22,12 @@ export function useTimer() {
     }, 1000)
 
     return () => clearInterval(intervalRef.current)
-  }, [phase, roundNumber]) // restart interval on each new round
+  }, [phase, roundNumber, paused]) // restart interval on each new round or pause toggle
 
   useEffect(() => {
-    if (phase === 'playing' && timeRemaining === 0) {
+    if (phase === 'playing' && !paused && timeRemaining === 0) {
       clearInterval(intervalRef.current)
       dispatch({ type: 'TIME_UP' })
     }
-  }, [timeRemaining, phase])
+  }, [timeRemaining, phase, paused])
 }

@@ -13,7 +13,7 @@ const DIFFICULTY_LABELS = { easy: 'Easy', medium: 'Medium', hard: 'Hard' }
 
 export default function GameBoard() {
   const { state, dispatch } = useGame()
-  const { roundNumber, totalRounds, difficulty, lastResult, score, streak, mode, teams, teamStates, currentTeamIndex, roundsPerTeam } = state
+  const { roundNumber, totalRounds, difficulty, lastResult, score, streak, mode, teams, teamStates, currentTeamIndex, roundsPerTeam, paused } = state
   const currentTeam = mode === 'teams' ? teams[currentTeamIndex] : null
   // In teams mode, show this team's round counter (1-based) and total rounds per team
   const displayRound = mode === 'teams' ? roundNumber : roundNumber
@@ -37,7 +37,7 @@ export default function GameBoard() {
   }, [lastResult])
 
   function handleSubmit(answer) {
-    if (visibleResult) return
+    if (visibleResult || paused) return
     dispatch({ type: 'SUBMIT_ANSWER', payload: { answer } })
   }
 
@@ -64,6 +64,7 @@ export default function GameBoard() {
               <span className={styles.roundLabel}>Round</span>
               <span className={styles.roundNumber}>{displayRound} / {displayTotal}</span>
             </div>
+            {paused && <span className={styles.pausedBadge}>⏸ Paused</span>}
             <ScoreDisplay />
           </div>
           <div className={styles.progressBar}>
@@ -108,13 +109,29 @@ export default function GameBoard() {
           <div className={styles.center}>
             <ScrambledWord animKey={roundNumber} />
             <div className={styles.divider} />
-            <AnswerInput roundKey={roundNumber} onSubmit={handleSubmit} />
+            <AnswerInput roundKey={roundNumber} onSubmit={handleSubmit} disabled={paused || !!visibleResult} />
           </div>
 
           {/* Right sidebar */}
           <div className={styles.rightSidebar}>
             <Timer />
             <HintPanel />
+            <button
+              className={`${styles.pauseBtn} ${paused ? styles.pauseBtnActive : ''}`}
+              onClick={() => dispatch({ type: 'TOGGLE_PAUSE' })}
+            >
+              {paused ? '▶ Resume' : '⏸ Pause'}
+            </button>
+            {!paused && (
+              <button
+                className={styles.skipBtn}
+                onClick={() => dispatch({ type: 'SKIP_BOOK' })}
+                disabled={!!visibleResult}
+                title="Skip this book — counts as wrong answer"
+              >
+                ⏭ Skip
+              </button>
+            )}
             <button
               className={styles.stopBtn}
               onClick={() => dispatch({ type: 'RESTART' })}

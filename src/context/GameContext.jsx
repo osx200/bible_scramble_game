@@ -44,6 +44,9 @@ const initialState = {
 
   // ── Feedback ──────────────────────────────────────────────
   lastResult: null,
+
+  // ── Pause ─────────────────────────────────────────────────
+  paused: false,
 }
 
 // ── Helpers ────────────────────────────────────────────────
@@ -201,6 +204,7 @@ function reducer(state, action) {
         category: state.category,
         customTime: state.customTime,
         phase: 'playing',
+        paused: false,
         ...round,
       }
     }
@@ -252,6 +256,7 @@ function reducer(state, action) {
         hintsUsed: 0,
         revealedHints: [],
         lastResult: null,
+        paused: false,
       }
     }
 
@@ -300,6 +305,17 @@ function reducer(state, action) {
       const { hintType } = action.payload
       if (state.revealedHints.includes(hintType)) return state
       return { ...state, hintsUsed: state.hintsUsed + 1, revealedHints: [...state.revealedHints, hintType] }
+    }
+
+    case 'TOGGLE_PAUSE':
+      if (state.phase !== 'playing') return state
+      return { ...state, paused: !state.paused }
+
+    case 'SKIP_BOOK': {
+      const { currentBook, maxTime, timeRemaining, paused } = state
+      if (!currentBook || paused) return state
+      const result = { book: currentBook, correct: false, pointsEarned: 0, timeUsed: maxTime - timeRemaining, skipped: true }
+      return resolveNextRound(state, result, false)
     }
 
     case 'CLEAR_LAST_RESULT': {

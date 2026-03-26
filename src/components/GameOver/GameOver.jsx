@@ -54,10 +54,13 @@ export default function GameOver() {
               key={i}
               className={`${styles.resultRow} ${r.correct ? styles.correct : styles.wrong}`}
             >
-              <span className={styles.resultIcon}>{r.correct ? '✅' : '❌'}</span>
+              <span className={styles.resultIcon}>{r.correct ? '✅' : r.skipped ? '⏭' : '❌'}</span>
               <span className={styles.resultBook}>{r.book.name}</span>
+              {r.timeUsed !== undefined && (
+                <span className={styles.resultTime}>{r.timeUsed}s</span>
+              )}
               <span className={`${styles.resultPts} ${r.pointsEarned === 0 ? styles.zero : ''}`}>
-                {r.correct ? `+${r.pointsEarned}` : '—'}
+                {r.correct ? `+${r.pointsEarned}` : r.skipped ? 'skipped' : '—'}
               </span>
             </div>
           ))}

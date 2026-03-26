@@ -38,3 +38,23 @@
   --spacing-lg: 24px;
   --spacing-xl: 40px;
 }
+
+[data-theme="dark"] {
+  --color-bg: #1a1f2e;
+  --color-card: #242b3d;
+  --color-primary: #6b8fc4;
+  --color-primary-light: #8aaed8;
+  --color-primary-dark: #4a6fa5;
+  --color-success-light: #162016;
+  --color-danger: #e05555;
+  --color-danger-light: #2e1515;
+  --color-text: #e8eaf0;
+  --color-text-muted: #8892a4;
+  --color-text-light: #4a5568;
+  --color-border: #333d52;
+  --color-tile-bg: #2d3548;
+  --color-tile-border: #3d4a60;
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.3);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+}

@@ -5,6 +5,7 @@ import GameOver from './components/GameOver/GameOver.jsx'
 import TeamRegister from './components/TeamRegister/TeamRegister.jsx'
 import TeamTransition from './components/TeamTransition/TeamTransition.jsx'
 import TeamResults from './components/TeamResults/TeamResults.jsx'
+import ThemeToggle from './components/ThemeToggle/ThemeToggle.jsx'
 import styles from './App.module.css'
 
 function GameRouter() {
@@ -26,6 +27,7 @@ export default function App() {
   return (
     <GameProvider>
       <div className={styles.app}>
+        <ThemeToggle />
         <GameRouter />
       </div>
     </GameProvider>
