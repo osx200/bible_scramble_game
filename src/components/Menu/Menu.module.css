@@ -51,6 +51,44 @@
   margin-top: var(--spacing-sm);
 }
 
+.orDivider {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin: var(--spacing-md) 0 var(--spacing-sm);
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
+.orDivider::before,
+.orDivider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.quizLink {
+  width: 100%;
+  padding: 12px;
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius);
+  background: transparent;
+  font-family: var(--font-main);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: center;
+}
+
+.quizLink:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: rgba(107, 63, 160, 0.05);
+}
+
 .footer {
   margin-top: var(--spacing-lg);
   text-align: center;

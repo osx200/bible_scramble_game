@@ -1,4 +1,5 @@
 import { useGame } from '../../context/GameContext.jsx'
+import { useAppMode } from '../../context/AppModeContext.jsx'
 import Button from '../shared/Button.jsx'
 import ModeSelector from '../ModeSelector/ModeSelector.jsx'
 import DifficultySelector from '../DifficultySelector/DifficultySelector.jsx'
@@ -8,6 +9,7 @@ import styles from './Menu.module.css'
 
 export default function Menu() {
   const { state, dispatch } = useGame()
+  const { setAppMode } = useAppMode()
   const { mode } = state
 
   function handleStart() {
@@ -23,7 +25,7 @@ export default function Menu() {
       <div className={styles.card}>
         <div className={styles.header}>
           <div className={styles.emoji}>📖</div>
-          <h1 className={styles.title}>Bible Scramble</h1>
+          <h1 className={styles.title}>MyRestStop Bible Unscramble</h1>
           <p className={styles.subtitle}>
             Unscramble the names of the 66 books of the Bible
           </p>
@@ -44,6 +46,14 @@ export default function Menu() {
         >
           {mode === 'teams' ? '👥 Set Up Teams →' : 'Start Game'}
         </Button>
+
+        <div className={styles.orDivider}>
+          <span>or</span>
+        </div>
+
+        <button className={styles.quizLink} onClick={() => setAppMode('quiz')}>
+          ❓ Open Bible Quiz Builder
+        </button>
 
         <p className={styles.footer}>10 rounds per game · New selection every time</p>
       </div>

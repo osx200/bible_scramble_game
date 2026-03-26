@@ -27,8 +27,8 @@
   --shadow-lg: 0 8px 32px rgba(107, 63, 160, 0.18);
 
   /* ── Typography ── */
-  --font-main: 'Nunito', system-ui, sans-serif;
-  --font-display: 'Playfair Display', Georgia, serif;
+  --font-main: 'Poppins', system-ui, sans-serif;
+  --font-display: 'Merriweather', Georgia, serif;
 
   /* ── Motion ── */
   --transition-fast: 150ms ease;
