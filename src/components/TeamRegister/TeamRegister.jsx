@@ -7,8 +7,12 @@ const DEFAULT_COLORS = ['#4A6FA5', '#E74C3C', '#2ECC71', '#F39C12', '#9B59B6', '
 const MAX_TEAMS = 6
 const MIN_TEAMS = 2
 
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2)
+}
+
 function makeTeam(index) {
-  return { id: crypto.randomUUID(), name: `Team ${index + 1}`, color: DEFAULT_COLORS[index] }
+  return { id: uid(), name: `Team ${index + 1}`, color: DEFAULT_COLORS[index] }
 }
 
 export default function TeamRegister() {
