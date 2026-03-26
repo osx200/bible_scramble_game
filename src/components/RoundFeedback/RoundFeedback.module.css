@@ -1,0 +1,67 @@
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-lg);
+  animation: fadeIn 0.15s ease both;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  animation: fadeSlideUp 0.2s ease both;
+  overflow: visible;
+}
+
+.card.correct {
+  background: var(--color-success-light);
+  border: 2px solid var(--color-success);
+}
+
+.card.wrong {
+  background: var(--color-danger-light);
+  border: 2px solid var(--color-danger);
+}
+
+.icon {
+  font-size: 2.5rem;
+  line-height: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.iconBounce {
+  animation: trophyBounce 0.8s ease both;
+}
+
+.message {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.points {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-success);
+}
+
+.answer {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.answer strong {
+  color: var(--color-text);
+}

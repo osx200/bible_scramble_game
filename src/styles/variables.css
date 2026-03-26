@@ -1,0 +1,40 @@
+:root {
+  --color-bg: #f5f0eb;
+  --color-card: #ffffff;
+  --color-primary: #4a6fa5;
+  --color-primary-light: #6b8fc4;
+  --color-primary-dark: #3a5a8a;
+  --color-accent: #e8a54b;
+  --color-accent-dark: #d4913a;
+  --color-success: #5cb85c;
+  --color-success-light: #dff0d8;
+  --color-danger: #d9534f;
+  --color-danger-light: #f2dede;
+  --color-text: #2c3e50;
+  --color-text-muted: #7f8c8d;
+  --color-text-light: #bdc3c7;
+  --color-border: #e8e0d8;
+  --color-tile-bg: #eef2f7;
+  --color-tile-border: #d0dae8;
+
+  --radius-sm: 6px;
+  --radius: 12px;
+  --radius-lg: 20px;
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.06);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+  --font-main: 'Inter', system-ui, sans-serif;
+  --font-display: 'Poppins', var(--font-main);
+
+  --transition-fast: 150ms ease;
+  --transition-normal: 300ms ease;
+  --transition-slow: 500ms ease;
+
+  --max-width: 640px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 40px;
+}
