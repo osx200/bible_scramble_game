@@ -33,3 +33,13 @@
 .submitBtn {
   flex-shrink: 0;
 }
+
+@media (max-width: 400px) {
+  .wrapper {
+    flex-direction: column;
+  }
+
+  .input {
+    padding: 12px 14px;
+  }
+}

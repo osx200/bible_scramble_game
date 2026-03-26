@@ -170,3 +170,9 @@
   text-align: center;
   margin-bottom: var(--spacing-sm);
 }
+
+@media (max-width: 700px) {
+  .wrapper { padding: 12px; align-items: flex-start; overflow-y: auto; }
+  .card { padding: var(--spacing-lg); }
+  .title { font-size: 1.4rem; }
+}

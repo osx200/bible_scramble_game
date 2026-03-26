@@ -9,6 +9,7 @@ export default function Button({
   disabled = false,
   type = 'button',
   className = '',
+  style,
 }) {
   const classes = [
     styles.btn,
@@ -21,7 +22,7 @@ export default function Button({
     .join(' ')
 
   return (
-    <button type={type} className={classes} onClick={onClick} disabled={disabled}>
+    <button type={type} className={classes} onClick={onClick} disabled={disabled} style={style}>
       {children}
     </button>
   )

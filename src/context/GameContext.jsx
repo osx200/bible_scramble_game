@@ -21,6 +21,7 @@ const initialState = {
   roundsPerTeam: 10,
   currentTeamIndex: 0,
   lastRoundResult: null,  // { correct, pointsEarned, bookName, teamName, teamColor } shown on transition
+  _pendingTeamNext: null, // stores next-team data while feedback overlay is visible
 
   // ── Solo round state ──────────────────────────────────────
   books: [],
@@ -124,11 +125,22 @@ function resolveNextRound(state, result, isCorrect) {
     })
 
     const allDone = updatedTeamStates.every((ts) => ts.roundsPlayed >= roundsPerTeam)
-    if (allDone) {
-      return {
-        ...state,
+    const nextTeamIndex = allDone ? -1 : findNextTeamIndex(updatedTeamStates, currentTeamIndex, roundsPerTeam)
+
+    // Stay in 'playing' so RoundFeedback overlay can display for 1.5s.
+    // CLEAR_LAST_RESULT will pick up _pendingTeamNext and apply the real transition.
+    return {
+      ...state,
+      score: newScore,
+      streak: newStreak,
+      bestStreak: newBestStreak,
+      roundResults: newRoundResults,
+      lastResult,
+      timeRemaining: -1,  // freeze timer so it doesn't tick or fire TIME_UP
+      _pendingTeamNext: {
         teamStates: updatedTeamStates,
-        lastResult,
+        nextTeamIndex,
+        allDone,
         lastRoundResult: {
           correct: isCorrect,
           pointsEarned: result.pointsEarned,
@@ -136,24 +148,7 @@ function resolveNextRound(state, result, isCorrect) {
           teamName: currentTeam.name,
           teamColor: currentTeam.color,
         },
-        phase: 'team-results',
-      }
-    }
-
-    const nextTeamIndex = findNextTeamIndex(updatedTeamStates, currentTeamIndex, roundsPerTeam)
-    return {
-      ...state,
-      teamStates: updatedTeamStates,
-      currentTeamIndex: nextTeamIndex,
-      lastResult,
-      lastRoundResult: {
-        correct: isCorrect,
-        pointsEarned: result.pointsEarned,
-        bookName: result.book.name,
-        teamName: currentTeam.name,
-        teamColor: currentTeam.color,
       },
-      phase: 'team-transition',
     }
   }
 
@@ -272,6 +267,7 @@ function reducer(state, action) {
         roundsPerTeam,
         currentTeamIndex: 0,
         lastRoundResult: null,
+        _pendingTeamNext: null,
         phase: 'team-transition',
       }
     }
@@ -306,8 +302,21 @@ function reducer(state, action) {
       return { ...state, hintsUsed: state.hintsUsed + 1, revealedHints: [...state.revealedHints, hintType] }
     }
 
-    case 'CLEAR_LAST_RESULT':
+    case 'CLEAR_LAST_RESULT': {
+      if (state._pendingTeamNext) {
+        const { teamStates, nextTeamIndex, allDone, lastRoundResult } = state._pendingTeamNext
+        return {
+          ...state,
+          lastResult: null,
+          _pendingTeamNext: null,
+          teamStates,
+          lastRoundResult,
+          currentTeamIndex: allDone ? state.currentTeamIndex : nextTeamIndex,
+          phase: allDone ? 'team-results' : 'team-transition',
+        }
+      }
       return { ...state, lastResult: null }
+    }
 
     case 'RESTART':
       return {

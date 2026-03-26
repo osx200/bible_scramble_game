@@ -147,3 +147,12 @@
   flex-direction: column;
   gap: var(--spacing-sm);
 }
+
+@media (max-width: 700px) {
+  .wrapper { padding: 12px; align-items: flex-start; overflow-y: auto; }
+  .card { padding: var(--spacing-lg); }
+  .title { font-size: 1.6rem; }
+  .stats { padding: var(--spacing-md); gap: var(--spacing-sm); }
+  .statValue { font-size: 1.4rem; }
+  .results { max-height: 160px; }
+}

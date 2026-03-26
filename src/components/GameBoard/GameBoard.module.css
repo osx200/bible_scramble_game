@@ -194,43 +194,76 @@
 /* ── Mobile: single column ── */
 @media (max-width: 700px) {
   .wrapper {
-    padding: var(--spacing-md);
+    padding: 8px;
+    justify-content: flex-start;
+    min-height: 100dvh;
+    overflow-y: auto;
   }
 
-  .body {
-    grid-template-columns: 1fr;
+  .card {
+    border-radius: var(--radius);
+    /* let the card grow naturally — no fixed height */
   }
 
   .topStrip {
-    padding: var(--spacing-md);
+    padding: 12px var(--spacing-md);
   }
 
-  .leftSidebar {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    border-right: none;
-    border-bottom: 1px solid var(--color-border);
-    padding: var(--spacing-md);
-    gap: var(--spacing-md);
+  .roundNumber {
+    font-size: 1.1rem;
   }
 
+  /* Stack: center → right sidebar → left sidebar */
+  .body {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+
+  /* Put center first on mobile */
+  .center {
+    order: 1;
+    padding: 12px var(--spacing-md);
+    gap: var(--spacing-sm);
+  }
+
+  /* Timer + hints as a compact horizontal strip */
   .rightSidebar {
+    order: 2;
     flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: space-between;
     border-left: none;
     border-top: 1px solid var(--color-border);
-    padding: var(--spacing-md);
-    gap: var(--spacing-md);
+    padding: 10px var(--spacing-md);
+    gap: var(--spacing-sm);
   }
 
   .stopBtn {
     width: auto;
     margin-top: 0;
+    padding: 8px 12px;
+    font-size: 0.78rem;
   }
 
-  .center {
-    padding: var(--spacing-md);
+  /* Difficulty/category as a slim bottom strip */
+  .leftSidebar {
+    order: 3;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    border-right: none;
+    border-top: 1px solid var(--color-border);
+    padding: 10px var(--spacing-md);
+    gap: var(--spacing-sm);
+  }
+
+  .sideLabel {
+    display: none;  /* hide labels on mobile to save space */
+  }
+
+  .teamBanner {
+    padding: 8px var(--spacing-md);
+    font-size: 0.82rem;
   }
 }

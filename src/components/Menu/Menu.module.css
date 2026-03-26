@@ -57,3 +57,23 @@
   font-size: 0.8rem;
   color: var(--color-text-light);
 }
+
+@media (max-width: 700px) {
+  .wrapper {
+    padding: 12px;
+    align-items: flex-start;
+    overflow-y: auto;
+  }
+
+  .card {
+    padding: var(--spacing-lg);
+  }
+
+  .title {
+    font-size: 1.8rem;
+  }
+
+  .header {
+    margin-bottom: var(--spacing-lg);
+  }
+}
