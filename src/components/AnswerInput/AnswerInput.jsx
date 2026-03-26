@@ -88,15 +88,17 @@ export default function AnswerInput({ roundKey, onSubmit, disabled }) {
       ) : voiceError && voiceError !== 'aborted' ? (
         <p className={styles.voiceError}>
           {voiceError === 'not-allowed'
-            ? 'Microphone access denied — please allow it in your browser settings.'
+            ? '🚫 Microphone access denied — click the 🔒 lock icon in the address bar and allow microphone.'
             : voiceError === 'no-speech'
-            ? 'No speech detected — try again.'
+            ? '🎤 No speech detected — try again.'
+            : voiceError === 'brave-blocked'
+            ? '🦁 Voice input requires Chrome or Edge — Brave does not support this API.'
             : `Voice error: ${voiceError}`}
         </p>
       ) : (
         <p className={styles.hint}>
           Press <kbd className={styles.kbd}>Enter</kbd> to submit · not case-sensitive · numbers required (e.g. <em>1 Samuel</em>)
-          {voiceSupported ? <span> · or tap 🎤 to speak</span> : <span> · 🎤 requires Chrome or Edge</span>}
+          {voiceSupported ? <span> · tap 🎤 to speak (Chrome/Edge only)</span> : <span> · 🎤 voice requires Chrome or Edge</span>}
         </p>
       )}
     </div>
