@@ -68,22 +68,28 @@
   background: var(--color-border);
 }
 
-.quizLink {
-  width: 100%;
-  padding: 12px;
+.altLinks {
+  display: flex;
+  gap: 8px;
+}
+
+.altLink {
+  flex: 1;
+  padding: 11px 8px;
   border: 2px dashed var(--color-border);
   border-radius: var(--radius);
   background: transparent;
   font-family: var(--font-main);
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--color-text-muted);
   cursor: pointer;
   transition: all var(--transition-fast);
   text-align: center;
+  line-height: 1.3;
 }
 
-.quizLink:hover {
+.altLink:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
   background: rgba(107, 63, 160, 0.05);

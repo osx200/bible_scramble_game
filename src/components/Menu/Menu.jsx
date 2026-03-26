@@ -25,7 +25,7 @@ export default function Menu() {
       <div className={styles.card}>
         <div className={styles.header}>
           <div className={styles.emoji}>📖</div>
-          <h1 className={styles.title}>MyRestStop Bible Unscramble</h1>
+          <h1 className={styles.title}>MyRestStop Unscramble Game</h1>
           <p className={styles.subtitle}>
             Unscramble the names of the 66 books of the Bible
           </p>
@@ -51,9 +51,14 @@ export default function Menu() {
           <span>or</span>
         </div>
 
-        <button className={styles.quizLink} onClick={() => setAppMode('quiz')}>
-          ❓ Open Bible Quiz Builder
-        </button>
+        <div className={styles.altLinks}>
+          <button className={styles.altLink} onClick={() => setAppMode('quiz')}>
+            ❓ Bible Quiz Builder
+          </button>
+          <button className={styles.altLink} onClick={() => setAppMode('moderator')}>
+            🎙 Moderator View
+          </button>
+        </div>
 
         <p className={styles.footer}>10 rounds per game · New selection every time</p>
       </div>

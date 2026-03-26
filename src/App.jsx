@@ -8,6 +8,7 @@ import TeamTransition from './components/TeamTransition/TeamTransition.jsx'
 import TeamResults from './components/TeamResults/TeamResults.jsx'
 import ThemeToggle from './components/ThemeToggle/ThemeToggle.jsx'
 import QuizApp from './components/QuizApp/QuizApp.jsx'
+import ModeratorApp from './components/ModeratorApp/ModeratorApp.jsx'
 import styles from './App.module.css'
 
 function GameRouter() {
@@ -35,8 +36,10 @@ function AppContent() {
         <GameProvider>
           <GameRouter />
         </GameProvider>
-      ) : (
+      ) : appMode === 'quiz' ? (
         <QuizApp />
+      ) : (
+        <ModeratorApp />
       )}
     </div>
   )

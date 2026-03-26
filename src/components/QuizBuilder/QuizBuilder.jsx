@@ -45,7 +45,7 @@ export default function QuizBuilder({ questions, onAdd, onRemove, onStart, onBac
           </button>
           <div className={styles.titleRow}>
             <span className={styles.emoji}>❓</span>
-            <h1 className={styles.title}>MyRestStop Bible Quiz</h1>
+            <h1 className={styles.title}>MyRestStop Unscramble Game</h1>
           </div>
           <p className={styles.subtitle}>
             Create questions, then run your quiz with a reveal button for each answer
