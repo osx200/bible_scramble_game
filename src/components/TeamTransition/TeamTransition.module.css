@@ -105,7 +105,7 @@
 }
 
 .scoreRow.activeRow {
-  background: white;
+  background: var(--color-card);
   box-shadow: var(--shadow-sm);
 }
 

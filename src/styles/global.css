@@ -100,8 +100,8 @@ input {
 }
 
 @keyframes winnerGlow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(245,200,66,0); }
-  50%       { box-shadow: 0 0 24px 6px rgba(245,200,66,0.45); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 168, 76, 0); }
+  50%       { box-shadow: 0 0 28px 8px rgba(201, 168, 76, 0.5); }
 }
 
 @keyframes winnerNamePop {
