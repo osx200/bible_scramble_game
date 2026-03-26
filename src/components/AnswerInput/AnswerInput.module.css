@@ -28,7 +28,7 @@
 
 .input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.15);
+  box-shadow: 0 0 0 3px rgba(107, 63, 160, 0.15);
 }
 
 .input.shake {
@@ -36,10 +36,65 @@
   border-color: var(--color-danger);
 }
 
+.input:disabled {
+  opacity: 0.7;
+}
+
+/* ── Mic button ── */
+.micBtn {
+  flex-shrink: 0;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  background: var(--color-card);
+  font-size: 1.15rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.micBtn:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background: rgba(107, 63, 160, 0.06);
+  transform: scale(1.05);
+}
+
+.micBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.micBtn.micListening {
+  border-color: var(--color-danger);
+  background: rgba(198, 40, 40, 0.08);
+  animation: micPulse 1.2s ease-in-out infinite;
+}
+
+.micBtn.micDenied {
+  border-color: var(--color-text-light);
+  opacity: 0.5;
+  cursor: default;
+}
+
+.micBtn.micUnsupported {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+@keyframes micPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(198, 40, 40, 0.5); }
+  50%       { box-shadow: 0 0 0 10px rgba(198, 40, 40, 0); }
+}
+
+/* ── Submit button ── */
 .submitBtn {
   flex-shrink: 0;
 }
 
+/* ── Hint / status text ── */
 .hint {
   font-size: 0.72rem;
   color: var(--color-text-muted);
@@ -56,6 +111,30 @@
   padding: 1px 5px;
 }
 
+.voiceStatus {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-danger);
+}
+
+.voiceDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-danger);
+  animation: micPulse 1.2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.voiceError {
+  font-size: 0.74rem;
+  color: var(--color-danger);
+  line-height: 1.4;
+}
+
 @media (max-width: 400px) {
   .wrapper {
     flex-direction: column;
@@ -63,5 +142,11 @@
 
   .input {
     padding: 12px 14px;
+  }
+
+  .micBtn {
+    width: 44px;
+    height: 44px;
+    align-self: flex-end;
   }
 }

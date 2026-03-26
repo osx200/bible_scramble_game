@@ -1,22 +1,22 @@
 import { useState, useRef, useEffect } from 'react'
-import { useGame } from '../../context/GameContext.jsx'
+import { useVoiceInput } from '../../hooks/useVoiceInput.js'
 import Button from '../shared/Button.jsx'
 import styles from './AnswerInput.module.css'
 
 export default function AnswerInput({ roundKey, onSubmit, disabled }) {
-  const [value, setValue] = useState('')
-  const [shaking, setShaking] = useState(false)
-  const inputRef = useRef(null)
+  const [value, setValue]       = useState('')
+  const [shaking, setShaking]   = useState(false)
+  const inputRef                = useRef(null)
 
-  // Auto-focus on mount and on each new round
+  // Reset + focus on each new round
   useEffect(() => {
     setValue('')
     if (!disabled) inputRef.current?.focus()
   }, [roundKey])
 
-  function handleSubmit() {
+  function handleSubmit(answer) {
     if (disabled) return
-    const trimmed = value.trim()
+    const trimmed = (answer ?? value).trim()
     if (!trimmed) {
       setShaking(true)
       setTimeout(() => setShaking(false), 450)
@@ -30,6 +30,21 @@ export default function AnswerInput({ roundKey, onSubmit, disabled }) {
     if (e.key === 'Enter') handleSubmit()
   }
 
+  // Voice — auto-submit when recognised
+  const { supported: voiceSupported, listening, error: voiceError, start, stop } = useVoiceInput({
+    onResult: (transcript) => {
+      setValue(transcript)
+      // Small delay so user sees what was heard before submitting
+      setTimeout(() => handleSubmit(transcript), 400)
+    },
+  })
+
+  const micTitle = listening
+    ? 'Listening… click to cancel'
+    : voiceError === 'not-allowed'
+    ? 'Microphone permission denied'
+    : 'Click to speak your answer'
+
   return (
     <div className={styles.container}>
       <div className={styles.wrapper}>
@@ -37,7 +52,7 @@ export default function AnswerInput({ roundKey, onSubmit, disabled }) {
           ref={inputRef}
           type="text"
           className={`${styles.input} ${shaking ? styles.shake : ''}`}
-          placeholder="Type the book name..."
+          placeholder={listening ? 'Listening…' : 'Type the book name…'}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -45,15 +60,45 @@ export default function AnswerInput({ roundKey, onSubmit, disabled }) {
           autoCorrect="off"
           autoCapitalize="off"
           spellCheck={false}
-          disabled={disabled}
+          disabled={disabled || listening}
         />
-        <Button onClick={handleSubmit} className={styles.submitBtn} disabled={disabled}>
+
+        {/* Mic button — always visible; disabled with tooltip when unsupported */}
+        <button
+          className={`${styles.micBtn} ${listening ? styles.micListening : ''} ${voiceError === 'not-allowed' ? styles.micDenied : ''} ${!voiceSupported ? styles.micUnsupported : ''}`}
+          onClick={listening ? stop : start}
+          disabled={disabled || !voiceSupported}
+          title={!voiceSupported ? 'Voice input not supported in this browser (try Chrome or Edge)' : micTitle}
+          aria-label={!voiceSupported ? 'Voice input not supported' : micTitle}
+          type="button"
+        >
+          {listening ? '⏹' : voiceError === 'not-allowed' ? '🚫' : '🎤'}
+        </button>
+
+        <Button onClick={() => handleSubmit()} className={styles.submitBtn} disabled={disabled || listening}>
           Submit
         </Button>
       </div>
-      <p className={styles.hint}>
-        Press <kbd className={styles.kbd}>Enter</kbd> to submit · not case-sensitive · numbers required (e.g. <em>1 Samuel</em>)
-      </p>
+
+      {/* Status / hint row */}
+      {listening ? (
+        <p className={styles.voiceStatus}>
+          <span className={styles.voiceDot} /> Say the name of the Bible book…
+        </p>
+      ) : voiceError && voiceError !== 'aborted' ? (
+        <p className={styles.voiceError}>
+          {voiceError === 'not-allowed'
+            ? 'Microphone access denied — please allow it in your browser settings.'
+            : voiceError === 'no-speech'
+            ? 'No speech detected — try again.'
+            : `Voice error: ${voiceError}`}
+        </p>
+      ) : (
+        <p className={styles.hint}>
+          Press <kbd className={styles.kbd}>Enter</kbd> to submit · not case-sensitive · numbers required (e.g. <em>1 Samuel</em>)
+          {voiceSupported ? <span> · or tap 🎤 to speak</span> : <span> · 🎤 requires Chrome or Edge</span>}
+        </p>
+      )}
     </div>
   )
 }
