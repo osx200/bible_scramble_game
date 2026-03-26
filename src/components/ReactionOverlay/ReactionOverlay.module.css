@@ -1,0 +1,95 @@
+/* Full-screen overlay — pointer-events off so controls stay usable */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  pointer-events: none;
+  background: var(--bg, rgba(107, 63, 160, 0.15));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: overlayIn 0.25s ease both, overlayOut 0.5s ease 3s both;
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes overlayOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* Center group */
+.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+}
+
+/* Main big emoji */
+.mainEmoji {
+  font-size: 7rem;
+  line-height: 1;
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.25));
+  animation: emojiBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  display: block;
+}
+
+@keyframes emojiBounce {
+  from { transform: scale(0) rotate(-20deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg);   opacity: 1; }
+}
+
+/* Label text */
+.label {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #fff;
+  text-shadow:
+    0 2px 12px rgba(0,0,0,0.5),
+    0 0 40px rgba(0,0,0,0.3);
+  letter-spacing: 0.04em;
+  animation: labelIn 0.4s ease 0.15s both;
+}
+
+@keyframes labelIn {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* Particle wrap — positioned around main emoji */
+.particleWrap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 0;
+  height: 0;
+}
+
+/* Individual floating particles */
+.particle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+  animation: particleBurst 1s ease var(--delay, 0s) both;
+  will-change: transform, opacity;
+}
+
+@keyframes particleBurst {
+  0%   { transform: translate(-50%, -50%) scale(0);   opacity: 1; }
+  60%  { opacity: 1; }
+  100% {
+    transform: translate(
+      calc(-50% + var(--tx, 80px)),
+      calc(-50% + var(--ty, -80px))
+    ) scale(1);
+    opacity: 0;
+  }
+}

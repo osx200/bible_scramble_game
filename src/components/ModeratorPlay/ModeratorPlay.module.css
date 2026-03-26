@@ -295,6 +295,88 @@
   background: #991f1f;
 }
 
+/* ── Reactions ── */
+.reactionsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reactionsLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+
+.reactionBtns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.reactionBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-width: 64px;
+  flex: 1;
+}
+
+.reactionBtn:hover {
+  border-color: var(--color-primary);
+  background: rgba(107, 63, 160, 0.06);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.reactionBtn:active {
+  transform: translateY(0) scale(0.96);
+}
+
+.reactionBtnActive {
+  border-color: var(--color-primary);
+  background: rgba(107, 63, 160, 0.1);
+  box-shadow: 0 0 0 3px rgba(107, 63, 160, 0.2);
+}
+
+.reactionEmoji {
+  font-size: 1.6rem;
+  line-height: 1;
+  animation: none;
+  display: block;
+}
+
+.reactionBtnActive .reactionEmoji {
+  animation: reactionWiggle 0.4s ease;
+}
+
+@keyframes reactionWiggle {
+  0%   { transform: scale(1)    rotate(0deg); }
+  25%  { transform: scale(1.35) rotate(-12deg); }
+  50%  { transform: scale(1.35) rotate(12deg); }
+  75%  { transform: scale(1.2)  rotate(-6deg); }
+  100% { transform: scale(1)    rotate(0deg); }
+}
+
+.reactionLabel {
+  font-family: var(--font-main);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-align: center;
+  line-height: 1;
+  white-space: nowrap;
+}
+
 /* ── Navigation ── */
 .navigation {
   display: flex;
@@ -394,5 +476,14 @@
 
   .dots {
     display: none;
+  }
+
+  .reactionBtn {
+    min-width: 52px;
+    padding: 8px 6px;
+  }
+
+  .reactionEmoji {
+    font-size: 1.35rem;
   }
 }

@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import ReactionOverlay from '../ReactionOverlay/ReactionOverlay.jsx'
 import styles from './ModeratorPlay.module.css'
 
 function formatTime(s) {
@@ -6,6 +7,17 @@ function formatTime(s) {
   const sec = s % 60
   return m > 0 ? `${m}:${sec.toString().padStart(2, '0')}` : `${sec}s`
 }
+
+const REACTIONS = [
+  { type: 'confetti', emoji: '🎉', label: 'Confetti'  },
+  { type: 'trophy',   emoji: '🏆', label: 'Winner'    },
+  { type: 'highfive', emoji: '✋', label: 'High Five'  },
+  { type: 'applause', emoji: '👏', label: 'Applause'  },
+  { type: 'fire',     emoji: '🔥', label: 'On Fire'   },
+  { type: 'star',     emoji: '⭐', label: 'Amazing'   },
+  { type: 'love',     emoji: '❤️', label: 'Love It'   },
+  { type: 'clown',    emoji: '🎊', label: 'Party'     },
+]
 
 export default function ModeratorPlay({ config, onBack }) {
   const { words, timerDuration } = config
@@ -16,7 +28,9 @@ export default function ModeratorPlay({ config, onBack }) {
   const [running,       setRunning]       = useState(false)
   const [maxTime,       setMaxTime]       = useState(timerDuration)
   const [timeRemaining, setTimeRemaining] = useState(timerDuration)
-  const intervalRef = useRef(null)
+  const [reaction,      setReaction]      = useState(null)
+  const intervalRef  = useRef(null)
+  const reactionRef  = useRef(null)
 
   const word    = words[index]
   const timeUp  = timeRemaining === 0
@@ -68,13 +82,24 @@ export default function ModeratorPlay({ config, onBack }) {
     setTimeRemaining(maxTime)
   }
 
-  // ── Progress bar fill ──────────────────────────────────────
+  // ── Reactions ──────────────────────────────────────────────
+  const triggerReaction = useCallback((type) => {
+    clearTimeout(reactionRef.current)
+    setReaction({ type, key: Date.now() })
+    reactionRef.current = setTimeout(() => setReaction(null), 3500)
+  }, [])
+
+  useEffect(() => () => clearTimeout(reactionRef.current), [])
+
+  // ── Timer display ──────────────────────────────────────────
   const timerPct  = maxTime > 0 ? (timeRemaining / maxTime) * 100 : 100
   const timerLow  = timeRemaining <= 10 && timeRemaining > 0
   const timerDone = timeUp
 
   return (
     <div className={styles.wrapper}>
+      <ReactionOverlay reaction={reaction} />
+
       <div className={styles.card}>
 
         {/* ── Top bar ── */}
@@ -94,7 +119,6 @@ export default function ModeratorPlay({ config, onBack }) {
         {/* ── Answer + Timer row ── */}
         <div className={styles.midRow}>
 
-          {/* Answer block */}
           <div className={styles.answerBlock}>
             <span className={styles.answerLabel}>CORRECT ANSWER</span>
             <div className={`${styles.answerTile} ${showAnswer ? styles.answerShown : styles.answerHidden}`}>
@@ -102,33 +126,15 @@ export default function ModeratorPlay({ config, onBack }) {
             </div>
           </div>
 
-          {/* Timer block */}
           <div className={styles.timerBlock}>
-            <button
-              className={styles.timerAdj}
-              onClick={() => adjustTime(-15)}
-              disabled={running}
-              type="button"
-              title="−15s"
-            >−</button>
-
+            <button className={styles.timerAdj} onClick={() => adjustTime(-15)} disabled={running} type="button" title="−15s">−</button>
             <div className={`${styles.timerTile} ${timerLow ? styles.timerLow : ''} ${timerDone ? styles.timerDone : ''}`}>
               <span className={styles.timerText}>{formatTime(timeRemaining)}</span>
               <div className={styles.timerBarTrack}>
-                <div
-                  className={styles.timerBarFill}
-                  style={{ width: `${timerPct}%` }}
-                />
+                <div className={styles.timerBarFill} style={{ width: `${timerPct}%` }} />
               </div>
             </div>
-
-            <button
-              className={styles.timerAdj}
-              onClick={() => adjustTime(15)}
-              disabled={running}
-              type="button"
-              title="+15s"
-            >+</button>
+            <button className={styles.timerAdj} onClick={() => adjustTime(15)} disabled={running} type="button" title="+15s">+</button>
           </div>
 
         </div>
@@ -140,37 +146,45 @@ export default function ModeratorPlay({ config, onBack }) {
             onClick={() => setShowAnswer(true)}
             disabled={showAnswer}
             type="button"
-          >
-            SHOW<br />ANSWER
-          </button>
+          >SHOW<br />ANSWER</button>
 
           <button
             className={`${styles.ctrlBtn} ${styles.btnStart}`}
             onClick={handleStart}
             disabled={running}
             type="button"
-          >
-            START
-          </button>
+          >START</button>
 
           <button
             className={`${styles.ctrlBtn} ${styles.btnStop}`}
             onClick={handleStop}
             disabled={atStart}
             type="button"
-          >
-            STOP
-          </button>
+          >STOP</button>
+        </div>
+
+        {/* ── Reactions ── */}
+        <div className={styles.reactionsSection}>
+          <span className={styles.reactionsLabel}>Reactions</span>
+          <div className={styles.reactionBtns}>
+            {REACTIONS.map(r => (
+              <button
+                key={r.type}
+                type="button"
+                className={`${styles.reactionBtn} ${reaction?.type === r.type ? styles.reactionBtnActive : ''}`}
+                onClick={() => triggerReaction(r.type)}
+                title={r.label}
+              >
+                <span className={styles.reactionEmoji}>{r.emoji}</span>
+                <span className={styles.reactionLabel}>{r.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* ── Navigation ── */}
         <div className={styles.navigation}>
-          <button
-            className={styles.navBtn}
-            onClick={() => goTo(index - 1)}
-            disabled={index === 0}
-            type="button"
-          >← Prev</button>
+          <button className={styles.navBtn} onClick={() => goTo(index - 1)} disabled={index === 0} type="button">← Prev</button>
 
           <div className={styles.dots}>
             {words.map((_, i) => (
@@ -184,12 +198,7 @@ export default function ModeratorPlay({ config, onBack }) {
             ))}
           </div>
 
-          <button
-            className={styles.navBtn}
-            onClick={() => goTo(index + 1)}
-            disabled={index === total - 1}
-            type="button"
-          >Next →</button>
+          <button className={styles.navBtn} onClick={() => goTo(index + 1)} disabled={index === total - 1} type="button">Next →</button>
         </div>
 
       </div>

@@ -28,7 +28,7 @@
 
   /* ── Typography ── */
   --font-main: 'Poppins', system-ui, sans-serif;
-  --font-display: 'Merriweather', Georgia, serif;
+  --font-display: 'Poppins', system-ui, sans-serif;
 
   /* ── Motion ── */
   --transition-fast: 150ms ease;
