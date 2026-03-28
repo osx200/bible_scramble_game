@@ -9,6 +9,7 @@ import TeamResults from './components/TeamResults/TeamResults.jsx'
 import ThemeToggle from './components/ThemeToggle/ThemeToggle.jsx'
 import QuizApp from './components/QuizApp/QuizApp.jsx'
 import ModeratorApp from './components/ModeratorApp/ModeratorApp.jsx'
+import RecallApp from './components/RecallApp/RecallApp.jsx'
 import styles from './App.module.css'
 
 function GameRouter() {
@@ -38,8 +39,10 @@ function AppContent() {
         </GameProvider>
       ) : appMode === 'quiz' ? (
         <QuizApp />
-      ) : (
+      ) : appMode === 'moderator' ? (
         <ModeratorApp />
+      ) : (
+        <RecallApp />
       )}
     </div>
   )

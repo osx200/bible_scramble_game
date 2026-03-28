@@ -58,6 +58,9 @@ export default function Menu() {
           <button className={styles.altLink} onClick={() => setAppMode('moderator')}>
             🎙 Moderator View
           </button>
+          <button className={styles.altLink} onClick={() => setAppMode('recall')}>
+            🧠 Bible Book Recall
+          </button>
         </div>
 
         <p className={styles.footer}>10 rounds per game · New selection every time</p>
