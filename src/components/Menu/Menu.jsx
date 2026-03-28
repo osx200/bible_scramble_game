@@ -91,7 +91,7 @@ export default function Menu() {
       <div className={`${styles.card} ${styles.modePickerCard}`}>
         <div className={styles.header}>
           <div className={styles.emoji}>📖</div>
-          <h1 className={styles.title}>MyRestStop Unscramble Game</h1>
+          <h1 className={styles.title}>MyRestStop Bible Games</h1>
           <p className={styles.subtitle}>Choose a game mode to get started</p>
         </div>
 
