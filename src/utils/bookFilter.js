@@ -26,7 +26,7 @@ export function selectBooks({ difficulty = 'easy', category = 'all', count = 10 
   let pool = bibleBooks.filter((book) => {
     const diffOk = allowedDifficulties.includes(book.difficulty)
     const catOk =
-      category === 'all' || book.testament === category
+      category === 'all' || book.testament.toLowerCase() === category.toLowerCase()
     return diffOk && catOk
   })
 
