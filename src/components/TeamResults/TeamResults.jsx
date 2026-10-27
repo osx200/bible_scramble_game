@@ -4,18 +4,37 @@ import { useReactionTrigger } from '../../context/ReactionContext.jsx'
 import { WINNER_REACTION } from '../../data/reactions.js'
 import Button from '../shared/Button.jsx'
 import Confetti from '../Confetti/Confetti.jsx'
+import EndScreenLeaderboard from '../Leaderboard/EndScreenLeaderboard.jsx'
+import useLeaderboardSubmit from '../../hooks/useLeaderboardSubmit.js'
 import styles from './TeamResults.module.css'
+import Stage from '../Stage/Stage.jsx'
 
 const RANK_EMOJIS = ['🥇', '🥈', '🥉']
 const RANK_CLASSES = ['first', 'second', 'third']
 
 export default function TeamResults() {
   const { state, dispatch } = useGame()
-  const { teamStates, roundsPerTeam } = state
+  const { teamStates, roundsPerTeam, difficulty, wordSet } = state
 
   const ranked = [...teamStates].sort((a, b) => b.score - a.score)
   const winner = ranked[0]
   const hasTie = ranked.length > 1 && ranked[0].score === ranked[1].score
+
+  // Every team goes to Top Groups under its own name. The server drops
+  // non-positive scores and names it won't accept, so no filtering here.
+  const submission = useLeaderboardSubmit(() =>
+    teamStates
+      .filter((t) => t.roundResults.length > 0)
+      .map((t) => ({
+        board: 'group',
+        name: t.name,
+        score: t.score,
+        correct: t.roundResults.filter((r) => r.correct).length,
+        total: t.roundResults.length,
+        difficulty,
+        wordSet,
+      })),
+  )
 
   // The trophy is reserved for an actual win — a tie gets the screen's own
   // 🤝 celebration instead
@@ -28,7 +47,7 @@ export default function TeamResults() {
     <>
       <Confetti count={150} />
 
-      <div className={styles.wrapper}>
+      <Stage art="jonathan">
         <div className={styles.card}>
           <div className={styles.header}>
             <div className={`${styles.emoji} ${styles.trophyAnim}`}>
@@ -76,6 +95,12 @@ export default function TeamResults() {
 
           <div className={styles.divider} />
 
+          <EndScreenLeaderboard
+            submission={submission}
+            defaultBoard="group"
+            highlightNames={teamStates.map((t) => t.name)}
+          />
+
           <div className={styles.actions}>
             <Button full size="lg" onClick={() => dispatch({ type: 'REPLAY_TEAMS' })}>
               Play Again (Same Teams)
@@ -85,7 +110,7 @@ export default function TeamResults() {
             </Button>
           </div>
         </div>
-      </div>
+      </Stage>
     </>
   )
 }

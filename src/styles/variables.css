@@ -1,102 +1,108 @@
 /* ══════════════════════════════════════════════════════════════
-   MyRestStop Bible Games — "Verdigris"
-   Aged-copper green on cool limestone, with gold-leaf accents.
-   Deliberately NOT the beige + brass + espresso palette (skill
-   §4.2 premium-consumer ban): the ground is cool and stone-toned,
-   the accent is a clean saturated amber, never muddy brass.
+   Bible Games — "Lapis & Ink"
+   Lapis lazuli was the blue medieval scribes ground for illuminated
+   Bibles; ink is what the engravings are printed in. Cool stone
+   ground, blue-black ink, ONE accent (lapis). The art is Gustave
+   Doré's 1866 Bible engravings (public/art/), tinted lapis in CSS.
+
+   House rules (these are what keep it from looking generated):
+   • One accent. --color-accent* are lapis variants, not a second
+     hue. Success/danger are the only other colours, and only for state.
+   • Flat fills. --gradient-* are single colours on purpose.
+   • No coloured glows. Emphasis = solid fill or a 3px rule.
+   • Screens use the whole viewport (components/Stage); no floating
+     centred cards.
    ══════════════════════════════════════════════════════════════ */
 
 :root {
   /* ── Core palette ── */
-  --color-bg: #E7ECE6;
-  --color-bg-deep: #D7DFD6;
-  --color-card: #FAFCF9;
-  --color-surface: #F1F5F0;
-  --color-surface-sunken: #E0E7DF;
+  --color-bg: #EEF0F3;
+  --color-bg-deep: #E2E6EC;
+  --color-card: #F9FAFB;
+  --color-surface: #E6EAF0;
+  --color-surface-sunken: #DCE1E9;
 
-  --color-primary: #0D5A4E;
-  --color-primary-light: #158777;
-  --color-primary-dark: #073E35;
-  --color-primary-tint: rgba(13, 90, 78, 0.08);
-  --color-primary-tint-strong: rgba(13, 90, 78, 0.16);
+  --color-primary: #23409A;
+  --color-primary-light: #2F55C4;
+  --color-primary-dark: #182D6E;
+  --color-primary-tint: rgba(35, 64, 154, 0.07);
+  --color-primary-tint-strong: rgba(35, 64, 154, 0.14);
 
-  --color-accent: #E0A116;
-  --color-accent-light: #F5C64F;
-  /* Deep enough to clear 4.5:1 as text on --color-accent-tint over both
-     --color-card and --color-bg (the badge/pill pattern). */
-  --color-accent-dark: #7E5708;
-  --color-accent-tint: rgba(224, 161, 22, 0.14);
+  /* The single accent: lighter/darker lapis, never a second hue */
+  --color-accent: #4A68C9;
+  --color-accent-light: #93A7E3;
+  --color-accent-dark: #23409A;
+  --color-accent-tint: rgba(74, 104, 201, 0.12);
 
-  --color-success: #2F7340;
-  --color-success-light: #DFEFE2;
-  --color-danger: #B3372F;
-  --color-danger-light: #FAE6E4;
+  --color-success: #2A7449;
+  --color-success-light: #E0EFE5;
+  --color-danger: #B0302B;
+  --color-danger-light: #F6E1DF;
 
-  --color-text: #131A17;
-  --color-text-muted: #5C6862;
-  --color-text-light: #97A29C;
-  --color-border: #CFD9CD;
-  --color-border-strong: #B2C0AF;
+  --color-text: #12162A;
+  --color-text-muted: #4C5468;
+  --color-text-light: #5F667B; /* placeholders: 4.6:1, passes AA */
+  --color-border: #D3D8E1;
+  --color-border-strong: #B3BACA;
 
-  --color-tile-bg: #FAFCF9;
-  --color-tile-border: #C3D0C1;
+  --color-tile-bg: #F9FAFB;
+  --color-tile-border: #C2C9D6;
 
   /* Ink used on top of primary/accent/danger fills */
-  --color-on-primary: #FAFCF9;
-  --color-on-accent: #1C1405;
-  --color-on-danger: #FAFCF9;
+  --color-on-primary: #F9FAFB;
+  --color-on-accent: #F9FAFB;
+  --color-on-danger: #F9FAFB;
+
+  /* ── Art panel (components/Stage) ── */
+  /* Engravings are greyscale; this colour is multiplied over them */
+  --art-tint: #23409A;
+  --art-tint-strength: 0.55;
+  --art-scrim: rgba(12, 15, 26, 0.72);
+  --art-text: #F2F4F8; /* type set over the art's dark scrim, both themes */
 
   /* ── Atmosphere ── */
-  /* Stop values are tuned so --color-on-primary / --color-on-accent clear
-     4.5:1 against EVERY stop, not just the midpoint. */
-  --gradient-primary: linear-gradient(145deg, #127A6B 0%, #0D5A4E 55%, #073E35 100%);
-  --gradient-accent: linear-gradient(145deg, #F5C64F 0%, #E0A116 55%, #AD7C0D 100%);
-  --gradient-page: radial-gradient(
-      ellipse 120% 80% at 50% -10%,
-      rgba(21, 135, 119, 0.14),
-      transparent 60%
-    ),
-    radial-gradient(ellipse 90% 60% at 100% 100%, rgba(224, 161, 22, 0.11), transparent 60%);
-  /* Vellum grain — inlined SVG turbulence, no network request */
-  --texture-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.32'/%3E%3C/svg%3E");
-  --grain-opacity: 0.045;
-  --grain-blend: multiply;
+  --gradient-primary: var(--color-primary);
+  --gradient-accent: var(--color-accent);
+  --gradient-page: none;
+  --texture-grain: none;
+  --grain-opacity: 0;
+  --grain-blend: normal;
 
   /* ── Elevation ──
-     SHAPE RULE (documented, follow everywhere — skill §4.4):
-       cards & full-screen panels  → --radius-lg
+     SHAPE RULE (follow everywhere):
+       panels & cards                → --radius-lg
        buttons, inputs, letter tiles → --radius
-       chips, badges, small pills   → --radius-sm
-       avatars / icon-only round btns → --radius-full
-     Do not mix outside this rule. */
-  --radius-sm: 10px;
-  --radius: 16px;
-  --radius-lg: 26px;
+       chips, badges                 → --radius-sm
+       icon-only round buttons, dots → --radius-full */
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 16px;
   --radius-full: 999px;
-  /* Shadows are tinted to the ground hue, never pure black (skill §4.4) */
-  --shadow-sm: 0 1px 2px rgba(16, 34, 28, 0.06), 0 2px 8px rgba(16, 34, 28, 0.05);
-  --shadow: 0 2px 4px rgba(16, 34, 28, 0.06), 0 8px 22px rgba(16, 34, 28, 0.09);
-  --shadow-lg: 0 4px 8px rgba(16, 34, 28, 0.07), 0 20px 48px rgba(16, 34, 28, 0.14);
-  --shadow-primary: 0 4px 14px rgba(13, 90, 78, 0.28);
-  --shadow-accent: 0 4px 14px rgba(150, 105, 10, 0.28);
-  --ring: 0 0 0 3px rgba(21, 135, 119, 0.32);
-  --ring-accent: 0 0 0 3px rgba(224, 161, 22, 0.36);
+  /* Tinted to the ink, never pure black, never coloured */
+  --shadow-sm: 0 1px 2px rgba(18, 22, 42, 0.08);
+  --shadow: 0 1px 2px rgba(18, 22, 42, 0.06), 0 6px 18px rgba(18, 22, 42, 0.08);
+  --shadow-lg: 0 2px 6px rgba(18, 22, 42, 0.08), 0 18px 44px rgba(18, 22, 42, 0.12);
+  --shadow-primary: 0 1px 2px rgba(18, 22, 42, 0.18);
+  --shadow-accent: 0 1px 2px rgba(18, 22, 42, 0.18);
+  --ring: 0 0 0 3px rgba(47, 85, 196, 0.32);
+  --ring-accent: 0 0 0 3px rgba(74, 104, 201, 0.35);
 
-  /* ── Typography ── */
-  --font-main: 'Poppins', system-ui, sans-serif;
-  --font-display: 'Bricolage Grotesque', 'Poppins', system-ui, sans-serif;
-  --tracking-tight: -0.02em;
-  --tracking-wide: 0.06em;
-  --tracking-caps: 0.14em;
+  /* ── Typography (self-hosted, public/fonts — see global.css) ── */
+  --font-main: 'Satoshi', system-ui, sans-serif;
+  --font-display: 'Cabinet Grotesk', 'Satoshi', system-ui, sans-serif;
+  --tracking-tight: -0.025em;
+  --tracking-wide: 0.04em;
+  --tracking-caps: 0.12em;
 
   /* ── Motion ── */
-  --transition-fast: 140ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-fast: 140ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-normal: 260ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-slow: 450ms cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
 
   /* ── Layout ── */
-  --max-width: 640px;
+  --max-width: 720px;
+  --content-max: 1280px; /* full-width screens stop growing here */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;
@@ -105,62 +111,53 @@
   --spacing-2xl: 64px;
 }
 
+/* ── Dark: "night ink" ── */
 [data-theme="dark"] {
-  --color-bg: #0A100E;
-  --color-bg-deep: #060A09;
-  --color-card: #141D1B;
-  --color-surface: #1A2523;
-  --color-surface-sunken: #0F1716;
+  --color-bg: #0C0F1A;
+  --color-bg-deep: #080A12;
+  --color-card: #151A2B;
+  --color-surface: #1C2236;
+  --color-surface-sunken: #10131F;
 
-  --color-primary: #3FB8A6;
-  --color-primary-light: #6BD6C5;
-  --color-primary-dark: #1E8878;
-  --color-primary-tint: rgba(63, 184, 166, 0.12);
-  --color-primary-tint-strong: rgba(63, 184, 166, 0.22);
+  /* Lapis lifted so it reads on ink (7.4:1 on card) */
+  --color-primary: #8EA6FF;
+  --color-primary-light: #ADBEFF;
+  --color-primary-dark: #6A86E8;
+  --color-primary-tint: rgba(142, 166, 255, 0.1);
+  --color-primary-tint-strong: rgba(142, 166, 255, 0.2);
 
-  --color-accent: #EFB94F;
-  --color-accent-light: #FBD98F;
-  /* Lifted (light theme darkens, dark theme lightens) so it clears 4.5:1
-     as text on --color-accent-tint over --color-card. */
-  --color-accent-dark: #D4A134;
-  --color-accent-tint: rgba(239, 185, 79, 0.15);
+  --color-accent: #8EA6FF;
+  --color-accent-light: #ADBEFF;
+  --color-accent-dark: #ADBEFF;
+  --color-accent-tint: rgba(142, 166, 255, 0.12);
 
-  --color-success: #7BC46A;
-  --color-success-light: #12200E;
-  --color-danger: #F0705C;
-  --color-danger-light: #2A1210;
+  --color-success: #6CC48E;
+  --color-success-light: #12241A;
+  --color-danger: #F07A6E;
+  --color-danger-light: #2C1412;
 
-  --color-text: #F3EDE0;
-  --color-text-muted: #A39A8A;
-  --color-text-light: #5E5648;
-  --color-border: #27332F;
-  --color-border-strong: #3A4A45;
+  --color-text: #E9ECF5;
+  --color-text-muted: #A3AAC0;
+  --color-text-light: #8A92AB;
+  --color-border: #262C42;
+  --color-border-strong: #353D57;
 
-  --color-tile-bg: #1A2523;
-  --color-tile-border: #35443F;
+  --color-tile-bg: #1C2236;
+  --color-tile-border: #353D57;
 
-  --color-on-primary: #06100E;
-  --color-on-accent: #201607;
-  /* Dark-theme --color-danger is a light salmon, so its ink must invert to
-     near-black. A fixed #fff here would read at 2.93:1. */
-  --color-on-danger: #2B0A05;
+  --color-on-primary: #0C0F1A;
+  --color-on-accent: #0C0F1A;
+  --color-on-danger: #1E0806;
 
-  --gradient-primary: linear-gradient(145deg, #6BD6C5 0%, #3FB8A6 55%, #249688 100%);
-  --gradient-accent: linear-gradient(145deg, #FBD98F 0%, #EFB94F 55%, #C08D24 100%);
-  --gradient-page: radial-gradient(
-      ellipse 120% 80% at 50% -10%,
-      rgba(63, 184, 166, 0.14),
-      transparent 60%
-    ),
-    radial-gradient(ellipse 90% 60% at 100% 100%, rgba(239, 185, 79, 0.1), transparent 60%);
-  --grain-opacity: 0.055;
-  --grain-blend: overlay;
+  --art-tint: #1B2F78;
+  --art-tint-strength: 0.75;
+  --art-scrim: rgba(6, 8, 15, 0.8);
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.35);
-  --shadow: 0 2px 4px rgba(0, 0, 0, 0.5), 0 8px 22px rgba(0, 0, 0, 0.45);
-  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.55), 0 20px 48px rgba(0, 0, 0, 0.6);
-  --shadow-primary: 0 4px 14px rgba(63, 184, 166, 0.24);
-  --shadow-accent: 0 4px 14px rgba(239, 185, 79, 0.22);
-  --ring: 0 0 0 3px rgba(63, 184, 166, 0.4);
-  --ring-accent: 0 0 0 3px rgba(239, 185, 79, 0.4);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 18px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 2px 6px rgba(0, 0, 0, 0.45), 0 18px 44px rgba(0, 0, 0, 0.5);
+  --shadow-primary: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-accent: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --ring: 0 0 0 3px rgba(142, 166, 255, 0.4);
+  --ring-accent: 0 0 0 3px rgba(142, 166, 255, 0.4);
 }

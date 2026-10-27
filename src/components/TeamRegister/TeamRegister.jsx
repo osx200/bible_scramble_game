@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useGame } from '../../context/GameContext.jsx'
+import { usePlayer } from '../../context/PlayerContext.jsx'
 import Button from '../shared/Button.jsx'
 import styles from './TeamRegister.module.css'
+import Stage from '../Stage/Stage.jsx'
 
 const DEFAULT_COLORS = ['#4A6FA5', '#E74C3C', '#2ECC71', '#F39C12', '#9B59B6', '#1ABC9C']
 const MAX_TEAMS = 6
@@ -17,7 +19,13 @@ function makeTeam(index) {
 
 export default function TeamRegister() {
   const { dispatch } = useGame()
-  const [teams, setTeams] = useState([makeTeam(0), makeTeam(1)])
+  const { profile } = usePlayer()
+  // A group profile is most likely one of the teams, so start it off first
+  const [teams, setTeams] = useState(() => {
+    const first = makeTeam(0)
+    if (profile.kind === 'group') first.name = profile.name
+    return [first, makeTeam(1)]
+  })
   const [error, setError] = useState('')
 
   function updateName(id, name) {
@@ -54,10 +62,9 @@ export default function TeamRegister() {
   }
 
   return (
-    <div className={styles.wrapper}>
+    <Stage art="joshua">
       <div className={styles.card}>
         <div className={styles.header}>
-          <div className={styles.emoji}>👥</div>
           <h1 className={styles.title}>Register Teams</h1>
           <p className={styles.subtitle}>
             {MIN_TEAMS}-{MAX_TEAMS} teams · Each team plays {10} rounds
@@ -124,6 +131,6 @@ export default function TeamRegister() {
           </Button>
         </div>
       </div>
-    </div>
+    </Stage>
   )
 }

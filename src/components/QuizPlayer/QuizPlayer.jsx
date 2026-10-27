@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react'
+import { usePlayer } from '../../context/PlayerContext.jsx'
 import { useReactionTrigger } from '../../context/ReactionContext.jsx'
 import { WINNER_REACTION } from '../../data/reactions.js'
 import Button from '../shared/Button.jsx'
 import styles from './QuizPlayer.module.css'
+import Stage from '../Stage/Stage.jsx'
 
 export default function QuizPlayer({ questions, onBack }) {
   const { triggerReaction, triggerRandomReaction } = useReactionTrigger()
+  const { profile } = usePlayer()
   const [index, setIndex] = useState(0)
   const [showAnswer, setShowAnswer] = useState(false)
   const [scores, setScores] = useState(() => questions.map(() => null)) // null | 'correct' | 'wrong'
@@ -64,13 +67,14 @@ export default function QuizPlayer({ questions, onBack }) {
     const pct = answered > 0 ? Math.round((correct / answered) * 100) : 0
 
     return (
-      <div className={styles.wrapper}>
+      <Stage>
         <div className={styles.card}>
           <div className={styles.summaryHeader}>
             <div className={`${styles.summaryEmoji} ${pct >= 80 ? styles.summaryEmojiWinner : ''}`}>
               {pct >= 80 ? '🏆' : pct >= 50 ? '🎉' : '📖'}
             </div>
             <h1 className={styles.summaryTitle}>Quiz Complete!</h1>
+            <p className={styles.summaryPlayer}>Great work, <strong>{profile.name}</strong>!</p>
             {answered > 0 && (
               <p className={styles.summaryScore}>{pct}% correct</p>
             )}
@@ -126,13 +130,13 @@ export default function QuizPlayer({ questions, onBack }) {
             </div>
           </div>
         </div>
-      </div>
+      </Stage>
     )
   }
 
   // ── Active question ───────────────────────────────────────
   return (
-    <div className={styles.wrapper}>
+    <Stage>
       <div className={styles.card}>
 
         {/* Top bar */}
@@ -264,6 +268,6 @@ export default function QuizPlayer({ questions, onBack }) {
         </div>
 
       </div>
-    </div>
+    </Stage>
   )
 }

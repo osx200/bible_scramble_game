@@ -20,9 +20,9 @@ function vocabularyFor(wordSetId) {
   if (VOCABULARIES[wordSetId]) return VOCABULARIES[wordSetId]
 
   const ws = getWordSet(wordSetId)
-  const names = ws.id === 'books'
-    ? [...ws.data.map(e => e.name), ...CANONICAL_BOOKS.map(b => b.name)]
-    : ws.data.map(e => e.name)
+  // Couples entries hold both spouses — either can be the answer
+  const own = ws.data.flatMap(e => e.spouses ?? [e.name])
+  const names = ws.includesBooks ? [...own, ...CANONICAL_BOOKS.map(b => b.name)] : own
 
   const map = new Map()
   names.forEach(name => map.set(name.toLowerCase(), name))
@@ -124,13 +124,20 @@ function fuzzyMatch(input, ws) {
  */
 export function matchSpokenBook(transcript, wordSetId = DEFAULT_WORD_SET) {
   const ws = getWordSet(wordSetId)
-  const stripped = stripPrefix(cleanTranscript(transcript), ws)
   // Only books are numbered — "too" → "2" would just mangle a prophet's name
-  const cleaned = ws.numberedNames ? digitsForWords(stripped) : stripped
-  if (!cleaned) return null
+  const numbered = (s) => (ws.numberedNames ? digitsForWords(s) : s)
+  const vocabulary = vocabularyFor(ws.id)
+  const lookup = (s) => vocabulary.get(s) ?? (ws.includesBooks ? matchBookName(s) : null)
 
-  const direct = vocabularyFor(ws.id).get(cleaned)
-    ?? (ws.id === 'books' ? matchBookName(cleaned) : null)
+  // The whole phrase first, so a name that happens to begin with one of the
+  // set's filler prefixes is never cut down to a different, shorter name
+  const whole = numbered(cleanTranscript(transcript))
+  if (!whole) return null
+  const wholeHit = lookup(whole)
+  if (wholeHit) return { name: wholeHit, exact: true }
+
+  const cleaned = numbered(stripPrefix(cleanTranscript(transcript), ws))
+  const direct = lookup(cleaned)
   if (direct) return { name: direct, exact: true }
 
   const fuzzy = fuzzyMatch(cleaned, ws)
@@ -156,4 +163,68 @@ export function resolveSpokenAnswer(transcripts, wordSetId = DEFAULT_WORD_SET) {
   if (fuzzy) return { text: fuzzy.name, matched: true, exact: false }
 
   return { text: cleanTranscript(list[0]), matched: false, exact: false }
+}
+
+// ── Book Recall: several books in one breath ─────────────────────────────
+
+// Only number words that can't be anything else. resolveSpokenAnswer also
+// accepts "to"/"too"/"won" for 2/1, which is right for a single answer but
+// would turn "…and then to John" into 2 John in a running list.
+const STRICT_NUMBERS = {
+  one: '1', first: '1', '1st': '1', '1': '1',
+  two: '2', second: '2', '2nd': '2', '2': '2',
+  three: '3', third: '3', '3rd': '3', '3': '3',
+}
+const LONGEST_BOOK_PHRASE = 5 // "the song of songs", "second letter to the …"
+
+function exactCanonicalBook(words) {
+  const [first, ...rest] = words
+  const numbered = rest.length && STRICT_NUMBERS[first]
+    ? [STRICT_NUMBERS[first], ...rest].join(' ')
+    : words.join(' ')
+  // Canonical names and aliases first ("psalm", "song of songs", "1 jn"),
+  // then the scramble vocabulary for anything spelled the way the engine
+  // writes it — always returned as the canonical 66-book name
+  const direct = matchBookName(numbered)
+  if (direct) return direct
+  const vocab = vocabularyFor('books').get(numbered)
+  return vocab ? matchBookName(vocab) : null
+}
+
+/**
+ * Every Bible book named in one spoken phrase, in the order said:
+ * "genesis exodus leviticus" → ['Genesis', 'Exodus', 'Leviticus'].
+ *
+ * Scans word windows longest-first, so "first john" wins over "john" and
+ * "song of solomon" is read as one book. Filler ("and", "um", "the book of")
+ * simply never matches and is skipped. Exact matches only — a fuzzy guess
+ * inside a running list would invent books nobody said.
+ *
+ * Takes the engine's ranked alternatives and keeps whichever yields the most
+ * books. Returns canonical names (canonicalBooks.js), de-duplicated.
+ */
+export function extractSpokenBooks(transcripts) {
+  const list = (Array.isArray(transcripts) ? transcripts : [transcripts]).filter(Boolean)
+  let best = []
+
+  for (const t of list) {
+    const words = cleanTranscript(t).split(' ').filter(Boolean)
+    const found = []
+    let i = 0
+    while (i < words.length) {
+      let matched = 0
+      for (let len = Math.min(LONGEST_BOOK_PHRASE, words.length - i); len >= 1; len--) {
+        const book = exactCanonicalBook(words.slice(i, i + len))
+        if (book) {
+          found.push(book)
+          matched = len
+          break
+        }
+      }
+      i += matched || 1
+    }
+    if (found.length > best.length) best = found
+  }
+
+  return [...new Set(best)]
 }

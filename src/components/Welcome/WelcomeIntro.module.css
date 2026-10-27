@@ -1,0 +1,167 @@
+/* ── Purpose + verse ── */
+.intro {
+  margin-bottom: var(--spacing-xl);
+}
+
+.purpose {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--color-text);
+  text-wrap: pretty;
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Scripture card: brass rule down the left on a flat paper tint */
+.verse {
+  position: relative;
+  margin: 0;
+  padding: var(--spacing-md) var(--spacing-lg) var(--spacing-md) calc(var(--spacing-lg) + 4px);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 30%, var(--color-border));
+  overflow: hidden;
+  animation: fadeSlideUp 0.45s 0.15s ease both;
+}
+
+.verse::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 4px;
+  background: var(--gradient-accent);
+}
+
+/* Oversized opening quote mark as a watermark */
+.verse::after {
+  content: '“';
+  position: absolute;
+  top: -0.18em;
+  right: var(--spacing-sm);
+  font-family: var(--font-display);
+  font-size: 6rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--color-accent);
+  opacity: 0.18;
+  pointer-events: none;
+}
+
+.verseText {
+  position: relative;
+  font-size: 0.95rem;
+  font-style: italic;
+  line-height: 1.65;
+  color: var(--color-text);
+  text-wrap: pretty;
+}
+
+.verseRef {
+  margin-top: var(--spacing-sm);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--color-accent-dark);
+}
+
+/* ── Contact + disclaimer ── */
+.footer {
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.contact {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--color-text-muted);
+}
+
+.contactEmoji {
+  font-size: 1.1rem;
+  line-height: 1.3;
+  flex-shrink: 0;
+}
+
+.contactLink {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: var(--color-primary-tint-strong);
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+  transition: text-decoration-color var(--transition-fast);
+}
+
+@media (hover: hover) {
+  .contactLink:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+.disclaimer {
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}
+
+.disclaimer strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+/* ── The verse set over the artwork (Stage artOverlay) ── */
+.verseOnArt {
+  margin: 0;
+  max-width: 34ch;
+}
+
+.verseOnArt .verseText {
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 1.6vw, 1.5rem);
+  font-weight: 700;
+  font-style: normal;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: inherit;
+}
+
+.verseOnArt .verseRef {
+  margin-top: var(--spacing-md);
+  color: inherit;
+  opacity: 0.8;
+}
+
+/* In the content column only where the art is too small to carry it */
+.phoneOnly {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .phoneOnly {
+    display: block;
+  }
+}
+
+@media (max-width: 700px) {
+  .purpose {
+    font-size: 0.95rem;
+  }
+
+  .verse {
+    padding: var(--spacing-md) var(--spacing-md) var(--spacing-md) calc(var(--spacing-md) + 4px);
+  }
+
+  .verseText {
+    font-size: 0.9rem;
+  }
+}

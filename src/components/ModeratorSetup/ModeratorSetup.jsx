@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useAppMode } from '../../context/AppModeContext.jsx'
 import styles from './ModeratorSetup.module.css'
+import Stage from '../Stage/Stage.jsx'
 
 const CATEGORIES   = [{ value: 'all', label: 'All Books' }, { value: 'ot', label: 'Old Testament' }, { value: 'nt', label: 'New Testament' }]
 const DIFFICULTIES = [{ value: 'easy', label: 'Easy' }, { value: 'medium', label: 'Medium' }, { value: 'hard', label: 'Hard' }]
 const COUNTS       = [5, 10, 15, 20]
-const TIMERS       = [{ value: 15, label: '15 s' }, { value: 30, label: '30 s' }, { value: 45, label: '45 s' }, { value: 60, label: '1 min' }, { value: 90, label: '90 s' }]
+export const TIMERS = [{ value: 15, label: '15 s' }, { value: 30, label: '30 s' }, { value: 45, label: '45 s' }, { value: 60, label: '1 min' }, { value: 90, label: '90 s' }]
 
 export default function ModeratorSetup({ onStart }) {
   const { setAppMode } = useAppMode()
@@ -15,7 +16,7 @@ export default function ModeratorSetup({ onStart }) {
   const [timer,      setTimer]      = useState(30)
 
   return (
-    <div className={styles.wrapper}>
+    <Stage art="ezra">
       <div className={styles.card}>
 
         <div className={styles.header}>
@@ -23,7 +24,6 @@ export default function ModeratorSetup({ onStart }) {
             ← Back to Menu
           </button>
           <div className={styles.titleRow}>
-            <span className={styles.emoji}>🎙</span>
             <h1 className={styles.title}>Moderator View</h1>
           </div>
           <p className={styles.subtitle}>
@@ -100,6 +100,6 @@ export default function ModeratorSetup({ onStart }) {
         </button>
 
       </div>
-    </div>
+    </Stage>
   )
 }

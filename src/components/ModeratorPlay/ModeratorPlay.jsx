@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useReactionTrigger, useActiveReaction } from '../../context/ReactionContext.jsx'
 import { REACTIONS } from '../../data/reactions.js'
 import styles from './ModeratorPlay.module.css'
+import Stage from '../Stage/Stage.jsx'
 
 function formatTime(s) {
   const m = Math.floor(s / 60)
@@ -9,12 +10,14 @@ function formatTime(s) {
   return m > 0 ? `${m}:${sec.toString().padStart(2, '0')}` : `${sec}s`
 }
 
-export default function ModeratorPlay({ config, onBack }) {
+// backLabel — the Quiz & Scramble Builder reuses this screen for custom words
+export default function ModeratorPlay({ config, onBack, backLabel = '← Setup', showReactions = true }) {
   const { words, timerDuration } = config
   const total = words.length
 
   const [index,         setIndex]         = useState(0)
   const [showAnswer,    setShowAnswer]    = useState(false)
+  const [showClue,      setShowClue]      = useState(false)
   const [running,       setRunning]       = useState(false)
   const [maxTime,       setMaxTime]       = useState(timerDuration)
   const [timeRemaining, setTimeRemaining] = useState(timerDuration)
@@ -68,6 +71,7 @@ export default function ModeratorPlay({ config, onBack }) {
     clearInterval(intervalRef.current)
     setIndex(nextIndex)
     setShowAnswer(false)
+    setShowClue(false)
     setRunning(false)
     setTimeRemaining(maxTime)
   }
@@ -78,12 +82,12 @@ export default function ModeratorPlay({ config, onBack }) {
   const timerDone = timeUp
 
   return (
-    <div className={styles.wrapper}>
+    <Stage>
       <div className={styles.card}>
 
         {/* ── Top bar ── */}
         <div className={styles.topBar}>
-          <button className={styles.backBtn} onClick={onBack} type="button">← Setup</button>
+          <button className={styles.backBtn} onClick={onBack} type="button">{backLabel}</button>
           <span className={styles.progress}>
             Word <strong>{index + 1}</strong> / {total}
           </span>
@@ -94,6 +98,21 @@ export default function ModeratorPlay({ config, onBack }) {
         <div className={styles.scrambledTile}>
           <span className={styles.scrambledText}>{word.scrambled}</span>
         </div>
+
+        {/* ── Clue (custom words from the builder only) ── */}
+        {word.clue && (
+          <div className={styles.clueRow}>
+            {showClue ? (
+              <p className={styles.clueText}>
+                <span className={styles.clueLabel}>Clue</span> {word.clue}
+              </p>
+            ) : (
+              <button className={styles.clueBtn} onClick={() => setShowClue(true)} type="button">
+                Show clue
+              </button>
+            )}
+          </div>
+        )}
 
         {/* ── Answer + Timer row ── */}
         <div className={styles.midRow}>
@@ -142,24 +161,27 @@ export default function ModeratorPlay({ config, onBack }) {
           >STOP</button>
         </div>
 
-        {/* ── Reactions ── */}
-        <div className={styles.reactionsSection}>
-          <span className={styles.reactionsLabel}>Reactions</span>
-          <div className={styles.reactionBtns}>
-            {REACTIONS.map(r => (
-              <button
-                key={r.type}
-                type="button"
-                className={`${styles.reactionBtn} ${reaction?.type === r.type ? styles.reactionBtnActive : ''}`}
-                onClick={() => triggerReaction(r.type)}
-                title={r.label}
-              >
-                <span className={styles.reactionEmoji}>{r.emoji}</span>
-                <span className={styles.reactionLabel}>{r.label}</span>
-              </button>
-            ))}
+        {/* ── Reactions ── (the builder hides this: the app's floating picker
+            is already on screen there, so two panels would compete) */}
+        {showReactions && (
+          <div className={styles.reactionsSection}>
+            <span className={styles.reactionsLabel}>Reactions</span>
+            <div className={styles.reactionBtns}>
+              {REACTIONS.map(r => (
+                <button
+                  key={r.type}
+                  type="button"
+                  className={`${styles.reactionBtn} ${reaction?.type === r.type ? styles.reactionBtnActive : ''}`}
+                  onClick={() => triggerReaction(r.type)}
+                  title={r.label}
+                >
+                  <span className={styles.reactionEmoji}>{r.emoji}</span>
+                  <span className={styles.reactionLabel}>{r.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* ── Navigation ── */}
         <div className={styles.navigation}>
@@ -181,6 +203,6 @@ export default function ModeratorPlay({ config, onBack }) {
         </div>
 
       </div>
-    </div>
+    </Stage>
   )
 }

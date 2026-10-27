@@ -5,10 +5,13 @@ export default function CategorySelector() {
   const { state, dispatch } = useGame()
   const wordSet = useWordSet()
 
+  // Couples is too small to split by testament
+  if (wordSet.categoryFilter === false) return null
+
   const OPTIONS = [
     { value: 'all', label: wordSet.allLabel },
-    { value: 'OT',  label: 'Old Testament' },
-    { value: 'NT',  label: 'New Testament' },
+    { value: 'OT',  label: wordSet.categories.OT },
+    { value: 'NT',  label: wordSet.categories.NT },
   ]
 
   return (

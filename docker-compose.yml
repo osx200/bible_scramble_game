@@ -6,3 +6,27 @@ services:
     ports:
       - "127.0.0.1:8080:80"
     restart: unless-stopped
+    # nginx proxies /api/ to this service. Not a hard requirement — nginx.conf
+    # resolves `api` lazily, so the game still loads if the API is down.
+    depends_on:
+      - api
+
+  # Monthly leaderboard API. No published ports: only reachable through the
+  # bible-scramble container's nginx at /api/.
+  api:
+    build: ./server
+    container_name: bible-scramble-api
+    restart: unless-stopped
+    environment:
+      # Set in a .env file next to this one to enable admin deletes:
+      #   ADMIN_TOKEN=some-long-random-string
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-}
+      # Timezone whose midnight on the 1st starts a new monthly board
+      BOARD_TZ: ${BOARD_TZ:-UTC}
+    volumes:
+      - leaderboard-data:/data
+
+volumes:
+  # Holds leaderboard.db — survives `docker compose down` and rebuilds.
+  # Only `docker compose down -v` deletes it.
+  leaderboard-data:

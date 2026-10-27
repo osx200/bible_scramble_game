@@ -10,7 +10,7 @@
 .card {
   position: relative;
   width: 100%;
-  max-width: 680px;
+  max-width: 760px;
   background: var(--color-card);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
@@ -22,18 +22,20 @@
 .card::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 10%;
-  right: 10%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
-  opacity: 0.55;
+  top: 10px;
+  left: 24px;
+  right: 24px;
+  height: 4px;
+  /* Brass double rule, like the top of a printed page */
+  border-top: 1px solid var(--color-accent);
+  border-bottom: 1px solid var(--color-accent);
+  opacity: 0.5;
   pointer-events: none;
 }
 
 /* ── Header ── */
 .header {
-  text-align: center;
+  text-align: left;
   margin-bottom: var(--spacing-lg);
 }
 
@@ -66,31 +68,82 @@
   background: var(--color-primary-tint);
 }
 
-.titleRow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-sm);
+/* Small brass caps line above the title, as on Menu */
+.eyebrow {
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-accent-dark);
   margin-bottom: var(--spacing-sm);
-}
-
-.emoji {
-  font-size: 2.2rem;
-  line-height: 1;
 }
 
 .title {
   font-family: var(--font-display);
   font-size: 2rem;
   font-weight: 800;
-  color: var(--color-primary);
+  color: var(--color-text);
   line-height: 1.1;
+  margin-bottom: var(--spacing-sm);
 }
 
 .subtitle {
   font-size: 0.9rem;
   color: var(--color-text-muted);
   line-height: 1.5;
+  max-width: 58ch;
+  text-wrap: pretty;
+}
+
+/* ── Quiz | Scramble tabs ── */
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs);
+  margin-bottom: var(--spacing-lg);
+  background: var(--color-surface-sunken);
+  border-radius: var(--radius);
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: 11px 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  transition: background-color var(--transition-fast), color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+@media (hover: hover) {
+  .tab:hover:not(.tabActive) {
+    color: var(--color-primary);
+  }
+}
+
+.tabActive {
+  background: var(--color-card);
+  color: var(--color-primary);
+  box-shadow: var(--shadow-sm), inset 0 -3px 0 var(--color-primary);
+}
+
+.tabCount {
+  min-width: 1.6em;
+  padding: 0 6px;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-tint-strong);
+  color: var(--color-primary);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .divider {
@@ -128,6 +181,162 @@
   font-family: var(--font-main);
   font-size: 0.75rem;
   font-weight: 700;
+}
+
+.clearBtn {
+  padding: 4px 10px;
+  border: none;
+  background: none;
+  font-family: var(--font-main);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-danger);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ── Scramble: three fields in a row (word | clue | difficulty) ── */
+.fieldRow3 {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr 0.8fr;
+  gap: var(--spacing-md);
+}
+
+/* ── Scramble word list ── */
+.wordGrid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--spacing-sm);
+}
+
+.wordItem {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  padding: 10px 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  animation: fadeSlideUp 0.25s ease both;
+}
+
+.wordContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.wordName {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.wordClue {
+  margin-top: 2px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--color-text-muted);
+}
+
+.diffTag {
+  padding: 0 6px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-main);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  border: 1px solid currentColor;
+}
+
+.diff1 { color: var(--color-success); }
+.diff2 { color: var(--color-accent-dark); }
+.diff3 { color: var(--color-danger); }
+
+/* ── Scramble round settings ── */
+.playSettings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.settingGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-card);
+  font-family: var(--font-main);
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.pill:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (hover: hover) {
+  .pill:hover:not(:disabled):not(.pillActive) {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+}
+
+.pillActive {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.pillCount {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  font-variant-numeric: tabular-nums;
+}
+
+.checkRow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: 0.9rem;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.checkRow input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primary);
 }
 
 /* ── Form ── */
@@ -368,8 +577,13 @@
     font-size: 1.6rem;
   }
 
-  .fieldRow {
+  .fieldRow,
+  .fieldRow3 {
     grid-template-columns: 1fr;
+  }
+
+  .playSettings {
+    padding: var(--spacing-md);
   }
 
   .formActions {

@@ -78,6 +78,16 @@
   color: var(--color-text-muted);
 }
 
+.playerTag {
+  display: block;
+  max-width: 14ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-primary);
+  letter-spacing: var(--tracking-wide);
+}
+
 .roundNumber {
   font-family: var(--font-display);
   font-size: 1.4rem;
@@ -105,7 +115,7 @@
 /* ── 3-column body ── */
 .body {
   display: grid;
-  grid-template-columns: 160px 1fr 180px;
+  grid-template-columns: minmax(160px, 13vw) 1fr minmax(180px, 15vw);
   flex: 1;
 }
 
@@ -158,8 +168,9 @@
 .center {
   display: flex;
   flex-direction: column;
-  padding: var(--spacing-xl);
-  gap: var(--spacing-md);
+  justify-content: center; /* the scramble sits mid-screen, not at the top */
+  padding: var(--spacing-xl) clamp(24px, 4vw, 72px);
+  gap: var(--spacing-lg);
 }
 
 .divider {

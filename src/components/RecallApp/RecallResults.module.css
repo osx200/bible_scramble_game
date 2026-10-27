@@ -26,12 +26,14 @@
 .card::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 10%;
-  right: 10%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
-  opacity: 0.55;
+  top: 10px;
+  left: 24px;
+  right: 24px;
+  height: 4px;
+  /* Brass double rule, like the top of a printed page */
+  border-top: 1px solid var(--color-accent);
+  border-bottom: 1px solid var(--color-accent);
+  opacity: 0.5;
   pointer-events: none;
 }
 
@@ -65,7 +67,6 @@
 
 .scoreNumWinner {
   color: var(--color-accent-dark);
-  text-shadow: 0 0 24px var(--color-accent-tint);
 }
 
 .scoreTotal {
@@ -79,6 +80,16 @@
   font-weight: 600;
   color: var(--color-text-muted);
   margin-bottom: var(--spacing-sm);
+}
+
+.scorePlayer {
+  margin-top: var(--spacing-xs);
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.scorePlayer strong {
+  color: var(--color-primary);
 }
 
 .scoreMsg {

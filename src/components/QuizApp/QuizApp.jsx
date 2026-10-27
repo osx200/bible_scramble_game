@@ -2,40 +2,50 @@ import { useState } from 'react'
 import { useAppMode } from '../../context/AppModeContext.jsx'
 import QuizBuilder from '../QuizBuilder/QuizBuilder.jsx'
 import QuizPlayer from '../QuizPlayer/QuizPlayer.jsx'
+import ModeratorPlay from '../ModeratorPlay/ModeratorPlay.jsx'
 
-function uid() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2)
-}
-
+/**
+ * Quiz & Scramble Builder. Owns the session's questions and words in plain
+ * component state — deliberately never localStorage or the server. Leaving to
+ * the menu unmounts this component, which is what discards the session.
+ */
 export default function QuizApp() {
   const { setAppMode } = useAppMode()
-  const [quizPhase, setQuizPhase] = useState('builder') // 'builder' | 'player'
+  const [phase, setPhase] = useState('builder') // 'builder' | 'quiz' | 'scramble'
+  const [tab, setTab] = useState('quiz') // builder tab: 'quiz' | 'scramble'
   const [questions, setQuestions] = useState([])
+  const [words, setWords] = useState([])
+  const [scrambleConfig, setScrambleConfig] = useState(null)
 
-  function addQuestion(q) {
-    setQuestions(prev => [...prev, { ...q, id: uid() }])
+  if (phase === 'quiz') {
+    return <QuizPlayer questions={questions} onBack={() => setPhase('builder')} />
   }
 
-  function removeQuestion(id) {
-    setQuestions(prev => prev.filter(q => q.id !== id))
-  }
-
-  if (quizPhase === 'player') {
+  if (phase === 'scramble') {
     return (
-      <QuizPlayer
-        questions={questions}
-        onBack={() => setQuizPhase('builder')}
+      <ModeratorPlay
+        config={scrambleConfig}
+        onBack={() => setPhase('builder')}
+        backLabel="← Builder"
+        showReactions={false}
       />
     )
   }
 
   return (
     <QuizBuilder
+      tab={tab}
+      onTabChange={setTab}
       questions={questions}
-      onAdd={addQuestion}
-      onRemove={removeQuestion}
-      onStart={() => setQuizPhase('player')}
-      onBackToScramble={() => setAppMode('scramble')}
+      onQuestionsChange={setQuestions}
+      words={words}
+      onWordsChange={setWords}
+      onStartQuiz={() => setPhase('quiz')}
+      onStartScramble={(config) => {
+        setScrambleConfig(config)
+        setPhase('scramble')
+      }}
+      onBack={() => setAppMode('scramble')}
     />
   )
 }

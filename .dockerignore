@@ -9,3 +9,4 @@ certs
 *.log
 npm-debug.log*
 skills-lock.json
+server

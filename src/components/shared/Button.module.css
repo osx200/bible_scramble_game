@@ -61,24 +61,6 @@
   }
 }
 
-/* Gold-leaf sheen — fires on hover only, so it reads as feedback rather
-   than as an idle infinite loop (skill §5 "motion must be motivated"). */
-.accent::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 32%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
-  transform: translateX(-120%) skewX(-18deg);
-  pointer-events: none;
-}
-@media (hover: hover) {
-  .accent:hover:not(:disabled)::after {
-    animation: sheen 720ms ease-out;
-  }
-}
-
 .ghost {
   background-color: transparent;
   border-color: var(--color-border-strong);
@@ -118,10 +100,4 @@
 
 .full {
   width: 100%;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .accent:hover:not(:disabled)::after {
-    animation: none;
-  }
 }

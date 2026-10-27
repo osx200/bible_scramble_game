@@ -1,0 +1,353 @@
+BIBLE GAMES - FULL BUILD PROMPT
+================================
+
+Use this prompt to rebuild, extend or brief someone on the Bible Games app exactly as it
+exists today. It describes the purpose, every game mode, the rules, the data, the design
+system, the backend and the deployment.
+
+
+1. PURPOSE AND AUDIENCE
+-----------------------
+Build "Bible Games": a web app that keeps church fellowship meetings lively and engaging
+while keeping hearts and minds focused on God. It is played by individuals on their phones
+and by groups around a laptop, TV or projector, often with a moderator running the session.
+
+Anchor verse (shown on the welcome page, King James Version, public domain):
+  "And let us consider one another to provoke unto love and to good works: Not forsaking
+  the assembling of ourselves together, as the manner of some is; but exhorting one
+  another: and so much the more, as ye see the day approaching." Hebrews 10:24-25 (KJV)
+
+Contact for suggestions: bible-games@proton.me
+
+Disclaimer (shown on the welcome page and the About view):
+  Bible Games is a free, independent resource for fellowship and personal study, and is
+  not affiliated with any church or denomination. It is meant to support Bible reading,
+  not replace it. Names you enter may appear on the public monthly leaderboard, so please
+  avoid full names or personal details, especially for children. Scripture quoted from the
+  King James Version (public domain).
+
+
+2. TECH STACK AND CONSTRAINTS
+-----------------------------
+- React 18 + Vite 5, plain JavaScript (JSX). No router: navigation is state-driven.
+- CSS Modules for every component, all colours/spacing/radii as CSS custom properties in
+  one tokens file. Never hardcode colours.
+- No UI library. No icon library. Emoji are NOT used as interface icons (only for
+  celebrations and results).
+- Backend: a tiny Node 24 HTTP server using only built-ins (node:http + node:sqlite).
+  Zero npm dependencies on the server.
+- Do not use crypto.randomUUID (the app may run over plain HTTP). Use:
+    uid = Date.now().toString(36) + Math.random().toString(36).slice(2)
+- Mobile-first: test at 390px wide. Use 100dvh, never 100vh. Inputs at least 16px font so
+  iOS does not zoom. Hover effects only inside @media (hover: hover).
+- Respect prefers-reduced-motion. Full keyboard focus styles.
+- Light and dark theme, toggled by a round button (top-right), saved in localStorage.
+
+
+3. FIRST RUN: WELCOME PAGE AND PLAYER PROFILE
+---------------------------------------------
+- On first visit the app shows a Welcome page instead of any game.
+- It contains: the "Welcome" label, the title "Bible Games", a short purpose paragraph,
+  the Hebrews 10:24-25 verse, a "Who's playing?" form, the suggestions email and the
+  disclaimer.
+- Form: choose Individual or Group (segmented toggle), then a name (2 to 24 characters,
+  whitespace collapsed, control characters stripped). Button: "Let's Play".
+- The profile { name, kind: 'individual' | 'group' } is saved in localStorage ("player").
+- The name personalises the whole app. There is no fixed product brand:
+    - Individuals get a possessive: "Kwame's Bible Games", "James' Bible Games".
+    - Groups use the plain name: "Grace Fellowship Bible Games".
+    - Browser tab title follows the same rule ("Bible Games" before a name is set).
+- The home menu shows the name as a small caps line above a huge "Bible Games" wordmark,
+  a "Welcome back! Choose a game to get started." line, and a "Playing as a group /
+  an individual - Change" chip that reopens a compact name form (with Cancel).
+- The name also appears on the solo game board, Game Over ("Well done, NAME!"), Recall
+  results, the Quiz summary, and pre-fills Team 1 when the profile is a group.
+- An "About and suggestions" link on the menu reopens the purpose, verse, email and
+  disclaimer.
+
+
+4. HOME MENU
+------------
+A table-of-contents style list (not a grid of tiles). Each row: big title, one-line
+description, arrow. Rows:
+  1. Word Unscramble - "Unscramble books, prophets, disciples and Bible couples. Solo or
+     teams, three difficulty levels."
+  2. Book Recall - "Name as many books of the Bible as you can before the timer runs out."
+  3. Moderator View - "Host a live group session - reveal answers on demand with reactions."
+  4. Quiz & Scramble Builder - "Make your own quiz or word scramble, typed in or uploaded
+     from Excel, and host it for your group."
+Below the list, a solid accent-coloured bar: "Monthly Leaderboard - Top 5 players and
+groups. Resets on the 1st." Then the "About and suggestions" link.
+
+
+5. GAME MODE 1: WORD UNSCRAMBLE (the main game)
+-----------------------------------------------
+Flow: choose a word set -> setup -> play -> results.
+
+5a. Word sets (four)
+  - Bible Books: the names of the books of the Bible (numbered books keep their number,
+    e.g. "1 Samuel"; numbers are required when answering).
+  - Prophets & Disciples: Old and New Testament prophets (about 49) plus the Twelve,
+    Matthias and Paul: Peter, Andrew, James, John, Thomas, Matthew, Paul (easy);
+    Bartholomew, Thaddaeus, Matthias, Judas Iscariot (medium); Simon the Zealot,
+    James son of Alphaeus (hard). Philip appears once even though he is on both lists.
+  - Biblical Couples: one spouse is shown, players unscramble the other, e.g.
+    "MOSES & ________" with the missing name as scrambled tiles. Which spouse is shown is
+    random each round ("________ & ZIPPORAH" also happens). The underscores match the
+    answer's length. Hint line: "Unscramble the name of Moses' spouse". After answering,
+    feedback and results show the whole pair ("Moses & Zipporah"). 36 pairs:
+      Easy: Adam & Eve, Abraham & Sarah, Isaac & Rebekah, Jacob & Rachel, Boaz & Ruth,
+        Moses & Zipporah, Elkanah & Hannah, David & Bathsheba, Ahab & Jezebel,
+        Joseph & Mary, Zechariah & Elizabeth, Aquila & Priscilla
+      Medium: Jacob & Leah, David & Michal, David & Abigail, Hosea & Gomer,
+        Ananias & Sapphira, Xerxes & Esther, Joseph & Asenath, Amram & Jochebed,
+        Elimelech & Naomi, Nabal & Abigail, Salmon & Rahab, Herod & Herodias
+      Hard: Aaron & Elisheba, Heber & Jael, Lappidoth & Deborah, Abraham & Keturah,
+        Mahlon & Ruth, Jehoiada & Jehosheba, Felix & Drusilla, Xerxes & Vashti,
+        Uriah & Bathsheba, Lamech & Adah, Esau & Judith, Er & Tamar
+    Couples has no Old/New Testament filter (too few NT couples).
+  - Grand Mix: Books + Prophets & Disciples + Couples in one pool (duplicates such as
+    Amos the book and Amos the prophet appear once; "Ruth" the book and "Boaz & Ruth"
+    both stay). Couple rounds show their prompt inside the mix.
+  Every entry has: name, testament (OT/NT), difficulty (1 easy, 2 medium, 3 hard),
+  wordCount. Keep each (category x difficulty) pool at 10+ entries so teams do not
+  repeat names.
+
+5b. Setup
+  - Game mode: Solo or Teams.
+  - Difficulty: Easy / Medium / Hard. Difficulty is cumulative when drawing words
+    (Hard includes easy and medium words).
+  - Category: All / Old Testament / New Testament (hidden for Couples).
+  - Seconds per round: slider 5 to 120 with -/+ buttons. Defaults: Easy 45s, Medium 30s,
+    Hard 20s.
+  - Button: "Start Game" (solo) or "Set Up Teams" (teams).
+
+5c. Scrambling
+  - Each word is scrambled separately with Fisher-Yates, numeric prefixes kept in place,
+    retried up to 10 times so the scramble never equals the original.
+  - Letters appear as large tiles that scale with the screen (big enough for a
+    projector), dropping in with a short stagger.
+
+5d. Rules and scoring (flat)
+  - 10 rounds per game (per team in team mode).
+  - Correct answer: +20 points. Wrong answer, timeout or skip: -2 points. The total can
+    go negative. Difficulty and streaks never change points.
+  - Answers are compared case-insensitively with whitespace collapsed.
+  - A streak counter and best streak are tracked.
+  - Hints are free: Easy shows First Letter, Testament, Word Count; Medium shows First
+    Letter and Word Count; Hard has no hints.
+  - Controls: Pause/Resume, Skip (counts as wrong), Stop Game (or End Tournament).
+  - After each answer a feedback overlay shows correct/incorrect, points and
+    "The answer was: X" for 1.5 seconds before the next round.
+
+5e. Voice answers
+  - A microphone button uses the Web Speech API (needs HTTPS or localhost).
+  - The engine's ranked alternatives are resolved to a valid name: the whole phrase is
+    tried first, then filler like "the book of", "the prophet", "the apostle" is
+    stripped, spoken numbers become digits ("first Samuel" -> "1 Samuel"), and a
+    Levenshtein fuzzy match is used as a last resort (never crossing a number prefix).
+    Fuzzy matches ask for confirmation instead of auto-submitting.
+
+5f. Teams mode
+  - Register 2 to 6 teams, each with a name and colour; names must be unique.
+  - Teams alternate one round at a time, each playing 10 rounds. A transition screen
+    shows whose turn is next and the running scoreboard.
+  - Team Results ranks teams with medals, celebrates the winner with a trophy reaction
+    and confetti (a tie gets a handshake instead), and offers "Play Again (Same Teams)".
+
+5g. Solo results (Game Over)
+  - Rating by % correct: 100% Perfect score (trophy, winner reaction), 80%+ Excellent,
+    60%+ Well done, 40%+ Keep studying, otherwise More practice needed. Confetti at 80%+.
+  - Stats: Score, Correct x/10, Best Streak. Round-by-round list with time used and
+    points.
+  - Leaderboard strip (see section 9): saving status, "You're #2 on this month's Top
+    Players!" banner when placed, and an inline "View leaderboard" toggle.
+
+
+6. GAME MODE 2: BOOK RECALL
+---------------------------
+- Name as many of the 66 books of the Bible as possible before time runs out.
+- Setup: All 66 / Old Testament (39) / New Testament (27); time limit 1, 2, 3 or 5 minutes.
+- Free typing with an alias matcher (Roman numerals, "1st John", abbreviations).
+- Hands-free voice: one tap on the mic keeps it listening for the whole round (it
+  restarts itself when the browser pauses after silence) and closes when time runs out.
+  Players can say several books in one breath ("Genesis, Exodus, Leviticus"; "first John,
+  second John, third John"). Feedback lists what was added and notes duplicates or books
+  outside the chosen category; a live line shows what was heard.
+  Unrecognised input shakes with "Not a Bible book". Duplicates are ignored.
+- Results: count and percentage, which books were named and which were missed, split
+  into Old and New Testament.
+- Uses the true 66-book canon list (kept separate from the scramble word list).
+- Recall does not post to the leaderboard and does not auto-fire reactions.
+
+
+7. GAME MODE 3: MODERATOR VIEW
+------------------------------
+- For a host running a group session on a big screen.
+- Setup: category (All / OT / NT), difficulty, number of words (5, 10, 15, 20), time per
+  word (15s, 30s, 45s, 1 min, 90s).
+- Play screen: the scrambled word in large type, a hidden "Correct answer" tile revealed
+  by "SHOW ANSWER", a countdown with -/+ 15s adjust, START and STOP, Prev/Next and a dot
+  per word for jumping, and an inline reactions panel.
+- If a word has a clue (custom words from the builder), a "Show clue" button reveals it.
+
+
+8. GAME MODE 4: QUIZ & SCRAMBLE BUILDER
+---------------------------------------
+- Two tabs: Quiz and Scramble.
+- Quiz tab: add questions by hand (Question, Answer, optional Bible Reference), load 10
+  sample questions, or bulk upload. Start Quiz runs a host-led player: one question at a
+  time, a reveal button for the answer and reference, mark correct/wrong, and a summary
+  (trophy at 80%+).
+- Scramble tab: add words by hand (Word, optional Clue, Difficulty Auto/Easy/Medium/Hard),
+  load 10 sample words with clues, or bulk upload. Before starting, choose which
+  difficulty to play (All/Easy/Medium/Hard, each showing its count), time per word and
+  shuffle. Start Scramble runs the Moderator play screen with the custom words.
+- Bulk upload:
+    - "Download Excel template" link to a prebuilt .xlsx with three sheets:
+      Instructions (how to fill it in, with examples), Scramble (Word | Clue | Difficulty,
+      with an Easy/Medium/Hard dropdown) and Quiz (Question | Answer | Bible Reference).
+      Bold frozen header rows.
+    - Upload .xlsx or .csv by file picker or drag and drop. Headers match
+      case-insensitively and in any order; one workbook works from both tabs.
+    - Choose "Add to list" or "Replace" when the list already has items.
+    - Result summary: "18 words added - 2 rows skipped" with the real Excel row number and
+      reason for each skipped row (empty word, duplicate, bad difficulty, too long, etc.).
+    - Up to 300 rows per upload. Words must be 2 to 30 characters with at least two
+      letters. Blank difficulty is guessed from length (<=5 letters easy, <=8 medium,
+      else hard).
+    - The .xlsx is read in the browser with no library (hand-walked zip +
+      DecompressionStream('deflate-raw') + DOMParser).
+- SESSION ONLY: builder content lives in memory for that moderator session and is
+  discarded when the builder is closed. Never saved to the browser or the server. Leaving
+  with content asks for confirmation. Custom games never reach the leaderboard.
+
+
+9. MONTHLY LEADERBOARD
+----------------------
+- Two shared boards: Top Players (individuals) and Top Groups. Top 5 each.
+- Only Word Unscramble posts scores (all four word sets).
+  - Solo games post to the profile's board (a group playing solo lands on Top Groups).
+  - Team games post every team to Top Groups under the team name.
+- One row per name (best score, case-insensitive). Ties go to the harder difficulty,
+  then to whoever scored first.
+- Monthly reset without a scheduled job: every score is stamped with its month and the
+  board only shows the current month (timezone configurable, default UTC). Old months are
+  kept for a possible "last month's champion" view.
+- Each row shows medal or rank, name (with a "You" tag for the current player), score and
+  "x/10 correct - Difficulty - Word set". Header: month name and "resets 1 Nov".
+- States: loading skeleton, empty ("No scores yet this month. Be the first!"), offline
+  ("Leaderboard unavailable right now. Please try again in a little while."). A dead
+  server never breaks a game.
+
+Leaderboard API (server/index.js):
+  GET  /api/health
+  GET  /api/leaderboard?board=individual|group[&month=YYYY-MM]
+  POST /api/scores  { id, board, name, score, correct, total, difficulty, wordSet }
+  DELETE /api/scores/:id   header X-Admin-Token (disabled unless ADMIN_TOKEN is set)
+  - The server recomputes every score from correct/total (20 / -2) and rejects any that
+    do not match. Validates board, difficulty, wordSet (books, prophets, couples,
+    grandmix), totals 1 to 10, names 2 to 24 characters, and a profanity blocklist
+    (whole-word and squashed-fragment matching, leetspeak undone).
+  - Client-generated ids make resubmission idempotent. Scores of 0 or less are not stored.
+  - Returns { month, rank } so the end screen can announce a placing.
+  - Rate limit: 30 posts per 10 minutes per IP (first X-Forwarded-For hop), 2 KB body
+    limit, Cache-Control: no-store.
+  - SQLite file on a Docker named volume so scores survive rebuilds.
+
+
+10. REACTIONS AND CELEBRATIONS
+------------------------------
+- Reactions: Confetti, Winner (trophy, reserved for real wins), High Five, Applause,
+  On Fire, Amazing, Love It, Party. Each shows a large animated overlay; some add confetti.
+- A floating collapsible picker is available on every screen (the moderator screen has its
+  own inline panel instead).
+- Automatic: a random reaction on each correct answer in Word Unscramble and Quiz (never
+  the same twice in a row, never the trophy). The trophy fires only for a perfect solo
+  game, a clear team winner or a quiz at 80%+.
+- The overlay never blocks clicks.
+
+
+11. VISUAL DESIGN SYSTEM: "LAPIS & INK"
+--------------------------------------
+Goal: look crafted and church-appropriate, never AI-generated.
+
+Colours (one accent only):
+  Light: background #EEF0F3, card #F9FAFB, surface #E6EAF0, text #12162A,
+         muted text #4C5468, placeholder #5F667B, border #D3D8E1,
+         primary/accent lapis #23409A (lighter #2F55C4), success #2A7449,
+         danger #B0302B.
+  Dark ("night ink"): background #0C0F1A, card #151A2B, surface #1C2236,
+         text #E9ECF5, muted #A3AAC0, primary lapis #8EA6FF, success #6CC48E,
+         danger #F07A6E.
+  All text passes WCAG AA (4.5:1), placeholders included.
+
+Fonts (sans-serif only, self-hosted, no Google Fonts request):
+  - Cabinet Grotesk 700/800 for headings and big numbers.
+  - Satoshi 400/500/700 for text.
+  (Fontshare, ITF Free Font License.)
+
+House rules:
+  - Flat fills. No gradient buttons, no coloured glows. Emphasis = solid fill or a 3px rule.
+  - Radii: panels 16px, buttons/inputs/tiles 10px, chips 6px, round icon buttons full.
+  - Left-aligned headings. Small uppercase label above a title only on the home masthead
+    and the welcome page.
+  - No emoji as UI icons. No em-dashes in visible text.
+  - Tabular numbers for timers and scores.
+
+Full-screen layout ("Stage"):
+  - Setup, menu and result screens are a full-viewport split: a full-height engraving on
+    the left (about 40%), content on the right. Under 900px the art becomes a band across
+    the top and the content stacks below.
+  - In-game screens (game board, moderator play, quiz player, recall play) use the full
+    width and full height with no artwork, so a projector shows only the game.
+  - Every screen fits a 900px-tall laptop screen without scrolling (the builder excepted).
+
+Artwork (Gustave Doré, 1866 English Bible, public domain, from Wikimedia Commons):
+  Stored greyscale WebP (~1150px tall, ~300 KB) and tinted lapis in CSS
+  (mix-blend-mode: screen over the lapis colour), dimmed in dark mode.
+    Welcome ............ The Creation of Light (the verse is set over the art)
+    Menu ............... Moses Comes Down from Mount Sinai
+    Word set chooser ... Abraham Goes to the Land of Canaan
+    Bible Books ........ The Giving of the Law on Mount Sinai
+    Prophets & Disciples Elijah Ascends to Heaven in a Chariot of Fire
+    Biblical Couples ... Ruth and Boaz
+    Grand Mix .......... Jacob's Dream
+    Teams .............. Joshua Commands the Sun to Stand Still
+    Leaderboard / Team results  David and Jonathan
+    About .............. Abraham and the Three Angels
+    Moderator / Builder  Ezra Reads the Law to the People
+    Recall ............. The Prophet Isaiah
+    Game Over .......... A Dove Is Sent Forth from the Ark
+
+Motion: a slow settle on the artwork, staggered entrance on menu rows, a lapis wash
+sliding behind a hovered row, letter tiles dropping in. All disabled under reduced motion.
+
+
+12. DEPLOYMENT
+--------------
+- Docker Compose with two services:
+    bible-scramble: multi-stage build (Node 24 builds the Vite app, nginx 1.27 serves it),
+      bound to 127.0.0.1:8080. nginx proxies /api/ to the api service via Docker DNS with
+      a variable upstream so the site still boots if the API is down.
+    api: the Node leaderboard server, no published ports, SQLite on the
+      "leaderboard-data" named volume, env ADMIN_TOKEN (optional) and BOARD_TZ.
+- Production: EC2 host nginx terminates HTTPS (DuckDNS subdomain + Let's Encrypt) and
+  reverse-proxies to the container. Permissions-Policy must keep microphone=(self) or
+  voice input breaks. index.html is served no-cache.
+- Home network: a LAN override serves HTTPS with an mkcert certificate so phones get
+  microphone access; the local CA is downloadable over plain HTTP.
+- Dev: "npm run dev" (Vite, proxies /api) and "npm run api" (leaderboard server).
+
+
+13. ACCEPTANCE CHECKLIST
+------------------------
+[ ] First visit shows the welcome page; the name personalises titles across the app.
+[ ] All four word sets play solo and in teams; Couples shows "NAME & ____" prompts.
+[ ] Scoring is +20 / -2, 10 rounds, hints free, voice answers resolve correctly.
+[ ] Recall, Moderator View and the Quiz & Scramble Builder work, including Excel upload
+    with per-row error reporting, and builder content disappears when the builder closes.
+[ ] Leaderboard posts solo and team scores, rejects forged scores, resets monthly.
+[ ] Every screen uses the full viewport with its Doré artwork; light and dark both pass
+    contrast; phones at 390px have no horizontal scroll.
+[ ] No gradients, glows, emoji icons or em-dashes in the interface.

@@ -11,6 +11,28 @@ function shuffleArray(arr) {
 }
 
 /**
+ * A Couples pair → an ordinary engine entry. Which spouse is shown is random
+ * each time, so "Moses & ___" and "___ & Zipporah" both come up. `name` is
+ * the answer, which keeps scrambling, answer checking, hints and voice
+ * working unchanged.
+ */
+function orientPair(entry) {
+  const answerFirst = Math.random() < 0.5
+  const [first, second] = entry.spouses
+  const answer = answerFirst ? first : second
+  return {
+    id: entry.id,
+    name: answer,
+    partner: answerFirst ? second : first,
+    partnerFirst: !answerFirst, // for "Moses & ___" vs "___ & Zipporah"
+    pair: `${first} & ${second}`,
+    testament: entry.testament,
+    difficulty: entry.difficulty,
+    wordCount: answer.split(' ').length,
+  }
+}
+
+/**
  * Select `count` entries from a word set based on difficulty and category.
  * Harder modes include easier entries to pad the pool.
  * Returns a shuffled slice — no duplicates.
@@ -23,13 +45,18 @@ export function selectWords({ wordSet = 'books', difficulty = 'easy', category =
   }
   const allowedDifficulties = difficultyMap[difficulty] ?? [1]
 
-  let pool = getWordSet(wordSet).data.filter((entry) => {
+  const ws = getWordSet(wordSet)
+  // A set without a category picker ignores whatever category the previous
+  // set left in state — otherwise a stale 'OT' could empty the pool
+  const anyCategory = category === 'all' || ws.categoryFilter === false
+
+  let pool = ws.data.filter((entry) => {
     const diffOk = allowedDifficulties.includes(entry.difficulty)
-    const catOk =
-      category === 'all' || entry.testament.toLowerCase() === category.toLowerCase()
+    const catOk = anyCategory || entry.testament.toLowerCase() === category.toLowerCase()
     return diffOk && catOk
   })
 
-  pool = shuffleArray(pool)
-  return pool.slice(0, count)
+  pool = shuffleArray(pool).slice(0, count)
+  // Per entry, not per set: Grand Mix mixes pairs with ordinary names
+  return pool.map((entry) => (entry.spouses ? orientPair(entry) : entry))
 }

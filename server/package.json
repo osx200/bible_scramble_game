@@ -1,0 +1,9 @@
+{
+  "name": "bible-games-leaderboard-api",
+  "private": true,
+  "type": "module",
+  "description": "Monthly leaderboard API. Node built-ins only - no dependencies to install.",
+  "engines": {
+    "node": ">=24"
+  }
+}

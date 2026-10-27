@@ -5,10 +5,32 @@ function isNumericPrefix(token) {
   return /^\d+$/.test(token)
 }
 
+// "Moses" → "Moses’", "Ruth" → "Ruth’s"
+function possessive(name) {
+  return /s$/i.test(name) ? `${name}’` : `${name}’s`
+}
+
+/** Couples: "MOSES & ______" (or "______ & ZIPPORAH") above the tiles */
+function PairPrompt({ entry }) {
+  // One underscore per letter of the answer, so the blank hints at its length
+  const blank = (
+    <span className={styles.pairBlank} aria-label="missing name">
+      {entry.name.replace(/\S/g, '_')}
+    </span>
+  )
+  const shown = <span className={styles.pairName}>{entry.partner}</span>
+  return (
+    <p className={styles.pairPrompt}>
+      {entry.partnerFirst ? <>{shown} &amp; {blank}</> : <>{blank} &amp; {shown}</>}
+    </p>
+  )
+}
+
 export default function ScrambledWord({ animKey }) {
   const { state } = useGame()
   const wordSet = useWordSet()
-  const { scrambledName } = state
+  const { scrambledName, currentBook } = state
+  const isPair = Boolean(currentBook?.partner)
 
   const words = scrambledName.split(' ')
 
@@ -35,8 +57,13 @@ export default function ScrambledWord({ animKey }) {
 
   return (
     <div className={styles.wrapper}>
+      {isPair && <PairPrompt key={animKey} entry={currentBook} />}
       <div className={styles.group}>{elements}</div>
-      <p className={styles.hint}>{words.length > 1 ? `${words.length}-word ${wordSet.noun} name` : 'Unscramble the letters'}</p>
+      <p className={styles.hint}>
+        {isPair
+          ? `Unscramble the name of ${possessive(currentBook.partner)} spouse`
+          : words.length > 1 ? `${words.length}-word ${wordSet.noun} name` : 'Unscramble the letters'}
+      </p>
     </div>
   )
 }

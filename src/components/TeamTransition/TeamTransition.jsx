@@ -1,6 +1,7 @@
 import { useGame } from '../../context/GameContext.jsx'
 import Button from '../shared/Button.jsx'
 import styles from './TeamTransition.module.css'
+import Stage from '../Stage/Stage.jsx'
 
 export default function TeamTransition() {
   const { state, dispatch } = useGame()
@@ -16,7 +17,7 @@ export default function TeamTransition() {
     .sort((a, b) => b.score - a.score)
 
   return (
-    <div className={styles.wrapper}>
+    <Stage art="joshua">
       <div className={styles.card}>
         <div className={styles.colorBar} style={{ backgroundColor: currentTeam.color }} />
 
@@ -88,6 +89,6 @@ export default function TeamTransition() {
           We're Ready - Start Round {currentTeamState.roundsPlayed + 1}!
         </Button>
       </div>
-    </div>
+    </Stage>
   )
 }

@@ -1,6 +1,8 @@
+import { usePlayer } from '../../context/PlayerContext.jsx'
 import { useAppMode } from '../../context/AppModeContext.jsx'
 import Button from '../shared/Button.jsx'
 import styles from './RecallResults.module.css'
+import Stage from '../Stage/Stage.jsx'
 
 function getMessage(score, total) {
   const pct = total > 0 ? score / total : 0
@@ -14,6 +16,7 @@ function getMessage(score, total) {
 
 export default function RecallResults({ namedBooks, targetBooks, onPlayAgain }) {
   const { setAppMode } = useAppMode()
+  const { profile } = usePlayer()
   const namedSet = new Set(namedBooks)
   const score    = namedSet.size
   const total    = targetBooks.length
@@ -25,7 +28,7 @@ export default function RecallResults({ namedBooks, targetBooks, onPlayAgain }) 
   const isWinner = total > 0 && pct >= 90
 
   return (
-    <div className={styles.wrapper}>
+    <Stage art="isaiah">
       <div className={styles.card}>
 
         {/* ── Score header ── */}
@@ -36,6 +39,7 @@ export default function RecallResults({ namedBooks, targetBooks, onPlayAgain }) 
           </div>
           <div className={styles.scorePct}>{pct}% recalled</div>
           <div className={styles.scoreMsg}>{msg.text}</div>
+          <div className={styles.scorePlayer}>Well played, <strong>{profile.name}</strong>!</div>
         </div>
 
         {/* ── OT / NT sections ── */}
@@ -94,6 +98,6 @@ export default function RecallResults({ namedBooks, targetBooks, onPlayAgain }) 
         </div>
 
       </div>
-    </div>
+    </Stage>
   )
 }

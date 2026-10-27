@@ -4,7 +4,11 @@ import { useReactionTrigger } from '../../context/ReactionContext.jsx'
 import { WINNER_REACTION } from '../../data/reactions.js'
 import Button from '../shared/Button.jsx'
 import Confetti from '../Confetti/Confetti.jsx'
+import EndScreenLeaderboard from '../Leaderboard/EndScreenLeaderboard.jsx'
+import { usePlayer } from '../../context/PlayerContext.jsx'
+import useLeaderboardSubmit from '../../hooks/useLeaderboardSubmit.js'
 import styles from './GameOver.module.css'
+import Stage from '../Stage/Stage.jsx'
 
 function getRating(correct, total) {
   const pct = correct / total
@@ -17,10 +21,19 @@ function getRating(correct, total) {
 
 export default function GameOver() {
   const { state, dispatch } = useGame()
-  const { score, streak, bestStreak, roundResults, difficulty, category } = state
+  const { score, bestStreak, roundResults, difficulty, wordSet } = state
+  const { profile } = usePlayer()
 
   const correctCount = roundResults.filter((r) => r.correct).length
   const total = roundResults.length
+
+  // Solo games file under the player's own board — a group playing solo
+  // lands on Top Groups
+  const submission = useLeaderboardSubmit(() =>
+    total > 0
+      ? [{ board: profile.kind, name: profile.name, score, correct: correctCount, total, difficulty, wordSet }]
+      : [],
+  )
   const rating = getRating(correctCount, total)
   const celebrate = correctCount / total >= 0.8
   // Solo has no opponent, so a perfect score is the win — the same bar the
@@ -35,12 +48,15 @@ export default function GameOver() {
   return (
     <>
       <Confetti count={celebrate ? 130 : 0} active={celebrate} />
-    <div className={styles.wrapper}>
+    <Stage art="dove">
       <div className={styles.card}>
         <div className={styles.header}>
           <div className={`${styles.emoji} ${celebrate ? styles.trophyAnim : ''}`}>{rating.emoji}</div>
           <h1 className={`${styles.title} ${celebrate ? styles.winnerPop : ''}`}>Game Over!</h1>
-          <p className={styles.subtitle}>{rating.text}</p>
+          <p className={styles.subtitle}>
+            {rating.text} {correctCount > 0 ? 'Well done' : 'Thanks for playing'},{' '}
+            <strong className={styles.playerName}>{profile.name}</strong>!
+          </p>
         </div>
 
         <div className={styles.stats}>
@@ -66,7 +82,7 @@ export default function GameOver() {
               className={`${styles.resultRow} ${r.correct ? styles.correct : styles.wrong}`}
             >
               <span className={styles.resultIcon}>{r.correct ? '✅' : r.skipped ? '⏭' : '❌'}</span>
-              <span className={styles.resultBook}>{r.book.name}</span>
+              <span className={styles.resultBook}>{r.book.pair ?? r.book.name}</span>
               {r.timeUsed !== undefined && (
                 <span className={styles.resultTime}>{r.timeUsed}s</span>
               )}
@@ -77,6 +93,13 @@ export default function GameOver() {
           ))}
         </div>
 
+        <EndScreenLeaderboard
+          submission={submission}
+          solo
+          defaultBoard={profile.kind}
+          highlightNames={[profile.name]}
+        />
+
         <div className={styles.actions}>
           <Button full size="lg" onClick={() => dispatch({ type: 'START_GAME' })}>
             Play Again
@@ -86,7 +109,7 @@ export default function GameOver() {
           </Button>
         </div>
       </div>
-    </div>
+    </Stage>
     </>
   )
 }

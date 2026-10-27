@@ -13,18 +13,29 @@ import { useState, useEffect, useRef, useCallback } from 'react'
  *   report a start at all — the watchdog below catches the second case.
  *
  * onResult receives the engine's ranked alternatives as a string[].
+ *
+ * Two modes:
+ *   single (default) — one utterance, then it stops (Word Unscramble's answer box)
+ *   continuous       — keeps listening until stop(); onResult fires once per phrase.
+ *                      The engine still ends itself after silence or ~60s, so the
+ *                      hook quietly starts a fresh instance each time (Book Recall).
  */
 
 // The engine should report onstart within a moment of a granted permission.
 const ENGINE_START_TIMEOUT = 6000
 // Absolute cap so a wedged engine can never leave the UI stuck in "listening".
+// Single mode only — continuous mode runs until the caller stops it.
 const HARD_STOP_TIMEOUT = 25000
+// Continuous mode: more than this many restarts in RESTART_WINDOW means the
+// engine is failing straight away, not pausing after silence — give up.
+const MAX_QUICK_RESTARTS = 5
+const RESTART_WINDOW = 4000
 
 function getSpeechRecognition() {
   return window.SpeechRecognition || window.webkitSpeechRecognition || null
 }
 
-export function useVoiceInput({ onResult, lang = 'en-US' }) {
+export function useVoiceInput({ onResult, lang = 'en-US', continuous = false }) {
   const [supported, setSupported] = useState(false)
   const [listening, setListening] = useState(false)
   const [interim,   setInterim]   = useState('')
@@ -40,6 +51,7 @@ export function useVoiceInput({ onResult, lang = 'en-US' }) {
   const startTimerRef  = useRef(null)
   const hardTimerRef   = useRef(null)
   const mountedRef     = useRef(true)
+  const restartsRef    = useRef([])      // timestamps of recent continuous restarts
 
   // Keep onResult ref current on every render — no stale closures
   useEffect(() => { onResultRef.current = onResult })
@@ -70,6 +82,133 @@ export function useVoiceInput({ onResult, lang = 'en-US' }) {
     if (nextError !== undefined) setError(nextError)
   }, [clearTimers])
 
+  /**
+   * Create and start one engine instance. Permission must already be granted.
+   * Continuous mode calls this again from onend to keep listening.
+   */
+  const launch = useCallback((SR, isRestart) => {
+    const rec = new SR()
+    rec.continuous      = continuous
+    rec.interimResults  = true   // live text while the player speaks
+    rec.lang            = lang
+    rec.maxAlternatives = 5      // extra alternatives feed the book matcher
+
+    let engineStarted   = false
+    let resultDelivered = false
+    let fatalError      = false
+
+    const engineIsUp = () => {
+      engineStarted = true
+      clearTimeout(startTimerRef.current)
+      startTimerRef.current = null
+    }
+
+    rec.onstart      = engineIsUp
+    rec.onaudiostart = engineIsUp
+
+    rec.onresult = (event) => {
+      engineIsUp()
+      let interimText = ''
+      const finalResults = [] // one string[] of alternatives per finished phrase
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i]
+        if (result.isFinal) {
+          const alts = []
+          for (let j = 0; j < result.length; j++) {
+            const text = result[j].transcript.trim()
+            if (text) alts.push(text)
+          }
+          if (alts.length) finalResults.push(alts)
+        } else {
+          interimText += result[0].transcript
+        }
+      }
+
+      if (!finalResults.length) {
+        if (mountedRef.current) setInterim(interimText.trim())
+        return
+      }
+
+      if (continuous) {
+        // Keep the mic open; hand over each finished phrase as it arrives
+        if (mountedRef.current) setInterim(interimText.trim())
+        finalResults.forEach((alts) => onResultRef.current(alts))
+        return
+      }
+
+      resultDelivered = true
+      finish(null)
+      try { rec.stop() } catch (_) {}
+      onResultRef.current(finalResults.flat())
+    }
+
+    rec.onerror = (event) => {
+      // 'aborted' is our own cancellation — never surface it as a failure
+      if (event.error === 'aborted') { finish(undefined); return }
+      // A quiet stretch in continuous mode is normal: onend restarts the engine
+      if (continuous && event.error === 'no-speech') return
+      fatalError = true
+
+      const mapped =
+        event.error === 'not-allowed' || event.error === 'service-not-allowed' ? 'not-allowed'
+        : event.error === 'no-speech'     ? 'no-speech'
+        : event.error === 'audio-capture' ? 'no-microphone'
+        : event.error === 'network'       ? 'service-unavailable'
+        : event.error
+
+      finish(mapped)
+    }
+
+    rec.onend = () => {
+      if (continuous && !fatalError && !manualStopRef.current && listeningRef.current && mountedRef.current) {
+        // The engine paused itself (silence, or its own time limit). Restart
+        // with a fresh instance — unless it's dying immediately, every time.
+        const now = Date.now()
+        restartsRef.current = restartsRef.current.filter((t) => now - t < RESTART_WINDOW).concat(now)
+        if (restartsRef.current.length > MAX_QUICK_RESTARTS) {
+          finish(engineStarted ? 'start-failed' : 'service-unavailable')
+          return
+        }
+        launch(SR, true)
+        return
+      }
+      if (resultDelivered || fatalError) { finish(undefined); return }
+      // Ended without a transcript: silence if the engine ran, otherwise the
+      // browser has no working speech backend.
+      if (manualStopRef.current) finish(undefined)
+      else finish(engineStarted ? 'no-speech' : 'service-unavailable')
+    }
+
+    recognitionRef.current = rec
+
+    try {
+      rec.start()
+    } catch (_) {
+      // Chrome throws InvalidStateError if a previous session is still closing
+      finish('start-failed')
+      return
+    }
+
+    // Watchdogs only for the first start of a session
+    if (isRestart) return
+
+    // Nothing at all from the engine → no usable speech backend (Brave, etc.)
+    startTimerRef.current = setTimeout(() => {
+      if (engineStarted) return
+      try { rec.abort() } catch (_) {}
+      finish('service-unavailable')
+    }, ENGINE_START_TIMEOUT)
+
+    // Safety net: never leave the UI listening forever (single mode)
+    if (!continuous) {
+      hardTimerRef.current = setTimeout(() => {
+        try { rec.stop() } catch (_) {}
+        finish(undefined)
+      }, HARD_STOP_TIMEOUT)
+    }
+  }, [continuous, finish, lang])
+
   const start = useCallback(async () => {
     const SR = getSpeechRecognition()
     if (!SR || listeningRef.current || startingRef.current) return
@@ -78,6 +217,7 @@ export function useVoiceInput({ onResult, lang = 'en-US' }) {
     setError(null)
     setInterim('')
     manualStopRef.current = false
+    restartsRef.current = []
 
     if (!window.isSecureContext) {
       startingRef.current = false
@@ -109,103 +249,11 @@ export function useVoiceInput({ onResult, lang = 'en-US' }) {
     }
     if (!mountedRef.current || listeningRef.current) { startingRef.current = false; return }
 
-    const rec = new SR()
-    rec.continuous      = false
-    rec.interimResults  = true   // live text in the box while the player speaks
-    rec.lang            = lang
-    rec.maxAlternatives = 5      // extra alternatives feed the book matcher
-
-    let engineStarted   = false
-    let resultDelivered = false
-    let sawError        = false
-
-    const engineIsUp = () => {
-      engineStarted = true
-      clearTimeout(startTimerRef.current)
-      startTimerRef.current = null
-    }
-
-    rec.onstart      = engineIsUp
-    rec.onaudiostart = engineIsUp
-
-    rec.onresult = (event) => {
-      engineIsUp()
-      const finals = []
-      let interimText = ''
-
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const result = event.results[i]
-        if (result.isFinal) {
-          for (let j = 0; j < result.length; j++) {
-            const text = result[j].transcript.trim()
-            if (text) finals.push(text)
-          }
-        } else {
-          interimText += result[0].transcript
-        }
-      }
-
-      if (!finals.length) {
-        if (mountedRef.current) setInterim(interimText.trim())
-        return
-      }
-
-      resultDelivered = true
-      finish(null)
-      try { rec.stop() } catch (_) {}
-      onResultRef.current(finals)
-    }
-
-    rec.onerror = (event) => {
-      // 'aborted' is our own cancellation — never surface it as a failure
-      if (event.error === 'aborted') { finish(undefined); return }
-      sawError = true
-
-      const mapped =
-        event.error === 'not-allowed' || event.error === 'service-not-allowed' ? 'not-allowed'
-        : event.error === 'no-speech'     ? 'no-speech'
-        : event.error === 'audio-capture' ? 'no-microphone'
-        : event.error === 'network'       ? 'service-unavailable'
-        : event.error
-
-      finish(mapped)
-    }
-
-    rec.onend = () => {
-      if (resultDelivered || sawError) { finish(undefined); return }
-      // Ended without a transcript: silence if the engine ran, otherwise the
-      // browser has no working speech backend.
-      if (manualStopRef.current) finish(undefined)
-      else finish(engineStarted ? 'no-speech' : 'service-unavailable')
-    }
-
-    recognitionRef.current = rec
-
-    try {
-      rec.start()
-    } catch (_) {
-      // Chrome throws InvalidStateError if a previous session is still closing
-      finish('start-failed')
-      return
-    }
-
     startingRef.current  = false
     listeningRef.current = true
     setListening(true)
-
-    // Nothing at all from the engine → no usable speech backend (Brave, etc.)
-    startTimerRef.current = setTimeout(() => {
-      if (engineStarted) return
-      try { rec.abort() } catch (_) {}
-      finish('service-unavailable')
-    }, ENGINE_START_TIMEOUT)
-
-    // Safety net: never leave the UI listening forever
-    hardTimerRef.current = setTimeout(() => {
-      try { rec.stop() } catch (_) {}
-      finish(undefined)
-    }, HARD_STOP_TIMEOUT)
-  }, [clearTimers, finish, lang])
+    launch(SR, false)
+  }, [clearTimers, launch])
 
   const stop = useCallback(() => {
     manualStopRef.current = true

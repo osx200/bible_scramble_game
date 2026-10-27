@@ -16,22 +16,23 @@
   padding: var(--spacing-xl);
   animation: fadeSlideUp 0.4s ease both;
 }
-/* Hairline of gold leaf along the top edge, matching the shared Card system */
 .card::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 10%;
-  right: 10%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
-  opacity: 0.55;
+  top: 10px;
+  left: 24px;
+  right: 24px;
+  height: 4px;
+  /* Brass double rule, like the top of a printed page */
+  border-top: 1px solid var(--color-accent);
+  border-bottom: 1px solid var(--color-accent);
+  opacity: 0.5;
   pointer-events: none;
 }
 
 
 .header {
-  text-align: center;
+  text-align: left;
   margin-bottom: var(--spacing-xl);
 }
 
@@ -61,6 +62,11 @@
 .subtitle {
   font-size: 0.95rem;
   color: var(--color-text-muted);
+}
+
+.playerName {
+  color: var(--color-primary);
+  font-weight: 700;
 }
 
 .stats {

@@ -1,0 +1,223 @@
+.wrapper {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-lg);
+}
+
+.card {
+  position: relative;
+  width: 100%;
+  max-width: 540px;
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--spacing-xl);
+  animation: fadeSlideUp 0.4s ease both;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: 24px;
+  right: 24px;
+  height: 4px;
+  /* Brass double rule, like the top of a printed page */
+  border-top: 1px solid var(--color-accent);
+  border-bottom: 1px solid var(--color-accent);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* ── Header ── */
+.header {
+  margin-bottom: var(--spacing-md);
+}
+
+/* Small brass caps line above each title — the masthead of a printed page */
+.eyebrow {
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-accent-dark);
+  margin-bottom: var(--spacing-sm);
+  animation: fadeIn 0.4s ease both;
+}
+
+.title {
+  font-size: 2.2rem;
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.formHeading {
+  font-size: 1.2rem;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-xs);
+}
+
+.formLead {
+  font-size: 0.88rem;
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-lg);
+  text-wrap: pretty;
+}
+
+.subtitle {
+  font-size: 0.98rem;
+  color: var(--color-text-muted);
+  max-width: 34ch;
+  margin: 0 auto;
+  text-wrap: pretty;
+}
+
+/* ── Fields ── */
+.label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-sm);
+}
+
+.kindGroup {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+.kind {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: 14px 16px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  background: transparent;
+  font-family: var(--font-main);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast),
+    color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+@media (hover: hover) {
+  .kind:hover:not(.kindActive) {
+    border-color: var(--color-primary-light);
+    color: var(--color-primary);
+    background: var(--color-primary-tint);
+  }
+}
+
+.kind:active {
+  transform: scale(0.98);
+}
+
+.kindActive {
+  border-color: var(--color-primary);
+  background: var(--gradient-primary);
+  color: var(--color-on-primary);
+  box-shadow: var(--shadow-primary);
+}
+
+.kindEmoji {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.input {
+  width: 100%;
+  padding: 14px 16px;
+  font-family: var(--font-main);
+  /* ≥16px or iOS Safari zooms the page on focus */
+  font-size: 1.05rem;
+  font-weight: 500;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.input::placeholder {
+  color: var(--color-text-light);
+}
+
+.input:focus {
+  border-color: var(--color-primary);
+  background: var(--color-card);
+  box-shadow: var(--ring);
+}
+
+.inputError,
+.inputError:focus {
+  border-color: var(--color-danger);
+  animation: shake 0.35s ease;
+}
+
+.hintRow {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-xs);
+  font-size: 0.8rem;
+}
+
+.hint {
+  color: var(--color-text-muted);
+}
+
+.error {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.count {
+  color: var(--color-text-light);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.submit {
+  margin-top: var(--spacing-xl);
+}
+
+.cancel {
+  margin-top: var(--spacing-sm);
+}
+
+/* ── Mobile: edge-to-edge form ── */
+@media (max-width: 700px) {
+  .wrapper {
+    padding: 0;
+    align-items: stretch;
+  }
+
+  .card {
+    max-width: none;
+    min-height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+    /* Top-aligned and scrolling — the first-visit page is taller than a phone */
+    padding: var(--spacing-xl) var(--spacing-lg);
+  }
+
+  .header {
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .title {
+    font-size: 1.9rem;
+  }
+}

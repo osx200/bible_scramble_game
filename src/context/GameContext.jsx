@@ -112,7 +112,9 @@ function resolveNextRound(state, result, isCorrect) {
   const newScore = score + result.pointsEarned
   const newBestStreak = Math.max(bestStreak, newStreak)
   const newRoundResults = [...roundResults, result]
-  const lastResult = { correct: isCorrect, pointsEarned: result.pointsEarned, bookName: result.book.name }
+  // Couples report the whole pair ("Moses & Zipporah"), not just the answer
+  const answerLabel = result.book.pair ?? result.book.name
+  const lastResult = { correct: isCorrect, pointsEarned: result.pointsEarned, bookName: answerLabel }
 
   // ── Teams alternating mode ──────────────────────────────
   if (mode === 'teams') {
@@ -151,7 +153,7 @@ function resolveNextRound(state, result, isCorrect) {
         lastRoundResult: {
           correct: isCorrect,
           pointsEarned: result.pointsEarned,
-          bookName: result.book.name,
+          bookName: answerLabel,
           teamName: currentTeam.name,
           teamColor: currentTeam.color,
         },
@@ -291,7 +293,10 @@ function reducer(state, action) {
       const { answer } = action.payload
       const { currentBook, timeRemaining, maxTime } = state
       if (!currentBook) return state
-      const correct = answer.trim().toLowerCase() === currentBook.name.toLowerCase()
+      // Whitespace collapsed on both sides, so a double space inside a
+      // multi-word name ("Day of  Atonement") isn't marked wrong
+      const tidy = (v) => v.replace(/\s+/g, ' ').trim().toLowerCase()
+      const correct = tidy(answer) === tidy(currentBook.name)
       const pointsEarned = pointsFor(correct)
       const result = { book: currentBook, correct, pointsEarned, timeUsed: maxTime - timeRemaining }
       return resolveNextRound(state, result, correct)

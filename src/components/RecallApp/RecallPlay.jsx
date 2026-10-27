@@ -1,6 +1,20 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { matchBookName } from '../../data/canonicalBooks.js'
+import { useVoiceInput } from '../../hooks/useVoiceInput.js'
+import { extractSpokenBooks, cleanTranscript } from '../../utils/voiceMatch.js'
 import styles from './RecallPlay.module.css'
+import Stage from '../Stage/Stage.jsx'
+
+// Why the mic stopped or can't start, in plain words
+const VOICE_MESSAGES = {
+  'not-allowed':         'Microphone blocked. Allow it in the address bar, then tap the mic again.',
+  'no-microphone':       'No microphone found. Check one is connected and not in use.',
+  'insecure-context':    'Voice needs a secure (https://) address. Typing still works.',
+  'service-unavailable': 'This browser has no speech service. Use Chrome or Edge, or keep typing.',
+  'start-failed':        'The microphone could not start. Tap the mic to try again.',
+}
+
+const list = (names) => names.join(', ')
 
 function formatTime(s) {
   const m = Math.floor(s / 60)
@@ -22,6 +36,7 @@ export default function RecallPlay({ config, onFinish }) {
   const inputRef     = useRef(null)
   const feedbackRef  = useRef(null)
   const namedSetRef  = useRef(namedSet)
+  const doneRef      = useRef(false) // read by the voice callback, which outlives renders
 
   // Keep ref in sync so the timer-expiry handler sees fresh data
   useEffect(() => { namedSetRef.current = namedSet }, [namedSet])
@@ -63,6 +78,27 @@ export default function RecallPlay({ config, onFinish }) {
 
   useEffect(() => () => clearTimeout(feedbackRef.current), [])
 
+  /**
+   * The one place books get added, for typing and voice alike. Works off the
+   * ref so a single spoken phrase with several books ("Genesis Exodus
+   * Leviticus") can't race its own state updates.
+   * → { added, duplicates, outside }
+   */
+  const addBooks = useCallback((canonicals) => {
+    const next = new Set(namedSetRef.current)
+    const result = { added: [], duplicates: [], outside: [] }
+    for (const name of canonicals) {
+      if (!targetBooks.some(b => b.name === name)) result.outside.push(name)
+      else if (next.has(name)) result.duplicates.push(name)
+      else { next.add(name); result.added.push(name) }
+    }
+    if (result.added.length) {
+      namedSetRef.current = next
+      setNamedSet(next)
+    }
+    return result
+  }, [targetBooks])
+
   function handleSubmit(e) {
     e.preventDefault()
     const raw = inputValue.trim()
@@ -76,28 +112,59 @@ export default function RecallPlay({ config, onFinish }) {
       return
     }
 
-    // Check it belongs to the selected category
-    const inTarget = targetBooks.some(b => b.name === canonical)
-    if (!inTarget) {
-      const testament = canonical.includes('Samuel') || canonical.includes('Kings')
-        ? 'Old Testament' : 'New Testament'
+    const { added, duplicates } = addBooks([canonical])
+    if (!added.length) {
       triggerShake()
-      showFeedback(`${canonical} is not in the selected category`, 'error')
+      showFeedback(duplicates.length
+        ? `${canonical} already named!`
+        : `${canonical} is not in the selected category`, 'error')
       return
     }
 
-    if (namedSet.has(canonical)) {
-      triggerShake()
-      showFeedback(`${canonical} already named!`, 'error')
-      return
-    }
-
-    // ✓ Valid, new entry
-    setNamedSet(prev => new Set([...prev, canonical]))
     setInputValue('')
     showFeedback(`✓ ${canonical}`, 'success', 1200)
     inputRef.current?.focus()
   }
+
+  // ── Voice: hands-free for the whole round ────────────────────
+  // One tap keeps the mic open; every phrase can name several books.
+  const handleSpoken = useCallback((alternatives) => {
+    if (doneRef.current) return
+    const books = extractSpokenBooks(alternatives)
+    if (!books.length) {
+      showFeedback(`Heard "${cleanTranscript(alternatives[0])}" - no Bible book in that`, 'error', 1800)
+      return
+    }
+    const { added, duplicates, outside } = addBooks(books)
+    const notes = [
+      duplicates.length && `already had ${list(duplicates)}`,
+      outside.length && `${list(outside)} not in this category`,
+    ].filter(Boolean).join('; ')
+    if (added.length) {
+      showFeedback(`✓ ${list(added)}${notes ? ` (${notes})` : ''}`, 'success', 1800)
+    } else {
+      triggerShake()
+      showFeedback(notes.charAt(0).toUpperCase() + notes.slice(1), 'error', 1800)
+    }
+  }, [addBooks, showFeedback, triggerShake])
+
+  const voice = useVoiceInput({ onResult: handleSpoken, continuous: true })
+
+  // The round is over: close the mic
+  useEffect(() => {
+    doneRef.current = done
+    if (done) voice.stop()
+  }, [done, voice.stop])
+
+  const voiceStatus = voice.error && VOICE_MESSAGES[voice.error]
+    ? { text: VOICE_MESSAGES[voice.error], type: 'error' }
+    : voice.listening
+      ? { text: voice.interim ? `Heard: ${voice.interim}` : 'Listening. Say book names, as many as you like.', type: 'live' }
+      : voice.supported
+        ? { text: 'Tap the mic to say book names instead of typing.', type: 'hint' }
+        : voice.unsupportedReason === 'insecure-context'
+          ? { text: VOICE_MESSAGES['insecure-context'], type: 'hint' }
+          : null
 
   // Books shown in canonical order with named status
   const orderedBooks = targetBooks.map(b => ({
@@ -110,7 +177,7 @@ export default function RecallPlay({ config, onFinish }) {
   const timerDanger = timeRemaining <= 10
 
   return (
-    <div className={styles.wrapper}>
+    <Stage>
       <div className={styles.card}>
 
         {/* ── Top bar ── */}
@@ -140,8 +207,29 @@ export default function RecallPlay({ config, onFinish }) {
             spellCheck={false}
             autoFocus
           />
+          {voice.supported && (
+            <button
+              type="button"
+              className={`${styles.micBtn} ${voice.listening ? styles.micBtnLive : ''}`}
+              onClick={voice.listening ? voice.stop : voice.start}
+              aria-pressed={voice.listening}
+              aria-label={voice.listening ? 'Stop listening' : 'Say book names'}
+              title={voice.listening ? 'Stop listening' : 'Say book names'}
+            >
+              🎤
+            </button>
+          )}
           <button type="submit" className={styles.submitBtn} aria-label="Submit answer">→</button>
         </form>
+
+        {voiceStatus && (
+          <p
+            className={`${styles.voiceLine} ${voiceStatus.type === 'live' ? styles.voiceLive : ''} ${voiceStatus.type === 'error' ? styles.voiceError : ''}`}
+            aria-live="polite"
+          >
+            {voiceStatus.text}
+          </p>
+        )}
 
         {/* Feedback */}
         <div className={styles.feedbackSlot} aria-live="polite">
@@ -174,6 +262,6 @@ export default function RecallPlay({ config, onFinish }) {
         </button>
 
       </div>
-    </div>
+    </Stage>
   )
 }

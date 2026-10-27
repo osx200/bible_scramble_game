@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAppMode } from '../../context/AppModeContext.jsx'
 import styles from './RecallSetup.module.css'
+import Stage from '../Stage/Stage.jsx'
 
 const TIMERS = [
   { value: 60,  label: '1 min'  },
@@ -21,7 +22,7 @@ export default function RecallSetup({ onStart }) {
   const [category, setCategory] = useState('all')
 
   return (
-    <div className={styles.wrapper}>
+    <Stage art="isaiah">
       <div className={styles.card}>
 
         <div className={styles.header}>
@@ -29,7 +30,6 @@ export default function RecallSetup({ onStart }) {
             ← Back to Menu
           </button>
           <div className={styles.titleRow}>
-            <span className={styles.emoji}>🧠</span>
             <h1 className={styles.title}>Bible Book Recall</h1>
           </div>
           <p className={styles.subtitle}>
@@ -78,6 +78,6 @@ export default function RecallSetup({ onStart }) {
         </button>
 
       </div>
-    </div>
+    </Stage>
   )
 }

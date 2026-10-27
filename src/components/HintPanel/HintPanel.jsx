@@ -1,4 +1,4 @@
-import { useGame } from '../../context/GameContext.jsx'
+import { useGame, useWordSet } from '../../context/GameContext.jsx'
 import styles from './HintPanel.module.css'
 
 // Which hints are available per difficulty
@@ -8,13 +8,14 @@ const HINT_CONFIG = {
   hard:   [],
 }
 
-function getHintContent(hintType, book) {
+function getHintContent(hintType, book, wordSet) {
   if (!book) return ''
   switch (hintType) {
     case 'firstLetter':
       return `Starts with: "${book.name[0]}"`
     case 'testament':
-      return book.testament === 'OT' ? 'Old Testament' : 'New Testament'
+      // The set's own label for this side of the OT/NT axis
+      return wordSet.categories[book.testament]
     case 'wordCount':
       return book.wordCount === 1
         ? '1-word name'
@@ -25,14 +26,17 @@ function getHintContent(hintType, book) {
 }
 
 const HINT_META = {
-  firstLetter: { icon: '🔤', label: 'First Letter' },
-  testament:   { icon: '📜', label: 'Testament' },
-  wordCount:   { icon: '#️⃣', label: 'Word Count' },
+  firstLetter: { label: 'First Letter' },
+  testament:   { label: 'Testament' },
+  wordCount:   { label: 'Word Count' },
 }
 
 export default function HintPanel() {
   const { state, dispatch } = useGame()
   const { difficulty, currentBook, revealedHints } = state
+  const wordSet = useWordSet()
+  // A set whose OT/NT axis isn't the testaments gets a neutral button label
+  const testamentLabel = wordSet.categories.OT === 'Old Testament' ? 'Testament' : 'Category'
 
   const availableHints = HINT_CONFIG[difficulty] ?? []
   if (availableHints.length === 0) return null
@@ -48,7 +52,7 @@ export default function HintPanel() {
       <div className={styles.buttons}>
         {availableHints.map((hintType) => {
           const revealed = revealedHints.includes(hintType)
-          const { icon, label } = HINT_META[hintType]
+          const label = hintType === 'testament' ? testamentLabel : HINT_META[hintType].label
           return (
             <button
               key={hintType}
@@ -56,9 +60,8 @@ export default function HintPanel() {
               onClick={() => useHint(hintType)}
               disabled={revealed}
             >
-              <span className={styles.icon}>{icon}</span>
               {revealed ? (
-                <span className={styles.revealedText}>{getHintContent(hintType, currentBook)}</span>
+                <span className={styles.revealedText}>{getHintContent(hintType, currentBook, wordSet)}</span>
               ) : (
                 label
               )}

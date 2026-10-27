@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useGame, useWordSet } from '../../context/GameContext.jsx'
 import { useReactionTrigger } from '../../context/ReactionContext.jsx'
+import { usePlayer } from '../../context/PlayerContext.jsx'
 import { useTimer } from '../../hooks/useTimer.js'
 import ScrambledWord from '../ScrambledWord/ScrambledWord.jsx'
 import AnswerInput from '../AnswerInput/AnswerInput.jsx'
@@ -9,6 +10,7 @@ import ScoreDisplay from '../ScoreDisplay/ScoreDisplay.jsx'
 import HintPanel from '../HintPanel/HintPanel.jsx'
 import RoundFeedback from '../RoundFeedback/RoundFeedback.jsx'
 import styles from './GameBoard.module.css'
+import Stage from '../Stage/Stage.jsx'
 
 const DIFFICULTY_LABELS = { easy: 'Easy', medium: 'Medium', hard: 'Hard' }
 
@@ -16,6 +18,7 @@ export default function GameBoard() {
   const { state, dispatch } = useGame()
   const wordSet = useWordSet()
   const { triggerRandomReaction } = useReactionTrigger()
+  const { profile } = usePlayer()
   const { roundNumber, totalRounds, difficulty, lastResult, score, streak, mode, teams, teamStates, currentTeamIndex, roundsPerTeam, paused } = state
   const currentTeam = mode === 'teams' ? teams[currentTeamIndex] : null
   // In teams mode, show this team's round counter (1-based) and total rounds per team
@@ -50,7 +53,7 @@ export default function GameBoard() {
   const progress = ((roundNumber - 1) / totalRounds) * 100
 
   return (
-    <div className={styles.wrapper}>
+    <Stage>
       <div className={styles.card}>
         {visibleResult && <RoundFeedback result={visibleResult} />}
 
@@ -67,10 +70,14 @@ export default function GameBoard() {
         <div className={styles.topStrip}>
           <div className={styles.topBar}>
             <div className={styles.roundInfo}>
-              <span className={styles.roundLabel}>Round</span>
+              <span className={styles.roundLabel}>
+                {/* Teams mode has its own banner naming who's up */}
+                {!currentTeam && <span className={styles.playerTag}>{profile.name}</span>}
+                Round
+              </span>
               <span className={styles.roundNumber}>{displayRound} / {displayTotal}</span>
             </div>
-            {paused && <span className={styles.pausedBadge}>⏸ Paused</span>}
+            {paused && <span className={styles.pausedBadge}>Paused</span>}
             <ScoreDisplay />
           </div>
           <div className={styles.progressBar}>
@@ -98,7 +105,7 @@ export default function GameBoard() {
             <div>
               <p className={styles.sideLabel}>Category</p>
               <span className={`${styles.badge} ${styles.category}`}>
-                {state.category === 'all' ? wordSet.allLabel : state.category === 'OT' ? 'Old Testament' : 'New Testament'}
+                {state.category === 'all' || wordSet.categoryFilter === false ? wordSet.allLabel : wordSet.categories[state.category]}
               </span>
             </div>
             {streak >= 2 && (
@@ -124,7 +131,7 @@ export default function GameBoard() {
               className={`${styles.pauseBtn} ${paused ? styles.pauseBtnActive : ''}`}
               onClick={() => dispatch({ type: 'TOGGLE_PAUSE' })}
             >
-              {paused ? '▶ Resume' : '⏸ Pause'}
+              {paused ? 'Resume' : 'Pause'}
             </button>
             {!paused && (
               <button
@@ -133,7 +140,7 @@ export default function GameBoard() {
                 disabled={!!visibleResult}
                 title={`Skip this ${wordSet.noun} - counts as wrong answer`}
               >
-                ⏭ Skip
+                Skip
               </button>
             )}
             <button
@@ -141,12 +148,12 @@ export default function GameBoard() {
               onClick={() => dispatch({ type: 'RESTART' })}
               title={mode === 'teams' ? 'End tournament and return to menu' : 'Stop and return to menu'}
             >
-              ⏹ {mode === 'teams' ? 'End Tournament' : 'Stop Game'}
+              {mode === 'teams' ? 'End Tournament' : 'Stop Game'}
             </button>
           </div>
 
         </div>
       </div>
-    </div>
+    </Stage>
   )
 }

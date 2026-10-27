@@ -11,6 +11,34 @@
   margin-bottom: var(--spacing-sm);
 }
 
+/* ── Couples prompt: "MOSES & ______" ── */
+.pairPrompt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0 var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 2.8vw, 3rem);
+  font-weight: 800;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--color-accent-dark);
+  animation: fadeSlideUp 0.35s ease both;
+}
+
+.pairName {
+  color: var(--color-primary);
+}
+
+/* Letter-spaced underscores read as one blank per missing letter */
+.pairBlank {
+  letter-spacing: 0.18em;
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
 /* Space between word groups */
 .wordGap {
   width: 12px;
@@ -20,14 +48,15 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 62px;
-  height: 72px;
+  /* Scales with the screen: big enough to read on a projector */
+  width: clamp(52px, 5.4vw, 104px);
+  height: clamp(60px, 6.3vw, 120px);
   background: var(--color-tile-bg);
   border: 2px solid var(--color-tile-border);
   border-radius: var(--radius);
   font-family: var(--font-display);
-  font-size: 1.8rem;
-  font-weight: 700;
+  font-size: clamp(1.7rem, 3vw, 3.4rem);
+  font-weight: 800;
   color: var(--color-primary);
   text-transform: uppercase;
   box-shadow: var(--shadow-sm), inset 0 -3px 0 var(--color-tile-border);
@@ -58,6 +87,10 @@
 @media (max-width: 700px) {
   .wrapper {
     padding: var(--spacing-md) 0;
+  }
+
+  .pairPrompt {
+    font-size: 1.25rem;
   }
 
   .group {

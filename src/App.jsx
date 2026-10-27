@@ -1,6 +1,8 @@
 import { GameProvider, useGame } from './context/GameContext.jsx'
 import { AppModeProvider, useAppMode } from './context/AppModeContext.jsx'
 import { ReactionProvider } from './context/ReactionContext.jsx'
+import { PlayerProvider, usePlayer } from './context/PlayerContext.jsx'
+import Welcome from './components/Welcome/Welcome.jsx'
 import Menu from './components/Menu/Menu.jsx'
 import GameBoard from './components/GameBoard/GameBoard.jsx'
 import GameOver from './components/GameOver/GameOver.jsx'
@@ -31,6 +33,17 @@ function GameRouter() {
 
 function AppContent() {
   const { appMode } = useAppMode()
+  const { profile, editing } = usePlayer()
+
+  // No name yet (or changing it): the Welcome page stands in for every mode
+  if (!profile || editing) {
+    return (
+      <div className={styles.app}>
+        <ThemeToggle />
+        <Welcome />
+      </div>
+    )
+  }
 
   return (
     <div className={styles.app}>
@@ -55,10 +68,12 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AppModeProvider>
-      <ReactionProvider>
-        <AppContent />
-      </ReactionProvider>
-    </AppModeProvider>
+    <PlayerProvider>
+      <AppModeProvider>
+        <ReactionProvider>
+          <AppContent />
+        </ReactionProvider>
+      </AppModeProvider>
+    </PlayerProvider>
   )
 }

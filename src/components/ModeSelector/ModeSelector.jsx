@@ -13,13 +13,13 @@ export default function ModeSelector() {
           className={`${styles.option} ${mode === 'solo' ? styles.active : ''}`}
           onClick={() => dispatch({ type: 'SET_MODE', payload: 'solo' })}
         >
-          <span className={styles.icon}>🎮</span> Solo
+          Solo
         </button>
         <button
           className={`${styles.option} ${mode === 'teams' ? styles.active : ''}`}
           onClick={() => dispatch({ type: 'SET_MODE', payload: 'teams' })}
         >
-          <span className={styles.icon}>👥</span> Teams
+          Teams
         </button>
       </div>
     </div>

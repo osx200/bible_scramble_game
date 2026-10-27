@@ -1,66 +1,61 @@
-.wrapper {
-  min-height: 100dvh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-lg);
-  position: relative;
-}
-
+/* Menu sits inside <Stage>, which supplies the full-screen layout and the
+   artwork; .card is just the content column (Stage neutralises its box). */
 .card {
   position: relative;
   width: 100%;
-  max-width: var(--max-width);
-  background: var(--color-card);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  padding: var(--spacing-xl);
-  animation: fadeSlideUp 0.4s ease both;
-}
-
-/* Hairline of gold leaf along the top edge, matching the shared Card system */
-.card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 10%;
-  right: 10%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
-  opacity: 0.55;
-  pointer-events: none;
-}
-
-.modePickerCard {
-  max-width: 700px;
 }
 
 /* ── Header ── */
 .header {
-  text-align: center;
   margin-bottom: var(--spacing-xl);
 }
 
-.emoji {
-  font-size: 3rem;
-  line-height: 1;
-  margin-bottom: var(--spacing-md);
-  animation: dropIn 0.5s var(--ease-spring) both;
+/* Small caps line above the home masthead: the player's own name */
+.eyebrow {
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-sm);
+  animation: fadeIn 0.4s ease both;
 }
 
 .title {
   font-family: var(--font-display);
-  font-size: 2.2rem;
   font-weight: 800;
-  color: var(--color-primary);
-  line-height: 1.1;
-  letter-spacing: var(--tracking-tight);
+  color: var(--color-text);
   margin-bottom: var(--spacing-sm);
 }
 
+/* Home screen only: the big wordmark with a lapis rule beneath.
+   Two classes, so it outranks Stage's shared h1 scale. */
+.title.masthead {
+  /* Capped by height too, so short laptop screens keep the list in view */
+  font-size: clamp(3.2rem, min(6.4vw, 9.5vh), 6rem);
+  line-height: 0.92;
+  letter-spacing: -0.045em;
+  color: var(--color-primary);
+  padding-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  position: relative;
+}
+
+.title.masthead::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 72px;
+  height: 4px;
+  background: var(--color-primary);
+}
+
 .subtitle {
-  font-size: 1rem;
+  font-size: 1.05rem;
   color: var(--color-text-muted);
+  max-width: 52ch;
 }
 
 .divider {
@@ -69,170 +64,259 @@
   margin: var(--spacing-lg) 0;
 }
 
-/* ── Mode picker grid ── */
-.modeGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-md);
+/* ── Game list: a table of contents, not a grid of tiles ── */
+.modeList {
+  list-style: none;
+  border-top: 2px solid var(--color-text);
 }
 
-.modeCard {
+.modeRow {
   position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--spacing-md);
+  width: 100%;
+  padding: 18px 8px 18px 4px;
+  border: none;
+  border-bottom: 1px solid var(--color-border-strong);
+  background: none;
+  font-family: var(--font-main);
+  color: var(--color-text);
+  text-align: left;
+  isolation: isolate;
+  animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(120ms + var(--i, 0) * 70ms);
+}
+
+/* Hover: a lapis wash slides in from the left behind the row */
+.modeRow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--color-primary-tint);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--transition-normal);
+}
+
+.modeRow:focus-visible::before {
+  transform: scaleX(1);
+}
+
+@media (hover: hover) {
+  .modeRow:hover::before {
+    transform: scaleX(1);
+  }
+
+  .modeRow:hover .modeTitle {
+    color: var(--color-primary);
+  }
+
+  .modeRow:hover .modeArrow {
+    transform: translateX(6px);
+  }
+}
+
+.modeRow:active {
+  transform: scale(0.995);
+}
+
+.modeText {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  padding: var(--spacing-lg);
-  background: var(--color-bg);
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  cursor: pointer;
-  text-align: left;
-  transition: border-color var(--transition-fast), background-color var(--transition-fast),
-    transform var(--transition-fast), box-shadow var(--transition-fast);
-  font-family: var(--font-main);
-  overflow: hidden;
-  animation: fadeSlideUp 0.4s ease both;
-  animation-delay: calc(var(--i, 0) * 60ms);
-}
-
-.modeCard:focus-visible {
-  border-color: var(--color-primary);
-  background: var(--color-primary-tint);
-  transform: translateY(-3px);
-  box-shadow: var(--shadow);
-}
-
-@media (hover: hover) {
-  .modeCard:hover {
-    border-color: var(--color-primary);
-    background: var(--color-primary-tint);
-    transform: translateY(-3px);
-    box-shadow: var(--shadow);
-  }
-}
-
-.modeCard:active {
-  transform: translateY(-1px) scale(0.99);
-}
-
-.modeIconWrap {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius);
-  background: var(--color-primary-tint);
-  margin-bottom: 4px;
-  transition: background-color var(--transition-fast), transform var(--transition-fast);
-}
-
-@media (hover: hover) {
-  .modeCard:hover .modeIconWrap {
-    background: var(--color-primary-tint-strong);
-    transform: scale(1.06);
-  }
-}
-
-.modeEmoji {
-  font-size: 1.7rem;
-  line-height: 1;
+  gap: 2px;
+  min-width: 0;
 }
 
 .modeTitle {
-  font-size: 1rem;
-  font-weight: 800;
-  color: var(--color-text);
   font-family: var(--font-display);
-  letter-spacing: var(--tracking-tight);
+  font-size: clamp(1.35rem, 2.1vw, 1.85rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  transition: color var(--transition-fast);
 }
 
 .modeDesc {
-  font-size: 0.82rem;
-  font-weight: 400;
+  font-size: 0.95rem;
   color: var(--color-text-muted);
   line-height: 1.45;
+  max-width: 54ch;
 }
 
-/* ── Scramble setup view ── */
+.modeArrow {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  transition: transform var(--transition-normal);
+}
+
+/* The leaderboard row: a solid lapis bar, set apart from the games */
+.modeRow.featured {
+  margin-top: var(--spacing-lg);
+  padding: 18px var(--spacing-lg);
+  border: none;
+  border-radius: var(--radius);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.modeRow.featured::before {
+  display: none;
+}
+
+.featured .modeDesc,
+.featured .modeArrow {
+  color: inherit;
+}
+
+.featured .modeDesc {
+  opacity: 0.85;
+}
+
+@media (hover: hover) {
+  .modeRow.featured:hover {
+    background: var(--color-primary-light);
+  }
+
+  .modeRow.featured:hover .modeTitle {
+    color: inherit;
+  }
+}
+
+/* ── Player chip ── */
+.playerChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+  padding: 5px 5px 5px 12px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-family: var(--font-main);
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  transition: border-color var(--transition-fast);
+}
+
+.playerChipAction {
+  padding: 3px 10px;
+  border-radius: 4px;
+  background: var(--color-primary-tint);
+  color: var(--color-primary);
+  font-weight: 700;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+@media (hover: hover) {
+  .playerChip:hover {
+    border-color: var(--color-primary);
+  }
+
+  .playerChip:hover .playerChipAction {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+}
+
+.aboutLink {
+  display: inline-block;
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-xs) 0;
+  border: none;
+  background: none;
+  font-family: var(--font-main);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-strong);
+  text-underline-offset: 4px;
+  transition: color var(--transition-fast), text-decoration-color var(--transition-fast);
+}
+
+@media (hover: hover) {
+  .aboutLink:hover {
+    color: var(--color-primary);
+    text-decoration-color: currentColor;
+  }
+}
+
+/* ── Sub-views (setup, leaderboard, about) ── */
 .startBtn {
   margin-top: var(--spacing-sm);
 }
 
 .backBtn {
-  display: block;
-  width: 100%;
-  margin-top: var(--spacing-md);
-  padding: 10px;
-  border: 2px solid var(--color-border);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: var(--spacing-lg);
+  padding: 10px 16px;
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius);
   background: transparent;
   font-family: var(--font-main);
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--color-text-muted);
-  cursor: pointer;
-  transition: border-color var(--transition-fast), color var(--transition-fast), background-color var(--transition-fast);
-  text-align: center;
+  transition: border-color var(--transition-fast), color var(--transition-fast),
+    background-color var(--transition-fast);
 }
 
-.backBtn:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-  background: var(--color-primary-tint);
+@media (hover: hover) {
+  .backBtn:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--color-primary-tint);
+  }
 }
 
-/* ── Mobile ── */
-@media (max-width: 700px) {
-  .wrapper {
-    padding: 12px;
-    align-items: flex-start;
-    overflow-y: auto;
-  }
-
-  .card {
-    padding: var(--spacing-lg);
-  }
-
-  .title {
-    font-size: 1.7rem;
-  }
-
+@media (min-width: 701px) and (max-height: 940px) {
   .header {
     margin-bottom: var(--spacing-lg);
   }
 
-  .modeGrid {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+  .modeRow {
+    padding-top: 12px;
+    padding-bottom: 12px;
   }
 
-  .modeCard {
-    padding: var(--spacing-md);
-  }
-
-  .modeIconWrap {
-    width: 38px;
-    height: 38px;
-    border-radius: var(--radius-sm);
-  }
-
-  .modeEmoji {
-    font-size: 1.35rem;
-  }
-
-  .modeTitle {
-    font-size: 0.9rem;
-  }
-
-  .modeDesc {
-    font-size: 0.78rem;
+  .modeRow.featured {
+    margin-top: var(--spacing-md);
+    padding-top: 14px;
+    padding-bottom: 14px;
   }
 }
 
-@media (max-width: 380px) {
-  .modeGrid {
-    grid-template-columns: 1fr;
+/* ── Phones ── */
+@media (max-width: 700px) {
+  .header {
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .title.masthead {
+    font-size: 2.9rem;
+  }
+
+  .modeRow {
+    padding: 14px 4px;
+  }
+
+  .modeTitle {
+    font-size: 1.2rem;
+  }
+
+  .modeDesc {
+    font-size: 0.86rem;
+  }
+
+  .modeRow.featured {
+    padding: 14px var(--spacing-md);
   }
 }

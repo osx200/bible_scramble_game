@@ -22,16 +22,17 @@
   animation: fadeSlideUp 0.3s ease both;
 }
 
-/* Hairline of gold leaf along the top edge, matching the shared Card system */
 .card::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 10%;
-  right: 10%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
-  opacity: 0.55;
+  top: 10px;
+  left: 24px;
+  right: 24px;
+  height: 4px;
+  /* Brass double rule, like the top of a printed page */
+  border-top: 1px solid var(--color-accent);
+  border-bottom: 1px solid var(--color-accent);
+  opacity: 0.5;
   pointer-events: none;
 }
 
@@ -102,6 +103,55 @@
 }
 
 /* ── Middle row: answer + timer ── */
+/* ── Clue (builder words) ── */
+.clueRow {
+  display: flex;
+  justify-content: center;
+  margin: calc(var(--spacing-sm) * -1) 0 var(--spacing-md);
+  min-height: 40px;
+}
+
+.clueBtn {
+  padding: 8px 18px;
+  border: 1px dashed var(--color-accent);
+  border-radius: var(--radius);
+  background: transparent;
+  font-family: var(--font-main);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--color-accent-dark);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+@media (hover: hover) {
+  .clueBtn:hover {
+    background: var(--color-accent-tint);
+    border-style: solid;
+  }
+}
+
+.clueText {
+  max-width: 60ch;
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  background: var(--color-accent-tint);
+  box-shadow: inset 3px 0 0 var(--color-accent);
+  font-size: 1.05rem;
+  color: var(--color-text);
+  text-align: center;
+  animation: fadeSlideUp 0.3s ease both;
+}
+
+.clueLabel {
+  margin-right: 6px;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-accent-dark);
+}
+
 .midRow {
   display: flex;
   gap: var(--spacing-md);

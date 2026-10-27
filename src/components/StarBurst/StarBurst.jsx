@@ -6,16 +6,16 @@ const COUNT = 10
 // of an arbitrary rainbow so the celebration stays on-brand and theme-aware.
 function getThemePalette() {
   if (typeof window === 'undefined') {
-    return ['#E0A116', '#F5C64F', '#0D5A4E', '#158777', '#96690A']
+    return ['#B08A3E', '#D2B26E', '#7B2433', '#9A3444', '#7A5A1E']
   }
   const cs = getComputedStyle(document.documentElement)
   const pick = (name, fallback) => cs.getPropertyValue(name).trim() || fallback
   return [
-    pick('--color-accent', '#E0A116'),
-    pick('--color-accent-light', '#F5C64F'),
-    pick('--color-primary', '#0D5A4E'),
-    pick('--color-primary-light', '#158777'),
-    pick('--color-accent-dark', '#96690A'),
+    pick('--color-accent', '#B08A3E'),
+    pick('--color-accent-light', '#D2B26E'),
+    pick('--color-primary', '#7B2433'),
+    pick('--color-primary-light', '#9A3444'),
+    pick('--color-accent-dark', '#7A5A1E'),
   ]
 }
 

@@ -6,7 +6,7 @@ import styles from './Confetti.module.css'
 // light/dark theme automatically instead of scattering rainbow neon.
 function getThemePalette() {
   if (typeof window === 'undefined') {
-    return ['#0D5A4E', '#158777', '#E0A116', '#F5C64F', '#2F7340', '#96690A']
+    return ['#7B2433', '#9A3444', '#B08A3E', '#D2B26E', '#4E6B2F', '#7A5A1E']
   }
   const cs = getComputedStyle(document.documentElement)
   const pick = (name, fallback) => {
@@ -14,12 +14,12 @@ function getThemePalette() {
     return v || fallback
   }
   return [
-    pick('--color-primary', '#0D5A4E'),
-    pick('--color-primary-light', '#158777'),
-    pick('--color-accent', '#E0A116'),
-    pick('--color-accent-light', '#F5C64F'),
-    pick('--color-success', '#2F7340'),
-    pick('--color-accent-dark', '#96690A'),
+    pick('--color-primary', '#7B2433'),
+    pick('--color-primary-light', '#9A3444'),
+    pick('--color-accent', '#B08A3E'),
+    pick('--color-accent-light', '#D2B26E'),
+    pick('--color-success', '#4E6B2F'),
+    pick('--color-accent-dark', '#7A5A1E'),
   ]
 }
 

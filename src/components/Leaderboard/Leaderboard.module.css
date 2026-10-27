@@ -1,0 +1,218 @@
+.board {
+  width: 100%;
+}
+
+/* ── Tabs ── */
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs);
+  background: var(--color-surface-sunken);
+  border-radius: var(--radius);
+}
+
+.tab {
+  padding: 10px 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-family: var(--font-main);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  transition: background-color var(--transition-fast), color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+@media (hover: hover) {
+  .tab:hover:not(.tabActive) {
+    color: var(--color-primary);
+  }
+}
+
+.tabActive {
+  background: var(--color-card);
+  color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.period {
+  margin: var(--spacing-md) 0 var(--spacing-sm);
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.dot {
+  color: var(--color-accent);
+  padding: 0 2px;
+}
+
+/* ── Rows ── */
+.list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.period + .list {
+  margin-top: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 2.4rem 1fr auto;
+  align-items: center;
+  gap: var(--spacing-md);
+  min-height: 60px;
+  padding: 10px var(--spacing-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  animation: fadeSlideUp 0.35s ease both;
+  animation-delay: calc(var(--i, 0) * 50ms);
+}
+
+/* Podium: a brass rule down the left for first, quieter after */
+.podium1 {
+  background: var(--color-accent-tint);
+  border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-border));
+  box-shadow: inset 3px 0 0 var(--color-accent);
+}
+
+.podium2,
+.podium3 {
+  box-shadow: inset 3px 0 0 var(--color-border-strong);
+}
+
+.mine {
+  border-color: var(--color-primary);
+  box-shadow: inset 3px 0 0 var(--color-primary), var(--ring);
+}
+
+.rank {
+  font-size: 1.6rem;
+  line-height: 1;
+  text-align: center;
+}
+
+.rankPlain {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--color-text-light);
+}
+
+.who {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.name {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.3;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.youTag {
+  flex-shrink: 0;
+  padding: 1px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.meta {
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.score {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-primary);
+}
+
+.podium1 .score {
+  color: var(--color-accent-dark);
+}
+
+/* ── Loading / empty / offline ── */
+.skeleton {
+  border-color: transparent;
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-sunken) 25%,
+    var(--color-surface) 50%,
+    var(--color-surface-sunken) 75%
+  );
+  background-size: 200% 100%;
+  animation: fadeIn 0.3s ease both, shimmer 1.3s linear infinite;
+  animation-delay: calc(var(--i, 0) * 60ms), 0s;
+}
+
+@keyframes shimmer {
+  from { background-position: 100% 0; }
+  to   { background-position: -100% 0; }
+}
+
+.message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-xl) var(--spacing-lg);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius);
+  text-align: center;
+  font-size: 0.92rem;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}
+
+.messageEmoji {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+@media (max-width: 700px) {
+  .tab {
+    font-size: 0.86rem;
+    padding: 9px 8px;
+  }
+
+  .row {
+    grid-template-columns: 2rem 1fr auto;
+    gap: var(--spacing-sm);
+    padding: 10px 12px;
+  }
+
+  .rank {
+    font-size: 1.35rem;
+  }
+
+  .score {
+    font-size: 1.25rem;
+  }
+}
