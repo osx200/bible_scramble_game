@@ -118,7 +118,7 @@ export default function QuizBuilder({ questions, onAdd, onRemove, onStart, onBac
 
           {questions.length === 0 ? (
             <p className={styles.empty}>
-              No questions yet — add one above or load the sample set.
+              No questions yet - add one above or load the sample set.
             </p>
           ) : (
             <ol className={styles.list}>

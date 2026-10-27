@@ -31,7 +31,7 @@ export default function TeamTransition() {
             {lastRoundResult.correct ? (
               <span>✅ got <strong>{lastRoundResult.bookName}</strong> +{lastRoundResult.pointsEarned} pts</span>
             ) : (
-              <span>❌ missed <strong>{lastRoundResult.bookName}</strong></span>
+              <span>❌ missed <strong>{lastRoundResult.bookName}</strong> {lastRoundResult.pointsEarned} pts</span>
             )}
           </div>
         )}
@@ -44,7 +44,7 @@ export default function TeamTransition() {
           {currentTeam.name}
         </h1>
         <p className={styles.ready}>
-          {isFirstTurn ? "Pass the device — it's your turn! 🎯" : 'Your turn! 🎯'}
+          {isFirstTurn ? "Pass the device - it's your turn! 🎯" : 'Your turn! 🎯'}
         </p>
 
         {/* Live leaderboard */}
@@ -78,10 +78,14 @@ export default function TeamTransition() {
         <Button
           full
           size="lg"
-          style={{ backgroundColor: currentTeam.color, border: 'none' }}
+          // Team colors are arbitrary user-picked swatches, not theme
+          // tokens, so `color` is forced here rather than left to the
+          // Button's --color-on-primary (which flips dark in dark mode
+          // and would go low-contrast against a fixed-hue swatch).
+          style={{ backgroundColor: currentTeam.color, color: '#fff', border: 'none' }}
           onClick={() => dispatch({ type: 'START_TEAM_TURN' })}
         >
-          We're Ready — Start Round {currentTeamState.roundsPlayed + 1}!
+          We're Ready - Start Round {currentTeamState.roundsPlayed + 1}!
         </Button>
       </div>
     </div>

@@ -19,7 +19,7 @@
 }
 
 .circle {
-  border-radius: 50%;
+  border-radius: var(--radius-full);
 }
 
 /* ribbon stays rectangular by default */
@@ -36,4 +36,12 @@
   50%  { margin-left: 0; transform: rotate(var(--rot1, 180deg)); }
   75%  { margin-left: calc(var(--sway, 30px) * -1); }
   100% { margin-left: 0; transform: rotate(var(--rot2, 360deg)); }
+}
+
+/* Narrow phone screens: keep sway travel from ever pushing a piece into
+   horizontal overflow (hard rule §8 - nothing may cause horizontal scroll). */
+@media (max-width: 700px) {
+  .piece {
+    max-width: 10px;
+  }
 }

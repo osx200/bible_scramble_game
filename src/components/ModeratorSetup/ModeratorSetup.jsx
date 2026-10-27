@@ -27,7 +27,7 @@ export default function ModeratorSetup({ onStart }) {
             <h1 className={styles.title}>Moderator View</h1>
           </div>
           <p className={styles.subtitle}>
-            Display scrambled words for your group — reveal answers when ready
+            Display scrambled words for your group - reveal answers when ready
           </p>
         </div>
 

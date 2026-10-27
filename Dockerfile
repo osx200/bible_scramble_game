@@ -1,11 +1,13 @@
 # ── Stage 1: Build ──────────────────────────────────────────
-FROM node:20-alpine AS builder
+# Node 24 LTS — matches the local toolchain; Node 20 went end-of-life in
+# April 2026 and no longer receives security patches.
+FROM node:24-alpine AS builder
 
 WORKDIR /app
 
 # Copy dependency files first for layer caching
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --no-audit --no-fund
 
 # Copy source and build
 COPY . .
@@ -24,5 +26,10 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
+
+# Lets `docker compose ps` report health and the restart policy act on a
+# wedged server, not just a dead process
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1/ || exit 1
 
 CMD ["nginx", "-g", "daemon off;"]

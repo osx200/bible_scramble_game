@@ -1,5 +1,5 @@
 .wrapper {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -8,6 +8,7 @@
 }
 
 .card {
+  position: relative;
   width: 100%;
   max-width: 680px;
   background: var(--color-card);
@@ -16,6 +17,18 @@
   padding: var(--spacing-xl);
   animation: fadeSlideUp 0.3s ease both;
   margin: var(--spacing-lg) 0;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+  opacity: 0.55;
+  pointer-events: none;
 }
 
 /* ── Header ── */
@@ -37,14 +50,20 @@
   font-weight: 600;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast),
+    opacity var(--transition-fast),
+    filter var(--transition-fast);
   margin-bottom: var(--spacing-md);
 }
 
 .backBtn:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
-  background: rgba(107, 63, 160, 0.05);
+  background: var(--color-primary-tint);
 }
 
 .titleRow {
@@ -104,8 +123,8 @@
   height: 24px;
   padding: 0 7px;
   background: var(--color-primary);
-  color: #fff;
-  border-radius: 999px;
+  color: var(--color-on-primary);
+  border-radius: var(--radius-sm);
   font-family: var(--font-main);
   font-size: 0.75rem;
   font-weight: 700;
@@ -123,6 +142,7 @@
   flex-direction: column;
   gap: 6px;
   flex: 1;
+  min-width: 0;
 }
 
 .fieldRow {
@@ -149,7 +169,7 @@
 .input {
   padding: 12px 14px;
   font-family: var(--font-main);
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 500;
   border: 2px solid var(--color-border);
   border-radius: var(--radius);
@@ -163,13 +183,12 @@
 .textarea:focus,
 .input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(107, 63, 160, 0.12);
+  box-shadow: var(--ring);
 }
 
 .textarea::placeholder,
 .input::placeholder {
   color: var(--color-text-muted);
-  opacity: 0.7;
 }
 
 .error {
@@ -246,7 +265,7 @@
   flex-shrink: 0;
   width: 26px;
   height: 26px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: var(--color-tile-bg);
   color: var(--color-primary);
   font-size: 0.75rem;
@@ -291,16 +310,17 @@
   font-size: 0.72rem;
   font-weight: 600;
   padding: 2px 8px;
-  border-radius: 999px;
-  background: rgba(107, 63, 160, 0.1);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
   color: var(--color-primary);
 }
 
 .deleteBtn {
+  position: relative;
   flex-shrink: 0;
   width: 28px;
   height: 28px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   border: none;
   background: transparent;
   color: var(--color-text-muted);
@@ -309,11 +329,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--transition-fast);
+  transition: background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast),
+    opacity var(--transition-fast),
+    filter var(--transition-fast);
 }
 
 .deleteBtn:hover {
-  background: rgba(198, 40, 40, 0.1);
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
   color: var(--color-danger);
 }
 
@@ -323,14 +349,19 @@
 }
 
 /* ── Mobile ── */
-@media (max-width: 600px) {
+@media (max-width: 700px) {
   .wrapper {
-    padding: 8px;
+    padding: 0;
+    align-items: flex-start;
   }
 
   .card {
-    padding: var(--spacing-lg);
-    margin: 8px 0;
+    width: 100%;
+    border-radius: 0;
+    box-shadow: none;
+    min-height: 100dvh;
+    padding: var(--spacing-lg) var(--spacing-md);
+    margin: 0;
   }
 
   .title {
@@ -344,5 +375,19 @@
   .formActions {
     flex-direction: column;
     align-items: stretch;
+  }
+}
+
+@media (max-width: 700px) {
+  /* Keep the compact circle visually, but expand the tap area to the 44px
+     minimum without growing the question row (WCAG 2.5.5). */
+  .deleteBtn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
   }
 }

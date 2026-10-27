@@ -1,8 +1,24 @@
 .card {
+  position: relative;
   background: var(--color-card);
-  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
   padding: var(--spacing-lg);
+}
+
+/* Hairline of gold leaf along the top edge — the one decorative flourish
+   the card system gets, so panels read as illuminated rather than plain. */
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+  opacity: 0.55;
+  pointer-events: none;
 }
 
 .card.lg {
@@ -11,4 +27,13 @@
 
 .card.sm {
   padding: var(--spacing-md);
+}
+
+@media (max-width: 700px) {
+  .card {
+    padding: var(--spacing-md);
+  }
+  .card.lg {
+    padding: var(--spacing-lg);
+  }
 }

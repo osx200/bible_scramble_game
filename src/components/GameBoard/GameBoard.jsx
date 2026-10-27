@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { useGame } from '../../context/GameContext.jsx'
+import { useGame, useWordSet } from '../../context/GameContext.jsx'
+import { useReactionTrigger } from '../../context/ReactionContext.jsx'
 import { useTimer } from '../../hooks/useTimer.js'
 import ScrambledWord from '../ScrambledWord/ScrambledWord.jsx'
 import AnswerInput from '../AnswerInput/AnswerInput.jsx'
@@ -13,6 +14,8 @@ const DIFFICULTY_LABELS = { easy: 'Easy', medium: 'Medium', hard: 'Hard' }
 
 export default function GameBoard() {
   const { state, dispatch } = useGame()
+  const wordSet = useWordSet()
+  const { triggerRandomReaction } = useReactionTrigger()
   const { roundNumber, totalRounds, difficulty, lastResult, score, streak, mode, teams, teamStates, currentTeamIndex, roundsPerTeam, paused } = state
   const currentTeam = mode === 'teams' ? teams[currentTeamIndex] : null
   // In teams mode, show this team's round counter (1-based) and total rounds per team
@@ -27,6 +30,9 @@ export default function GameBoard() {
   useEffect(() => {
     if (lastResult) {
       setVisibleResult(lastResult)
+      // Celebrate a correct answer with a random reaction. The hold is short
+      // so it clears with the feedback overlay instead of covering the next round.
+      if (lastResult.correct) triggerRandomReaction({ hold: 1.1 })
       clearTimeout(feedbackTimer.current)
       feedbackTimer.current = setTimeout(() => {
         setVisibleResult(null)
@@ -91,16 +97,14 @@ export default function GameBoard() {
             </div>
             <div>
               <p className={styles.sideLabel}>Category</p>
-              <span className={`${styles.badge} ${styles.easy}`} style={{ background: 'rgba(74,111,165,0.1)', color: 'var(--color-primary)' }}>
-                {state.category === 'all' ? 'All Books' : state.category === 'OT' ? 'Old Testament' : 'New Testament'}
+              <span className={`${styles.badge} ${styles.category}`}>
+                {state.category === 'all' ? wordSet.allLabel : state.category === 'OT' ? 'Old Testament' : 'New Testament'}
               </span>
             </div>
             {streak >= 2 && (
               <div>
                 <p className={styles.sideLabel}>Streak</p>
-                <span style={{ fontSize: '1.5rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--color-accent)' }}>
-                  🔥 {streak}
-                </span>
+                <span className={styles.streakValue}>🔥 {streak}</span>
               </div>
             )}
           </div>
@@ -127,7 +131,7 @@ export default function GameBoard() {
                 className={styles.skipBtn}
                 onClick={() => dispatch({ type: 'SKIP_BOOK' })}
                 disabled={!!visibleResult}
-                title="Skip this book — counts as wrong answer"
+                title={`Skip this ${wordSet.noun} - counts as wrong answer`}
               >
                 ⏭ Skip
               </button>

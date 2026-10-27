@@ -1,8 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useReactionTrigger } from '../../context/ReactionContext.jsx'
+import { WINNER_REACTION } from '../../data/reactions.js'
 import Button from '../shared/Button.jsx'
 import styles from './QuizPlayer.module.css'
 
 export default function QuizPlayer({ questions, onBack }) {
+  const { triggerReaction, triggerRandomReaction } = useReactionTrigger()
   const [index, setIndex] = useState(0)
   const [showAnswer, setShowAnswer] = useState(false)
   const [scores, setScores] = useState(() => questions.map(() => null)) // null | 'correct' | 'wrong'
@@ -14,6 +17,12 @@ export default function QuizPlayer({ questions, onBack }) {
   const wrong = scores.filter(s => s === 'wrong').length
   const answered = scores.filter(s => s !== null).length
   const progress = ((index + 1) / total) * 100
+
+  // Trophy on the summary screen only, at the same 80% bar the 🏆 rating uses
+  const wonQuiz = finished && answered > 0 && Math.round((correct / answered) * 100) >= 80
+  useEffect(() => {
+    if (wonQuiz) triggerReaction(WINNER_REACTION)
+  }, [wonQuiz, triggerReaction])
 
   function goNext() {
     if (index < total - 1) {
@@ -32,6 +41,9 @@ export default function QuizPlayer({ questions, onBack }) {
   }
 
   function markScore(result) {
+    // Celebrate a correct answer — nothing auto-advances here, so it can
+    // hold a little longer than the scramble game's reaction
+    if (result === 'correct') triggerRandomReaction({ hold: 1.6 })
     setScores(prev => {
       const next = [...prev]
       next[index] = result
@@ -55,7 +67,7 @@ export default function QuizPlayer({ questions, onBack }) {
       <div className={styles.wrapper}>
         <div className={styles.card}>
           <div className={styles.summaryHeader}>
-            <div className={styles.summaryEmoji}>
+            <div className={`${styles.summaryEmoji} ${pct >= 80 ? styles.summaryEmojiWinner : ''}`}>
               {pct >= 80 ? '🏆' : pct >= 50 ? '🎉' : '📖'}
             </div>
             <h1 className={styles.summaryTitle}>Quiz Complete!</h1>
@@ -100,7 +112,7 @@ export default function QuizPlayer({ questions, onBack }) {
                   }`}
                 >
                   <span className={styles.reviewIcon}>
-                    {scores[i] === 'correct' ? '✓' : scores[i] === 'wrong' ? '✗' : '—'}
+                    {scores[i] === 'correct' ? '✓' : scores[i] === 'wrong' ? '✗' : '-'}
                   </span>
                   <div className={styles.reviewContent}>
                     <p className={styles.reviewQ}>{q.question}</p>
@@ -145,18 +157,30 @@ export default function QuizPlayer({ questions, onBack }) {
           </div>
           {/* Dot indicators for small quiz sets */}
           {total <= 20 && (
-            <div className={styles.dots}>
-              {questions.map((_, i) => (
-                <span
-                  key={i}
-                  className={`${styles.dot} ${
-                    i === index ? styles.dotCurrent :
-                    scores[i] === 'correct' ? styles.dotCorrect :
-                    scores[i] === 'wrong'   ? styles.dotWrong :
-                                              ''
-                  }`}
-                />
-              ))}
+            <div className={styles.dots} role="list" aria-label="Question results">
+              {questions.map((_, i) => {
+                // State must not be carried by color alone, so each dot also
+                // exposes its status as text to assistive tech and on hover.
+                const label =
+                  i === index ? `Question ${i + 1}: current`
+                  : scores[i] === 'correct' ? `Question ${i + 1}: correct`
+                  : scores[i] === 'wrong' ? `Question ${i + 1}: wrong`
+                  : `Question ${i + 1}: not answered yet`
+                return (
+                  <span
+                    key={i}
+                    role="listitem"
+                    title={label}
+                    aria-label={label}
+                    className={`${styles.dot} ${
+                      i === index ? styles.dotCurrent :
+                      scores[i] === 'correct' ? styles.dotCorrect :
+                      scores[i] === 'wrong'   ? styles.dotWrong :
+                                                ''
+                    }`}
+                  />
+                )
+              })}
             </div>
           )}
         </div>

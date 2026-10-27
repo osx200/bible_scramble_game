@@ -72,7 +72,7 @@ export default function RecallPlay({ config, onFinish }) {
 
     if (!canonical) {
       triggerShake()
-      showFeedback('Not a Bible book — check your spelling', 'error')
+      showFeedback('Not a Bible book - check your spelling', 'error')
       return
     }
 
@@ -130,6 +130,7 @@ export default function RecallPlay({ config, onFinish }) {
             ref={inputRef}
             type="text"
             className={`${styles.input} ${shaking ? styles.inputShake : ''}`}
+            aria-label="Bible book name"
             placeholder="Type a Bible book name…"
             value={inputValue}
             onChange={e => setInputValue(e.target.value)}
@@ -139,7 +140,7 @@ export default function RecallPlay({ config, onFinish }) {
             spellCheck={false}
             autoFocus
           />
-          <button type="submit" className={styles.submitBtn}>→</button>
+          <button type="submit" className={styles.submitBtn} aria-label="Submit answer">→</button>
         </form>
 
         {/* Feedback */}

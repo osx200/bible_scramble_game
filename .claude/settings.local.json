@@ -3,7 +3,17 @@
     "allow": [
       "Bash(npm info:*)",
       "Bash(npm create:*)",
-      "Bash(npx create-vite@latest . --template react)"
+      "Bash(npx create-vite@latest . --template react)",
+      "Bash(npm run *)",
+      "Bash(node contrast.mjs)",
+      "Bash(node solve.mjs)",
+      "Bash(node deadcss.mjs)",
+      "Bash(python -c ' *)",
+      "Bash(python -)",
+      "Bash(rm -f probe.txt)",
+      "Bash(sed -i 's#'\\\\''./src/utils/voiceMatch.js'\\\\''#'\\\\''C:/Users/aiam2/Documents/Claude-Code-Projects/Bible_Scramble_Game/src/utils/voiceMatch.js'\\\\''#' __TRACKED_VAR__/vm.test.mjs)",
+      "Bash(node __TRACKED_VAR__/vm.test.mjs)",
+      "Bash(netstat -ano)"
     ]
   }
 }

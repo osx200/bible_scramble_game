@@ -24,20 +24,27 @@
   height: 72px;
   background: var(--color-tile-bg);
   border: 2px solid var(--color-tile-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
   font-family: var(--font-display);
   font-size: 1.8rem;
   font-weight: 700;
   color: var(--color-primary);
   text-transform: uppercase;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.06), inset 0 -3px 0 var(--color-tile-border);
-  animation: dropIn 0.35s ease both;
+  box-shadow: var(--shadow-sm), inset 0 -3px 0 var(--color-tile-border);
+  animation: dropIn 0.35s var(--ease-spring) both;
+  transition: transform 140ms ease;
+}
+
+@media (hover: hover) {
+  .tile:hover {
+    transform: translateY(-2px);
+  }
 }
 
 /* Numeric prefix tile (slightly different) */
 .tile.prefix {
-  background: rgba(107, 63, 160, 0.08);
-  border-color: rgba(107, 63, 160, 0.22);
+  background: var(--color-primary-tint);
+  border-color: color-mix(in srgb, var(--color-primary) 22%, transparent);
   color: var(--color-primary-light);
   font-size: 1.4rem;
 }

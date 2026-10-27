@@ -1,5 +1,4 @@
 .wrapper {
-  min-height: 100vh;
   min-height: 100dvh;
   display: flex;
   align-items: flex-start;
@@ -9,6 +8,7 @@
 }
 
 .card {
+  position: relative;
   width: 100%;
   max-width: 720px;
   background: var(--color-card);
@@ -23,6 +23,18 @@
   animation: fadeSlideUp 0.3s ease both;
 }
 
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 /* ── Score header ── */
 .scoreHeader {
   text-align: center;
@@ -33,15 +45,27 @@
   font-size: 3.5rem;
   line-height: 1;
   margin-bottom: var(--spacing-sm);
+  display: inline-block;
+}
+
+/* A strong result earns a little theatre: motivated, one-shot motion
+   (not an idle loop) plus the accent gold reserved for highlights. */
+.scoreEmojiWinner {
+  animation: trophyBounce 1s ease-out both;
 }
 
 .scoreNum {
   font-family: var(--font-display);
   font-size: 3.5rem;
-  font-weight: 900;
+  font-weight: 800;
   color: var(--color-primary);
   line-height: 1;
   margin-bottom: 4px;
+}
+
+.scoreNumWinner {
+  color: var(--color-accent-dark);
+  text-shadow: 0 0 24px var(--color-accent-tint);
 }
 
 .scoreTotal {
@@ -92,9 +116,9 @@
   font-size: 0.8rem;
   font-weight: 700;
   color: var(--color-primary);
-  background: rgba(107, 63, 160, 0.1);
+  background: var(--color-primary-tint-strong);
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
 }
 
 .bookList {
@@ -114,7 +138,7 @@
 }
 
 .bookNamed {
-  background: rgba(46, 125, 82, 0.08);
+  background: color-mix(in srgb, var(--color-success) 8%, transparent);
   color: var(--color-success);
 }
 
@@ -157,19 +181,33 @@
   font-weight: 600;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast),
+    opacity var(--transition-fast),
+    filter var(--transition-fast);
 }
 
 .menuBtn:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
-  background: rgba(107, 63, 160, 0.05);
+  background: var(--color-primary-tint);
 }
 
 /* ── Mobile: single column ── */
-@media (max-width: 600px) {
-  .wrapper { padding: 8px; }
-  .card { padding: var(--spacing-md); margin: 8px 0; gap: var(--spacing-lg); }
+@media (max-width: 700px) {
+  .wrapper { padding: 0; align-items: flex-start; }
+  .card {
+    width: 100%;
+    border-radius: 0;
+    box-shadow: none;
+    min-height: 100dvh;
+    padding: var(--spacing-lg) var(--spacing-md);
+    margin: 0;
+    gap: var(--spacing-lg);
+  }
 
   .sections {
     grid-template-columns: 1fr;

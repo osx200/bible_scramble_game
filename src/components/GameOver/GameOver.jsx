@@ -1,4 +1,7 @@
+import { useEffect } from 'react'
 import { useGame } from '../../context/GameContext.jsx'
+import { useReactionTrigger } from '../../context/ReactionContext.jsx'
+import { WINNER_REACTION } from '../../data/reactions.js'
 import Button from '../shared/Button.jsx'
 import Confetti from '../Confetti/Confetti.jsx'
 import styles from './GameOver.module.css'
@@ -20,6 +23,14 @@ export default function GameOver() {
   const total = roundResults.length
   const rating = getRating(correctCount, total)
   const celebrate = correctCount / total >= 0.8
+  // Solo has no opponent, so a perfect score is the win — the same bar the
+  // rating already uses for its 🏆
+  const perfect = total > 0 && correctCount === total
+
+  const { triggerReaction } = useReactionTrigger()
+  useEffect(() => {
+    if (perfect) triggerReaction(WINNER_REACTION)
+  }, [perfect, triggerReaction])
 
   return (
     <>
@@ -59,8 +70,8 @@ export default function GameOver() {
               {r.timeUsed !== undefined && (
                 <span className={styles.resultTime}>{r.timeUsed}s</span>
               )}
-              <span className={`${styles.resultPts} ${r.pointsEarned === 0 ? styles.zero : ''}`}>
-                {r.correct ? `+${r.pointsEarned}` : r.skipped ? 'skipped' : '—'}
+              <span className={`${styles.resultPts} ${r.correct ? '' : styles.zero}`}>
+                {r.correct ? `+${r.pointsEarned}` : r.pointsEarned}
               </span>
             </div>
           ))}

@@ -1,14 +1,14 @@
-/* Full-screen overlay — pointer-events off so controls stay usable */
+/* Full-screen overlay - pointer-events off so controls stay usable */
 .overlay {
   position: fixed;
   inset: 0;
   z-index: 200;
   pointer-events: none;
-  background: var(--bg, rgba(107, 63, 160, 0.15));
+  background: var(--bg, var(--color-primary-tint-strong));
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: overlayIn 0.25s ease both, overlayOut 0.5s ease 3s both;
+  animation: overlayIn 0.25s ease both, overlayOut 0.5s ease var(--hold, 3s) both;
 }
 
 @keyframes overlayIn {
@@ -34,7 +34,7 @@
 .mainEmoji {
   font-size: 7rem;
   line-height: 1;
-  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.25));
+  filter: drop-shadow(0 8px 20px var(--color-primary-tint-strong));
   animation: emojiBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   display: block;
 }
@@ -44,15 +44,18 @@
   to   { transform: scale(1) rotate(0deg);   opacity: 1; }
 }
 
-/* Label text */
+/* Label text sits on a translucent scrim over whatever the room is
+   looking at, so it needs to read regardless of theme or what's behind
+   it. --color-accent-light is gold-leaf toned and, unlike the primary/
+   text tokens, stays bright in both themes (see variables.css) -- paired
+   with the design system's own ground-tinted shadow token for legibility
+   instead of a raw black. */
 .label {
   font-family: var(--font-display);
   font-size: 2.2rem;
-  font-weight: 900;
-  color: #fff;
-  text-shadow:
-    0 2px 12px rgba(0,0,0,0.5),
-    0 0 40px rgba(0,0,0,0.3);
+  font-weight: 800;
+  color: var(--color-accent-light);
+  text-shadow: var(--shadow-lg);
   letter-spacing: 0.04em;
   animation: labelIn 0.4s ease 0.15s both;
 }

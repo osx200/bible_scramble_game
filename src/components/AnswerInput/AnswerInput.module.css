@@ -23,12 +23,12 @@
 }
 
 .input::placeholder {
-  color: var(--color-text-light);
+  color: var(--color-text-muted);
 }
 
 .input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(107, 63, 160, 0.15);
+  box-shadow: var(--ring);
 }
 
 .input.shake {
@@ -45,7 +45,7 @@
   flex-shrink: 0;
   width: 50px;
   height: 50px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   border: 2px solid var(--color-border);
   background: var(--color-card);
   font-size: 1.15rem;
@@ -53,13 +53,15 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-fast);
 }
 
-.micBtn:hover:not(:disabled) {
-  border-color: var(--color-primary);
-  background: rgba(107, 63, 160, 0.06);
-  transform: scale(1.05);
+@media (hover: hover) {
+  .micBtn:hover:not(:disabled) {
+    border-color: var(--color-primary);
+    background: var(--color-primary-tint);
+    transform: scale(1.05);
+  }
 }
 
 .micBtn:disabled {
@@ -69,7 +71,7 @@
 
 .micBtn.micListening {
   border-color: var(--color-danger);
-  background: rgba(198, 40, 40, 0.08);
+  background: color-mix(in srgb, var(--color-danger) 8%, transparent);
   animation: micPulse 1.2s ease-in-out infinite;
 }
 
@@ -85,8 +87,8 @@
 }
 
 @keyframes micPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(198, 40, 40, 0.5); }
-  50%       { box-shadow: 0 0 0 10px rgba(198, 40, 40, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-danger) 50%, transparent); }
+  50%       { box-shadow: 0 0 0 10px transparent; }
 }
 
 /* ── Submit button ── */
@@ -123,7 +125,7 @@
 .voiceDot {
   width: 8px;
   height: 8px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: var(--color-danger);
   animation: micPulse 1.2s ease-in-out infinite;
   flex-shrink: 0;
@@ -135,13 +137,29 @@
   line-height: 1.4;
 }
 
+/* Voice heard something, but it is not a book name — the player decides */
+.voiceHeard {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--color-accent-dark);
+  line-height: 1.4;
+}
+
+@media (max-width: 700px) {
+  .input {
+    padding: 12px 14px;
+    min-width: 0;
+  }
+
+  .micBtn,
+  .submitBtn {
+    flex-shrink: 0;
+  }
+}
+
 @media (max-width: 400px) {
   .wrapper {
     flex-direction: column;
-  }
-
-  .input {
-    padding: 12px 14px;
   }
 
   .micBtn {

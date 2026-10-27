@@ -1,4 +1,7 @@
+import { useEffect } from 'react'
 import { useGame } from '../../context/GameContext.jsx'
+import { useReactionTrigger } from '../../context/ReactionContext.jsx'
+import { WINNER_REACTION } from '../../data/reactions.js'
 import Button from '../shared/Button.jsx'
 import Confetti from '../Confetti/Confetti.jsx'
 import styles from './TeamResults.module.css'
@@ -13,6 +16,13 @@ export default function TeamResults() {
   const ranked = [...teamStates].sort((a, b) => b.score - a.score)
   const winner = ranked[0]
   const hasTie = ranked.length > 1 && ranked[0].score === ranked[1].score
+
+  // The trophy is reserved for an actual win — a tie gets the screen's own
+  // 🤝 celebration instead
+  const { triggerReaction } = useReactionTrigger()
+  useEffect(() => {
+    if (!hasTie) triggerReaction(WINNER_REACTION)
+  }, [hasTie, triggerReaction])
 
   return (
     <>
@@ -61,7 +71,7 @@ export default function TeamResults() {
           </div>
 
           {hasTie && (
-            <p className={styles.tieNote}>Multiple teams tied — well played by everyone!</p>
+            <p className={styles.tieNote}>Multiple teams tied - well played by everyone!</p>
           )}
 
           <div className={styles.divider} />

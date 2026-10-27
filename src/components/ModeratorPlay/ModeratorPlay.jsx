@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
-import ReactionOverlay from '../ReactionOverlay/ReactionOverlay.jsx'
+import { useState, useEffect, useRef } from 'react'
+import { useReactionTrigger, useActiveReaction } from '../../context/ReactionContext.jsx'
+import { REACTIONS } from '../../data/reactions.js'
 import styles from './ModeratorPlay.module.css'
 
 function formatTime(s) {
@@ -7,17 +8,6 @@ function formatTime(s) {
   const sec = s % 60
   return m > 0 ? `${m}:${sec.toString().padStart(2, '0')}` : `${sec}s`
 }
-
-const REACTIONS = [
-  { type: 'confetti', emoji: '🎉', label: 'Confetti'  },
-  { type: 'trophy',   emoji: '🏆', label: 'Winner'    },
-  { type: 'highfive', emoji: '✋', label: 'High Five'  },
-  { type: 'applause', emoji: '👏', label: 'Applause'  },
-  { type: 'fire',     emoji: '🔥', label: 'On Fire'   },
-  { type: 'star',     emoji: '⭐', label: 'Amazing'   },
-  { type: 'love',     emoji: '❤️', label: 'Love It'   },
-  { type: 'clown',    emoji: '🎊', label: 'Party'     },
-]
 
 export default function ModeratorPlay({ config, onBack }) {
   const { words, timerDuration } = config
@@ -28,9 +18,9 @@ export default function ModeratorPlay({ config, onBack }) {
   const [running,       setRunning]       = useState(false)
   const [maxTime,       setMaxTime]       = useState(timerDuration)
   const [timeRemaining, setTimeRemaining] = useState(timerDuration)
-  const [reaction,      setReaction]      = useState(null)
+  const { triggerReaction }               = useReactionTrigger()
+  const reaction                          = useActiveReaction()
   const intervalRef  = useRef(null)
-  const reactionRef  = useRef(null)
 
   const word    = words[index]
   const timeUp  = timeRemaining === 0
@@ -82,15 +72,6 @@ export default function ModeratorPlay({ config, onBack }) {
     setTimeRemaining(maxTime)
   }
 
-  // ── Reactions ──────────────────────────────────────────────
-  const triggerReaction = useCallback((type) => {
-    clearTimeout(reactionRef.current)
-    setReaction({ type, key: Date.now() })
-    reactionRef.current = setTimeout(() => setReaction(null), 3500)
-  }, [])
-
-  useEffect(() => () => clearTimeout(reactionRef.current), [])
-
   // ── Timer display ──────────────────────────────────────────
   const timerPct  = maxTime > 0 ? (timeRemaining / maxTime) * 100 : 100
   const timerLow  = timeRemaining <= 10 && timeRemaining > 0
@@ -98,8 +79,6 @@ export default function ModeratorPlay({ config, onBack }) {
 
   return (
     <div className={styles.wrapper}>
-      <ReactionOverlay reaction={reaction} />
-
       <div className={styles.card}>
 
         {/* ── Top bar ── */}
@@ -122,7 +101,7 @@ export default function ModeratorPlay({ config, onBack }) {
           <div className={styles.answerBlock}>
             <span className={styles.answerLabel}>CORRECT ANSWER</span>
             <div className={`${styles.answerTile} ${showAnswer ? styles.answerShown : styles.answerHidden}`}>
-              {showAnswer ? word.name : <span className={styles.answerPlaceholder}>—</span>}
+              {showAnswer ? word.name : <span className={styles.answerPlaceholder}>-</span>}
             </div>
           </div>
 

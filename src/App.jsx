@@ -1,5 +1,6 @@
 import { GameProvider, useGame } from './context/GameContext.jsx'
 import { AppModeProvider, useAppMode } from './context/AppModeContext.jsx'
+import { ReactionProvider } from './context/ReactionContext.jsx'
 import Menu from './components/Menu/Menu.jsx'
 import GameBoard from './components/GameBoard/GameBoard.jsx'
 import GameOver from './components/GameOver/GameOver.jsx'
@@ -7,6 +8,7 @@ import TeamRegister from './components/TeamRegister/TeamRegister.jsx'
 import TeamTransition from './components/TeamTransition/TeamTransition.jsx'
 import TeamResults from './components/TeamResults/TeamResults.jsx'
 import ThemeToggle from './components/ThemeToggle/ThemeToggle.jsx'
+import Reactions from './components/Reactions/Reactions.jsx'
 import QuizApp from './components/QuizApp/QuizApp.jsx'
 import ModeratorApp from './components/ModeratorApp/ModeratorApp.jsx'
 import RecallApp from './components/RecallApp/RecallApp.jsx'
@@ -33,6 +35,9 @@ function AppContent() {
   return (
     <div className={styles.app}>
       <ThemeToggle />
+      {/* Moderator View has its own inline reaction panel — everywhere else
+          gets the floating picker */}
+      {appMode !== 'moderator' && <Reactions />}
       {appMode === 'scramble' ? (
         <GameProvider>
           <GameRouter />
@@ -51,7 +56,9 @@ function AppContent() {
 export default function App() {
   return (
     <AppModeProvider>
-      <AppContent />
+      <ReactionProvider>
+        <AppContent />
+      </ReactionProvider>
     </AppModeProvider>
   )
 }

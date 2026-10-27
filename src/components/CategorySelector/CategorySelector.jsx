@@ -1,14 +1,15 @@
-import { useGame } from '../../context/GameContext.jsx'
+import { useGame, useWordSet } from '../../context/GameContext.jsx'
 import styles from './CategorySelector.module.css'
-
-const OPTIONS = [
-  { value: 'all', label: 'All Books' },
-  { value: 'OT',  label: 'Old Testament' },
-  { value: 'NT',  label: 'New Testament' },
-]
 
 export default function CategorySelector() {
   const { state, dispatch } = useGame()
+  const wordSet = useWordSet()
+
+  const OPTIONS = [
+    { value: 'all', label: wordSet.allLabel },
+    { value: 'OT',  label: 'Old Testament' },
+    { value: 'NT',  label: 'New Testament' },
+  ]
 
   return (
     <div className={styles.section}>

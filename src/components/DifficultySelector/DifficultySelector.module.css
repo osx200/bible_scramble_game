@@ -20,36 +20,50 @@
   flex: 1;
   padding: 10px 12px;
   border: 2px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
   background: transparent;
   font-family: var(--font-main);
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast),
+    color var(--transition-fast), transform var(--transition-fast);
   text-align: center;
 }
 
-.option:hover {
+.option:hover:not(.active) {
   border-color: var(--color-primary-light);
   color: var(--color-primary);
+  background: var(--color-primary-tint);
+}
+
+.option:active {
+  transform: scale(0.98);
 }
 
 .option.active {
   border-color: var(--color-primary);
-  background-color: var(--color-primary);
-  color: #fff;
+  background: var(--gradient-primary);
+  color: var(--color-on-primary);
+  box-shadow: var(--shadow-primary);
 }
 
 .dot {
   display: inline-block;
   width: 8px;
   height: 8px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   margin-right: 4px;
 }
 
 .easy { background: var(--color-success); }
 .medium { background: var(--color-accent); }
 .hard { background: var(--color-danger); }
+
+@media (max-width: 700px) {
+  .option {
+    padding: 9px 8px;
+    font-size: 0.82rem;
+  }
+}

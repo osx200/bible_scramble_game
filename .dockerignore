@@ -1,5 +1,11 @@
 node_modules
 dist
 .claude
+.agents
 .git
+.gitignore
+certs
 *.md
+*.log
+npm-debug.log*
+skills-lock.json

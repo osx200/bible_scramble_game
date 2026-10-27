@@ -17,21 +17,65 @@ body,
 body {
   font-family: var(--font-main);
   background-color: var(--color-bg);
+  background-image: var(--gradient-page);
+  background-attachment: fixed;
   color: var(--color-text);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  min-height: 100vh;
-  overflow-x: hidden;   /* prevent horizontal scroll globally */
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100dvh;
+  overflow-x: hidden; /* prevent horizontal scroll globally */
+  /* Every control has its own pressed state and focus ring; the grey
+     Android/iOS tap flash on top of those just looks like a glitch. */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Vellum grain over the whole page — decorative, never interactive */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background-image: var(--texture-grain);
+  opacity: var(--grain-opacity);
+  mix-blend-mode: var(--grain-blend);
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.15;
+  text-wrap: balance; /* no lone orphan word on a second title line */
 }
 
 button {
   cursor: pointer;
   font-family: inherit;
+  /* Drops the double-tap-zoom delay, so rapid taps in timed rounds register */
+  touch-action: manipulation;
 }
 
-input {
+input,
+textarea,
+select {
   font-family: inherit;
 }
+
+/* Single, consistent focus treatment across the app */
+:where(button, a, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+::selection {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+/* ── Keyframes ────────────────────────────────────────────── */
 
 @keyframes dropIn {
   from {
@@ -67,7 +111,7 @@ input {
 
 @keyframes scoreBump {
   0% { transform: scale(1); }
-  50% { transform: scale(1.2); color: var(--color-accent); }
+  50% { transform: scale(1.2); color: var(--color-accent-dark); }
   100% { transform: scale(1); }
 }
 
@@ -100,8 +144,8 @@ input {
 }
 
 @keyframes winnerGlow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 168, 76, 0); }
-  50%       { box-shadow: 0 0 28px 8px rgba(201, 168, 76, 0.5); }
+  0%, 100% { box-shadow: 0 0 0 0 var(--color-accent-tint); }
+  50%       { box-shadow: 0 0 28px 8px var(--color-accent-tint); }
 }
 
 @keyframes winnerNamePop {
@@ -121,4 +165,26 @@ input {
   60%  { opacity: 1; }
   80%  { transform: translateY(6px) rotate(2deg); }
   100% { transform: translateY(0) rotate(0deg); opacity: 1; }
+}
+
+/* Slow sheen sweep for gold-leaf surfaces */
+@keyframes sheen {
+  from { transform: translateX(-120%) skewX(-18deg); }
+  to   { transform: translateX(320%) skewX(-18deg); }
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50%      { opacity: 1;    transform: scale(1.04); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

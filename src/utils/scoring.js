@@ -1,28 +1,24 @@
 /**
+ * Flat scoring: every correct answer is worth the same, every miss costs the
+ * same. Difficulty changes how long you get, not what a round is worth, and
+ * hints are free — a correct answer is always POINTS_CORRECT.
+ */
+export const POINTS_CORRECT = 20
+export const POINTS_INCORRECT = -2
+
+/**
  * Timer durations and total rounds per difficulty.
  */
 export const DIFFICULTY_CONFIG = {
-  easy:   { maxTime: 45, totalRounds: 10, basePoints: 100 },
-  medium: { maxTime: 30, totalRounds: 10, basePoints: 200 },
-  hard:   { maxTime: 20, totalRounds: 10, basePoints: 300 },
+  easy:   { maxTime: 45, totalRounds: 10 },
+  medium: { maxTime: 30, totalRounds: 10 },
+  hard:   { maxTime: 20, totalRounds: 10 },
 }
 
 /**
- * Calculate points earned for a correct answer.
- *
- * Formula:
- *   total = (basePoints + timeBonus - hintPenalty) × streakMultiplier
- *   timeBonus     = round((timeRemaining / maxTime) × 50)
- *   hintPenalty   = hintsUsed × 25
- *   streakMultiplier = min(2.0, 1.0 + streak × 0.1)
- *
- * Returns at least 0 (never negative).
+ * Points for a round. A miss is a miss — wrong answer, timeout, or skip all
+ * cost the same, and the running total is allowed to go negative.
  */
-export function calculatePoints({ difficulty, timeRemaining, maxTime, hintsUsed, streak }) {
-  const { basePoints } = DIFFICULTY_CONFIG[difficulty]
-  const timeBonus = Math.round((timeRemaining / maxTime) * 50)
-  const hintPenalty = hintsUsed * 25
-  const streakMultiplier = Math.min(2.0, 1.0 + streak * 0.1)
-  const total = Math.round((basePoints + timeBonus - hintPenalty) * streakMultiplier)
-  return Math.max(0, total)
+export function pointsFor(correct) {
+  return correct ? POINTS_CORRECT : POINTS_INCORRECT
 }

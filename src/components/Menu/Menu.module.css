@@ -1,13 +1,14 @@
 .wrapper {
-  min-height: 100vh;
   min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--spacing-lg);
+  position: relative;
 }
 
 .card {
+  position: relative;
   width: 100%;
   max-width: var(--max-width);
   background: var(--color-card);
@@ -17,8 +18,21 @@
   animation: fadeSlideUp 0.4s ease both;
 }
 
+/* Hairline of gold leaf along the top edge, matching the shared Card system */
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 .modePickerCard {
-  max-width: 680px;
+  max-width: 700px;
 }
 
 /* ── Header ── */
@@ -31,6 +45,7 @@
   font-size: 3rem;
   line-height: 1;
   margin-bottom: var(--spacing-md);
+  animation: dropIn 0.5s var(--ease-spring) both;
 }
 
 .title {
@@ -39,6 +54,7 @@
   font-weight: 800;
   color: var(--color-primary);
   line-height: 1.1;
+  letter-spacing: var(--tracking-tight);
   margin-bottom: var(--spacing-sm);
 }
 
@@ -61,6 +77,7 @@
 }
 
 .modeCard {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -71,21 +88,56 @@
   border-radius: var(--radius-lg);
   cursor: pointer;
   text-align: left;
-  transition: all var(--transition-fast);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast),
+    transform var(--transition-fast), box-shadow var(--transition-fast);
   font-family: var(--font-main);
+  overflow: hidden;
+  animation: fadeSlideUp 0.4s ease both;
+  animation-delay: calc(var(--i, 0) * 60ms);
 }
 
-.modeCard:hover {
+.modeCard:focus-visible {
   border-color: var(--color-primary);
-  background: rgba(107, 63, 160, 0.04);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  background: var(--color-primary-tint);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow);
+}
+
+@media (hover: hover) {
+  .modeCard:hover {
+    border-color: var(--color-primary);
+    background: var(--color-primary-tint);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow);
+  }
+}
+
+.modeCard:active {
+  transform: translateY(-1px) scale(0.99);
+}
+
+.modeIconWrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius);
+  background: var(--color-primary-tint);
+  margin-bottom: 4px;
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
+}
+
+@media (hover: hover) {
+  .modeCard:hover .modeIconWrap {
+    background: var(--color-primary-tint-strong);
+    transform: scale(1.06);
+  }
 }
 
 .modeEmoji {
-  font-size: 2rem;
+  font-size: 1.7rem;
   line-height: 1;
-  margin-bottom: 2px;
 }
 
 .modeTitle {
@@ -93,6 +145,7 @@
   font-weight: 800;
   color: var(--color-text);
   font-family: var(--font-display);
+  letter-spacing: var(--tracking-tight);
 }
 
 .modeDesc {
@@ -113,21 +166,21 @@
   margin-top: var(--spacing-md);
   padding: 10px;
   border: 2px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
   background: transparent;
   font-family: var(--font-main);
   font-size: 0.88rem;
   font-weight: 600;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: border-color var(--transition-fast), color var(--transition-fast), background-color var(--transition-fast);
   text-align: center;
 }
 
 .backBtn:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
-  background: rgba(107, 63, 160, 0.05);
+  background: var(--color-primary-tint);
 }
 
 /* ── Mobile ── */
@@ -159,8 +212,14 @@
     padding: var(--spacing-md);
   }
 
+  .modeIconWrap {
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-sm);
+  }
+
   .modeEmoji {
-    font-size: 1.6rem;
+    font-size: 1.35rem;
   }
 
   .modeTitle {

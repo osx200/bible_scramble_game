@@ -60,7 +60,7 @@ export default function TeamRegister() {
           <div className={styles.emoji}>👥</div>
           <h1 className={styles.title}>Register Teams</h1>
           <p className={styles.subtitle}>
-            {MIN_TEAMS}–{MAX_TEAMS} teams · Each team plays {10} rounds
+            {MIN_TEAMS}-{MAX_TEAMS} teams · Each team plays {10} rounds
           </p>
         </div>
 
@@ -75,6 +75,7 @@ export default function TeamRegister() {
                   value={team.color}
                   onChange={(e) => updateColor(team.id, e.target.value)}
                   title="Pick team color"
+                  aria-label={`Pick color for team ${i + 1}`}
                 />
               </div>
 
@@ -82,6 +83,7 @@ export default function TeamRegister() {
                 className={styles.teamInput}
                 type="text"
                 maxLength={24}
+                aria-label={`Team ${i + 1} name`}
                 placeholder={`Team ${i + 1} name`}
                 value={team.name}
                 onChange={(e) => updateName(team.id, e.target.value)}
@@ -92,6 +94,8 @@ export default function TeamRegister() {
                 onClick={() => removeTeam(team.id)}
                 disabled={teams.length <= MIN_TEAMS}
                 title="Remove team"
+                aria-label={`Remove team ${i + 1}`}
+                type="button"
               >
                 ×
               </button>

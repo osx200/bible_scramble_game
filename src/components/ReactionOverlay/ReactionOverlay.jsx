@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import Confetti from '../Confetti/Confetti.jsx'
+import { REACTION_CONFIG } from '../../data/reactions.js'
 import styles from './ReactionOverlay.module.css'
 
 // Particles that float out from center in random directions
@@ -38,17 +39,6 @@ function Particles({ emoji, count = 10 }) {
   )
 }
 
-const REACTION_CONFIG = {
-  confetti: { emoji: '🎉', label: 'Awesome!',   bg: 'rgba(107,63,160,0.18)',  showConfetti: true  },
-  highfive: { emoji: '✋', label: 'High Five!',  bg: 'rgba(255,159,67,0.18)', showConfetti: false },
-  fire:     { emoji: '🔥', label: 'On Fire!',    bg: 'rgba(198,40,40,0.18)',  showConfetti: false },
-  applause: { emoji: '👏', label: 'Applause!',   bg: 'rgba(46,125,82,0.18)', showConfetti: false },
-  star:     { emoji: '⭐', label: 'Amazing!',    bg: 'rgba(201,168,76,0.18)', showConfetti: false },
-  trophy:   { emoji: '🏆', label: 'Winner!',     bg: 'rgba(201,168,76,0.22)', showConfetti: true  },
-  love:     { emoji: '❤️', label: 'Love it!',    bg: 'rgba(220,50,80,0.18)', showConfetti: false },
-  clown:    { emoji: '🎊', label: 'Party!',      bg: 'rgba(77,150,255,0.18)', showConfetti: true  },
-}
-
 export default function ReactionOverlay({ reaction }) {
   if (!reaction) return null
 
@@ -58,7 +48,9 @@ export default function ReactionOverlay({ reaction }) {
     <div
       key={reaction.key}
       className={styles.overlay}
-      style={{ '--bg': cfg.bg }}
+      // hold = seconds on screen before fading; auto-fired reactions use a
+      // short hold so they clear before the next round starts
+      style={{ '--bg': cfg.bg, '--hold': `${reaction.hold ?? 3}s` }}
       aria-hidden="true"
     >
       {cfg.showConfetti && <Confetti count={100} />}

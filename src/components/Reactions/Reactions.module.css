@@ -1,0 +1,153 @@
+/* Floating picker — sits above the app (ThemeToggle is 100) but below the
+   reaction overlay (200) so a firing reaction washes over it. */
+.root {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.fab {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-border);
+  background: var(--color-card);
+  box-shadow: var(--shadow);
+  font-size: 1.3rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+@media (hover: hover) {
+  .fab:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+}
+
+.fab:active {
+  transform: translateY(0) scale(0.94);
+}
+
+.fabOpen {
+  border-color: var(--color-primary);
+  background: var(--color-primary-tint);
+  font-size: 1rem;
+}
+
+/* Emoji grid — 4 across, so eight reactions make two tidy rows */
+.panel {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding: 10px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-card);
+  box-shadow: var(--shadow-lg);
+  animation: panelIn 160ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes panelIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.94); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+.reactionBtn {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  cursor: pointer;
+  transition: background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast),
+    opacity var(--transition-fast),
+    filter var(--transition-fast);
+}
+
+@media (hover: hover) {
+  .reactionBtn:hover {
+    border-color: var(--color-primary);
+    background: var(--color-primary-tint);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+.reactionBtn:active {
+  transform: translateY(0) scale(0.94);
+}
+
+.reactionBtnActive {
+  border-color: var(--color-primary);
+  background: var(--color-primary-tint-strong);
+  box-shadow: var(--ring);
+}
+
+.emoji {
+  font-size: 1.5rem;
+  line-height: 1;
+  display: block;
+}
+
+.reactionBtnActive .emoji {
+  animation: reactionWiggle 0.4s ease;
+}
+
+@keyframes reactionWiggle {
+  0%   { transform: scale(1)    rotate(0deg); }
+  25%  { transform: scale(1.35) rotate(-12deg); }
+  50%  { transform: scale(1.35) rotate(12deg); }
+  75%  { transform: scale(1.2)  rotate(-6deg); }
+  100% { transform: scale(1)    rotate(0deg); }
+}
+
+@media (max-width: 700px) {
+  .root {
+    right: 12px;
+    bottom: 12px;
+  }
+
+  .fab {
+    width: 44px;
+    height: 44px;
+  }
+
+  .reactionBtn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .emoji {
+    font-size: 1.3rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .reactionBtnActive .emoji {
+    animation: none;
+  }
+
+  .fab:hover,
+  .reactionBtn:hover {
+    transform: none;
+  }
+}

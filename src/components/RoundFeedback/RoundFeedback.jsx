@@ -16,9 +16,12 @@ export default function RoundFeedback({ result }) {
         {correct ? (
           <p className={styles.points}>+{pointsEarned} pts</p>
         ) : (
-          <p className={styles.answer}>
-            The answer was: <strong>{bookName}</strong>
-          </p>
+          <>
+            <p className={styles.answer}>
+              The answer was: <strong>{bookName}</strong>
+            </p>
+            <p className={styles.penalty}>{pointsEarned} pts</p>
+          </>
         )}
       </div>
     </div>

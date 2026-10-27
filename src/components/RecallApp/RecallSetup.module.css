@@ -1,5 +1,4 @@
 .wrapper {
-  min-height: 100vh;
   min-height: 100dvh;
   display: flex;
   align-items: center;
@@ -9,6 +8,7 @@
 }
 
 .card {
+  position: relative;
   width: 100%;
   max-width: 520px;
   background: var(--color-card);
@@ -17,6 +17,18 @@
   padding: var(--spacing-xl);
   box-sizing: border-box;
   animation: fadeSlideUp 0.3s ease both;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+  opacity: 0.55;
+  pointer-events: none;
 }
 
 .header {
@@ -37,14 +49,20 @@
   font-weight: 600;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast),
+    opacity var(--transition-fast),
+    filter var(--transition-fast);
   margin-bottom: var(--spacing-md);
 }
 
 .backBtn:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
-  background: rgba(107, 63, 160, 0.05);
+  background: var(--color-primary-tint);
 }
 
 .titleRow {
@@ -100,31 +118,37 @@
 .pill {
   padding: 8px 18px;
   border: 2px solid var(--color-border);
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   background: transparent;
   font-family: var(--font-main);
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast),
+    opacity var(--transition-fast),
+    filter var(--transition-fast);
 }
 
 .pill:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
-  background: rgba(107, 63, 160, 0.05);
+  background: var(--color-primary-tint);
 }
 
 .pillActive {
   border-color: var(--color-primary);
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 .pillActive:hover {
   background: var(--color-primary-dark);
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 .startBtn {
@@ -132,31 +156,42 @@
   padding: 16px;
   border: none;
   border-radius: var(--radius);
-  background: var(--color-primary);
+  background: var(--gradient-primary);
   font-family: var(--font-main);
   font-size: 1.1rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--color-on-primary);
   cursor: pointer;
   letter-spacing: 0.03em;
-  transition: all var(--transition-fast);
+  transition: background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast),
+    opacity var(--transition-fast),
+    filter var(--transition-fast);
+  box-shadow: var(--shadow-primary);
 }
 
-.startBtn:hover {
-  background: var(--color-primary-dark);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow);
+@media (hover: hover) {
+  .startBtn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-primary), var(--ring);
+    filter: brightness(1.04);
+  }
 }
 
 .startBtn:active { transform: translateY(0); }
 
-@media (max-width: 600px) {
+@media (max-width: 700px) {
   .wrapper { padding: 0; align-items: flex-start; }
   .card {
+    width: 100%;
     border-radius: 0;
     box-shadow: none;
     min-height: 100dvh;
     padding: var(--spacing-lg) var(--spacing-md);
+    margin: 0;
   }
   .title { font-size: 1.6rem; }
 }

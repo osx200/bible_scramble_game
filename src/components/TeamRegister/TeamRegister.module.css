@@ -1,5 +1,5 @@
 .wrapper {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -8,6 +8,7 @@
 }
 
 .card {
+  position: relative;
   width: 100%;
   max-width: 560px;
   background: var(--color-card);
@@ -17,6 +18,19 @@
   box-sizing: border-box;
   animation: fadeSlideUp 0.35s ease both;
 }
+/* Hairline of gold leaf along the top edge, matching the shared Card system */
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 
 .header {
   text-align: center;
@@ -58,17 +72,19 @@
 .colorDot {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   flex-shrink: 0;
-  border: 3px solid white;
-  box-shadow: 0 0 0 2px rgba(0,0,0,0.12);
+  border: 3px solid var(--color-card);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-text) 14%, transparent);
   cursor: pointer;
   transition: transform var(--transition-fast);
   position: relative;
 }
 
-.colorDot:hover {
-  transform: scale(1.15);
+@media (hover: hover) {
+  .colorDot:hover {
+    transform: scale(1.15);
+  }
 }
 
 .colorPicker {
@@ -84,27 +100,33 @@
 
 .teamInput {
   flex: 1;
+  min-width: 0;
   padding: 10px 14px;
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 500;
   border: 2px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
   background: var(--color-bg);
   color: var(--color-text);
   outline: none;
   font-family: var(--font-main);
-  transition: border-color var(--transition-fast);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.teamInput::placeholder {
+  color: var(--color-text-muted);
 }
 
 .teamInput:focus {
   border-color: var(--color-primary);
-  background: white;
+  background: var(--color-card);
 }
 
 .removeBtn {
+  position: relative;
   width: 30px;
   height: 30px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   border: 2px solid var(--color-border);
   background: transparent;
   color: var(--color-text-muted);
@@ -114,14 +136,14 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: all var(--transition-fast);
+  transition: border-color var(--transition-fast), color var(--transition-fast), background-color var(--transition-fast);
   line-height: 1;
 }
 
-.removeBtn:hover {
+.removeBtn:hover:not(:disabled) {
   border-color: var(--color-danger);
   color: var(--color-danger);
-  background: rgba(217, 83, 79, 0.06);
+  background: var(--color-danger-light);
 }
 
 .addBtn {
@@ -132,21 +154,21 @@
   width: 100%;
   padding: 10px;
   border: 2px dashed var(--color-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
   background: transparent;
   font-family: var(--font-main);
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: border-color var(--transition-fast), color var(--transition-fast), background-color var(--transition-fast);
   margin-bottom: var(--spacing-lg);
 }
 
 .addBtn:hover:not(:disabled) {
   border-color: var(--color-primary-light);
   color: var(--color-primary);
-  background: rgba(107, 63, 160, 0.05);
+  background: var(--color-primary-tint);
 }
 
 .addBtn:disabled {
@@ -222,13 +244,25 @@
   .teamInput {
     min-width: 0;
     padding: 9px 10px;
-    font-size: 0.9rem;
+    font-size: 1rem;
   }
 
   .removeBtn {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     flex-shrink: 0;
+  }
+
+  /* Keep the compact 32px circle visually, but expand the tap area to the
+     44px minimum so the row layout does not have to grow (WCAG 2.5.5). */
+  .removeBtn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
   }
 
   .addBtn {

@@ -11,6 +11,7 @@
 }
 
 .value {
+  font-variant-numeric: tabular-nums;
   font-family: var(--font-display);
   font-size: 1.6rem;
   font-weight: 800;
@@ -37,10 +38,26 @@
   background: var(--color-border);
 }
 
+/* accent-dark, not accent: raw --color-accent is 2.19:1 on --color-card in
+   light theme. Matches GameBoard's .streakValue. */
 .streak {
-  color: var(--color-accent);
+  color: var(--color-accent-dark);
 }
 
 .streakIcon {
   margin-right: 2px;
+}
+
+@media (max-width: 700px) {
+  .wrapper {
+    gap: var(--spacing-sm);
+  }
+
+  .value {
+    font-size: 1.25rem;
+  }
+
+  .divider {
+    height: 24px;
+  }
 }

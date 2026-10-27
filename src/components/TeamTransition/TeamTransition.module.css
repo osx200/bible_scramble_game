@@ -1,5 +1,5 @@
 .wrapper {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -7,6 +7,7 @@
 }
 
 .card {
+  position: relative;
   width: 100%;
   max-width: 480px;
   background: var(--color-card);
@@ -15,6 +16,19 @@
   padding: var(--spacing-xl);
   animation: fadeSlideUp 0.35s ease both;
 }
+/* Hairline of gold leaf along the top edge, matching the shared Card system */
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 
 .colorBar {
   height: 6px;
@@ -120,7 +134,7 @@
 .scoreDot {
   width: 10px;
   height: 10px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   flex-shrink: 0;
   margin-top: 4px;
 }
@@ -148,6 +162,7 @@
 }
 
 .scoreValue {
+  font-variant-numeric: tabular-nums;
   font-weight: 800;
   font-family: var(--font-display);
   font-size: 0.95rem;

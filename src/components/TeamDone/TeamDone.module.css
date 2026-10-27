@@ -1,5 +1,5 @@
 .wrapper {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -7,6 +7,7 @@
 }
 
 .card {
+  position: relative;
   width: 100%;
   max-width: 520px;
   background: var(--color-card);
@@ -15,6 +16,19 @@
   padding: var(--spacing-xl);
   animation: fadeSlideUp 0.35s ease both;
 }
+/* Hairline of gold leaf along the top edge, matching the shared Card system */
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 
 .colorBar {
   height: 6px;
@@ -138,4 +152,34 @@
   font-family: var(--font-display);
   font-size: 1.3rem;
   font-weight: 800;
+}
+
+@media (max-width: 700px) {
+  .wrapper {
+    padding: 0;
+    align-items: flex-start;
+    min-height: 100dvh;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 0;
+    box-shadow: none;
+    padding: var(--spacing-lg) var(--spacing-md);
+    min-height: 100dvh;
+  }
+
+  .teamName {
+    font-size: 1.4rem;
+  }
+
+  .stats {
+    padding: var(--spacing-md);
+    gap: var(--spacing-sm);
+  }
+
+  .statValue {
+    font-size: 1.4rem;
+  }
 }

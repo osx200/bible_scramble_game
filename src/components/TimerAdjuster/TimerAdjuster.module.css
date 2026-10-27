@@ -24,6 +24,7 @@
 }
 
 .seconds {
+  font-variant-numeric: tabular-nums;
   font-family: var(--font-display);
   font-size: 1.4rem;
   font-weight: 800;
@@ -47,7 +48,7 @@
 .stepBtn {
   width: 34px;
   height: 34px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-full);
   border: 2px solid var(--color-border);
   background: transparent;
   font-size: 1.2rem;
@@ -58,13 +59,17 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: all var(--transition-fast);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-fast);
   line-height: 1;
 }
 
 .stepBtn:hover:not(:disabled) {
   border-color: var(--color-primary);
-  background: rgba(74, 111, 165, 0.08);
+  background: var(--color-primary-tint);
+}
+
+.stepBtn:active:not(:disabled) {
+  transform: scale(0.94);
 }
 
 .stepBtn:disabled {
@@ -94,10 +99,10 @@
   appearance: none;
   width: 20px;
   height: 20px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: var(--color-primary);
-  border: 3px solid white;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  border: 3px solid var(--color-card);
+  box-shadow: var(--shadow-sm);
   cursor: pointer;
   transition: transform var(--transition-fast);
 }
@@ -109,10 +114,10 @@
 .slider::-moz-range-thumb {
   width: 20px;
   height: 20px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: var(--color-primary);
-  border: 3px solid white;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  border: 3px solid var(--color-card);
+  box-shadow: var(--shadow-sm);
   cursor: pointer;
 }
 
@@ -125,7 +130,7 @@
 
 .rangeLabel {
   font-size: 0.7rem;
-  color: var(--color-text-light);
+  color: var(--color-text-muted);
 }
 
 .default {
@@ -142,12 +147,25 @@
   border: none;
   padding: 0;
   font-size: 0.75rem;
-  color: var(--color-primary-light);
+  color: var(--color-primary);
   cursor: pointer;
   text-decoration: underline;
   font-family: var(--font-main);
 }
 
 .resetBtn:hover {
-  color: var(--color-primary);
+  color: var(--color-primary-dark);
+}
+
+@media (max-width: 700px) {
+  .stepBtn {
+    /* 44px minimum touch target on mobile (WCAG 2.5.5) */
+    width: 44px;
+    height: 44px;
+  }
+
+  .seconds {
+    font-size: 1.2rem;
+    min-width: 40px;
+  }
 }

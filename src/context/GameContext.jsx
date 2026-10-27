@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer } from 'react'
-import { DIFFICULTY_CONFIG, calculatePoints } from '../utils/scoring.js'
-import { selectBooks } from '../utils/bookFilter.js'
+import { DIFFICULTY_CONFIG, pointsFor } from '../utils/scoring.js'
+import { selectWords } from '../utils/wordFilter.js'
+import { getWordSet } from '../data/wordSets.js'
 import { scrambleName } from '../utils/scramble.js'
 
 const GameContext = createContext(null)
@@ -9,6 +10,7 @@ const initialState = {
   // ── Settings ──────────────────────────────────────────────
   phase: 'menu',   // menu | team-register | team-transition | playing | team-results | gameOver
   mode: 'solo',
+  wordSet: 'books',  // 'books' | 'prophets' — which word list the game draws from
   difficulty: 'easy',
   category: 'all',
   customTime: null,
@@ -24,6 +26,8 @@ const initialState = {
   _pendingTeamNext: null, // stores next-team data while feedback overlay is visible
 
   // ── Solo round state ──────────────────────────────────────
+  // "book" here means "entry from the active word set" — a Bible book or a
+  // prophet, depending on wordSet. The key names predate the prophets set.
   books: [],
   currentBook: null,
   scrambledName: '',
@@ -52,10 +56,10 @@ const initialState = {
 // ── Helpers ────────────────────────────────────────────────
 
 function buildSoloRound(state) {
-  const { difficulty, category, customTime } = state
+  const { difficulty, category, customTime, wordSet } = state
   const config = DIFFICULTY_CONFIG[difficulty]
   const resolvedTime = customTime ?? config.maxTime
-  const books = selectBooks({ difficulty, category, count: config.totalRounds })
+  const books = selectWords({ wordSet, difficulty, category, count: config.totalRounds })
   const firstBook = books[0] ?? null
   return {
     books,
@@ -75,7 +79,7 @@ function buildSoloRound(state) {
   }
 }
 
-function buildTeamStates(teams, difficulty, category, roundsPerTeam) {
+function buildTeamStates(teams, { wordSet, difficulty, category, roundsPerTeam }) {
   return teams.map((team) => ({
     teamId: team.id,
     name: team.name,
@@ -85,8 +89,8 @@ function buildTeamStates(teams, difficulty, category, roundsPerTeam) {
     bestStreak: 0,
     roundsPlayed: 0,
     roundResults: [],
-    // Pre-select all books for this team so no repeats across their turns
-    books: selectBooks({ difficulty, category, count: roundsPerTeam }),
+    // Pre-select all words for this team so no repeats across their turns
+    books: selectWords({ wordSet, difficulty, category, count: roundsPerTeam }),
   }))
 }
 
@@ -191,6 +195,10 @@ function reducer(state, action) {
 
     case 'SET_MODE':       return { ...state, mode: action.payload }
     case 'SET_DIFFICULTY': return { ...state, difficulty: action.payload }
+    case 'SET_WORD_SET':
+      if (action.payload === state.wordSet) return state
+      // Reset the category — a filter chosen for the other list shouldn't carry over
+      return { ...state, wordSet: action.payload, category: 'all' }
     case 'SET_CATEGORY':   return { ...state, category: action.payload }
     case 'SET_CUSTOM_TIME':return { ...state, customTime: action.payload }
 
@@ -200,6 +208,7 @@ function reducer(state, action) {
       return {
         ...initialState,
         mode: 'solo',
+        wordSet: state.wordSet,
         difficulty: state.difficulty,
         category: state.category,
         customTime: state.customTime,
@@ -215,10 +224,10 @@ function reducer(state, action) {
 
     case 'SET_TEAMS': {
       // payload: [{ id, name, color }]
-      const { difficulty, category, customTime } = state
+      const { wordSet, difficulty, category } = state
       const config = DIFFICULTY_CONFIG[difficulty]
       const roundsPerTeam = config.totalRounds
-      const teamStates = buildTeamStates(action.payload, difficulty, category, roundsPerTeam)
+      const teamStates = buildTeamStates(action.payload, { wordSet, difficulty, category, roundsPerTeam })
       return {
         ...state,
         teams: action.payload,
@@ -261,11 +270,11 @@ function reducer(state, action) {
     }
 
     case 'REPLAY_TEAMS': {
-      // Same teams, new books, reset scores
-      const { teams, difficulty, category } = state
+      // Same teams, new words, reset scores
+      const { teams, wordSet, difficulty, category } = state
       const config = DIFFICULTY_CONFIG[difficulty]
       const roundsPerTeam = config.totalRounds
-      const teamStates = buildTeamStates(teams, difficulty, category, roundsPerTeam)
+      const teamStates = buildTeamStates(teams, { wordSet, difficulty, category, roundsPerTeam })
       return {
         ...state,
         teamStates,
@@ -280,12 +289,10 @@ function reducer(state, action) {
     // ── Gameplay ────────────────────────────────────────────
     case 'SUBMIT_ANSWER': {
       const { answer } = action.payload
-      const { currentBook, difficulty, timeRemaining, maxTime, hintsUsed, streak } = state
+      const { currentBook, timeRemaining, maxTime } = state
       if (!currentBook) return state
       const correct = answer.trim().toLowerCase() === currentBook.name.toLowerCase()
-      const pointsEarned = correct
-        ? calculatePoints({ difficulty, timeRemaining, maxTime, hintsUsed, streak })
-        : 0
+      const pointsEarned = pointsFor(correct)
       const result = { book: currentBook, correct, pointsEarned, timeUsed: maxTime - timeRemaining }
       return resolveNextRound(state, result, correct)
     }
@@ -293,7 +300,7 @@ function reducer(state, action) {
     case 'TIME_UP': {
       const { currentBook } = state
       if (!currentBook) return state
-      const result = { book: currentBook, correct: false, pointsEarned: 0, timeUsed: state.maxTime }
+      const result = { book: currentBook, correct: false, pointsEarned: pointsFor(false), timeUsed: state.maxTime }
       return resolveNextRound(state, result, false)
     }
 
@@ -314,7 +321,8 @@ function reducer(state, action) {
     case 'SKIP_BOOK': {
       const { currentBook, maxTime, timeRemaining, paused } = state
       if (!currentBook || paused) return state
-      const result = { book: currentBook, correct: false, pointsEarned: 0, timeUsed: maxTime - timeRemaining, skipped: true }
+      // A skip counts as a miss, same as a wrong answer
+      const result = { book: currentBook, correct: false, pointsEarned: pointsFor(false), timeUsed: maxTime - timeRemaining, skipped: true }
       return resolveNextRound(state, result, false)
     }
 
@@ -337,6 +345,7 @@ function reducer(state, action) {
     case 'RESTART':
       return {
         ...initialState,
+        wordSet: state.wordSet,
         difficulty: state.difficulty,
         category: state.category,
         customTime: state.customTime,
@@ -361,4 +370,10 @@ export function useGame() {
   const ctx = useContext(GameContext)
   if (!ctx) throw new Error('useGame must be used within GameProvider')
   return ctx
+}
+
+/** The active word set (labels, noun, voice config) — keeps copy out of components. */
+export function useWordSet() {
+  const { state } = useGame()
+  return getWordSet(state.wordSet)
 }

@@ -28,14 +28,26 @@
   stroke: var(--color-primary);
   stroke-width: 4;
   stroke-linecap: round;
-  transition: stroke-dashoffset 0.9s linear, stroke var(--transition-normal);
+  transition: stroke-dashoffset 0.9s linear, stroke var(--transition-normal), stroke-width var(--transition-normal);
+}
+
+.progressCircle.warning {
+  stroke: var(--color-accent-dark);
 }
 
 .progressCircle.urgent {
   stroke: var(--color-danger);
+  stroke-width: 5;
+}
+
+/* Non-color escalation cue: the whole ring gains a slow breathing scale
+   once time is critical, on top of the color shift on the arc/number. */
+.ring.ringUrgent {
+  animation: breathe 0.9s ease-in-out infinite;
 }
 
 .number {
+  font-variant-numeric: tabular-nums;
   position: absolute;
   inset: 0;
   display: flex;
@@ -45,11 +57,17 @@
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--color-text);
+  transition: color var(--transition-normal);
+}
+
+.number.warning {
+  color: var(--color-accent-dark);
 }
 
 .number.urgent {
   color: var(--color-danger);
-  animation: pulse 0.8s ease-in-out infinite;
+  font-size: 1.2rem;
+  animation: pulse 0.7s ease-in-out infinite;
 }
 
 .label {
@@ -58,4 +76,41 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--color-text-muted);
+  transition: color var(--transition-normal);
+}
+
+.label.warning {
+  color: var(--color-accent-dark);
+}
+
+.label.urgent {
+  color: var(--color-danger);
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ring.ringUrgent {
+    animation: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .wrapper {
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .ring,
+  .svg {
+    width: 46px;
+    height: 46px;
+  }
+
+  .number {
+    font-size: 0.9rem;
+  }
+
+  .label {
+    font-size: 0.62rem;
+  }
 }

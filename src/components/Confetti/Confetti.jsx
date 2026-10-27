@@ -1,11 +1,27 @@
 import { useMemo } from 'react'
 import styles from './Confetti.module.css'
 
-const COLORS = [
-  '#FF6B6B', '#FFD93D', '#6BCB77', '#4D96FF',
-  '#C77DFF', '#FF9F43', '#FF6B9D', '#00D2D3',
-  '#FFC300', '#DAF7A6', '#FF5733', '#C0392B',
-]
+// Pull the confetti palette from the live design tokens rather than
+// hardcoding hex values, so it stays on-brand ("Verdigris") and follows
+// light/dark theme automatically instead of scattering rainbow neon.
+function getThemePalette() {
+  if (typeof window === 'undefined') {
+    return ['#0D5A4E', '#158777', '#E0A116', '#F5C64F', '#2F7340', '#96690A']
+  }
+  const cs = getComputedStyle(document.documentElement)
+  const pick = (name, fallback) => {
+    const v = cs.getPropertyValue(name).trim()
+    return v || fallback
+  }
+  return [
+    pick('--color-primary', '#0D5A4E'),
+    pick('--color-primary-light', '#158777'),
+    pick('--color-accent', '#E0A116'),
+    pick('--color-accent-light', '#F5C64F'),
+    pick('--color-success', '#2F7340'),
+    pick('--color-accent-dark', '#96690A'),
+  ]
+}
 
 function rand(min, max) {
   return Math.random() * (max - min) + min
@@ -22,6 +38,7 @@ function randInt(min, max) {
  */
 export default function Confetti({ count = 120, active = true }) {
   const pieces = useMemo(() => {
+    const colors = getThemePalette()
     return Array.from({ length: count }, (_, i) => {
       const isCircle = Math.random() > 0.6
       const w = rand(6, 14)
@@ -31,7 +48,7 @@ export default function Confetti({ count = 120, active = true }) {
       const rot0 = rand(0, 360)
       return {
         id: i,
-        color: COLORS[randInt(0, COLORS.length - 1)],
+        color: colors[randInt(0, colors.length - 1)],
         isCircle,
         left: rand(0, 100),
         w,

@@ -1,88 +1,127 @@
 .btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   font-family: var(--font-main);
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1;
-  padding: 14px 28px;
+  padding: 15px 28px;
   border-radius: var(--radius);
-  border: 2px solid transparent;
+  border: 1px solid transparent;
   cursor: pointer;
-  transition: background-color var(--transition-fast),
-              transform var(--transition-fast),
-              box-shadow var(--transition-fast),
-              opacity var(--transition-fast);
+  overflow: hidden;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast),
+    color var(--transition-fast), transform var(--transition-fast),
+    box-shadow var(--transition-fast), opacity var(--transition-fast);
   white-space: nowrap;
   user-select: none;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
 }
 
+/* Tactile push (skill §4.5) */
 .btn:active:not(:disabled) {
-  transform: scale(0.97);
+  transform: translateY(1px) scale(0.985);
+  box-shadow: none;
 }
 
 .btn:disabled {
-  opacity: 0.45;
+  opacity: 0.5;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
-/* Variants */
+/* ── Variants ──
+   Every variant pairs an explicit foreground token with its fill so the
+   label can never end up low-contrast against the button (skill §4.5). */
+
 .primary {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-  color: #fff;
-  box-shadow: 0 3px 12px rgba(107, 63, 160, 0.35);
+  background: var(--gradient-primary);
+  color: var(--color-on-primary);
+  box-shadow: var(--shadow-primary);
 }
-.primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary));
-  box-shadow: 0 5px 18px rgba(107, 63, 160, 0.45);
-  transform: translateY(-1px);
+@media (hover: hover) {
+  .primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-primary), var(--ring);
+  }
 }
 
 .accent {
-  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-dark));
-  color: #fff;
-  box-shadow: 0 3px 12px rgba(201, 168, 76, 0.35);
+  background: var(--gradient-accent);
+  color: var(--color-on-accent);
+  box-shadow: var(--shadow-accent);
 }
-.accent:hover:not(:disabled) {
-  box-shadow: 0 5px 18px rgba(201, 168, 76, 0.45);
-  transform: translateY(-1px);
+@media (hover: hover) {
+  .accent:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-accent), var(--ring-accent);
+  }
+}
+
+/* Gold-leaf sheen — fires on hover only, so it reads as feedback rather
+   than as an idle infinite loop (skill §5 "motion must be motivated"). */
+.accent::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 32%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  transform: translateX(-120%) skewX(-18deg);
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .accent:hover:not(:disabled)::after {
+    animation: sheen 720ms ease-out;
+  }
 }
 
 .ghost {
   background-color: transparent;
-  border-color: var(--color-border);
-  color: var(--color-text-muted);
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
 }
-.ghost:hover:not(:disabled) {
-  border-color: var(--color-primary-light);
-  color: var(--color-primary);
-  background-color: rgba(107, 63, 160, 0.06);
+@media (hover: hover) {
+  .ghost:hover:not(:disabled) {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background-color: var(--color-primary-tint);
+  }
 }
 
 .danger {
   background-color: var(--color-danger);
-  color: #fff;
+  color: var(--color-on-danger);
+  box-shadow: var(--shadow-sm);
 }
-.danger:hover:not(:disabled) {
-  background-color: #a82020;
+@media (hover: hover) {
+  .danger:hover:not(:disabled) {
+    background-color: color-mix(in srgb, var(--color-danger) 84%, #000);
+    transform: translateY(-1px);
+  }
 }
 
-/* Sizes */
+/* ── Sizes ── */
 .sm {
   font-size: 0.85rem;
-  padding: 8px 16px;
+  padding: 9px 16px;
   border-radius: var(--radius-sm);
 }
 
 .lg {
-  font-size: 1.1rem;
-  padding: 17px 36px;
-  border-radius: var(--radius);
+  font-size: 1.08rem;
+  padding: 18px 36px;
 }
 
 .full {
   width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .accent:hover:not(:disabled)::after {
+    animation: none;
+  }
 }

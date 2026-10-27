@@ -44,7 +44,7 @@ export default function HintPanel() {
 
   return (
     <div className={styles.wrapper}>
-      <p className={styles.title}>Hints <span className={styles.penalty}>(-25 pts each)</span></p>
+      <p className={styles.title}>Hints <span className={styles.penalty}>(free)</span></p>
       <div className={styles.buttons}>
         {availableHints.map((hintType) => {
           const revealed = revealedHints.includes(hintType)

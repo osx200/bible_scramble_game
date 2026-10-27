@@ -1,4 +1,4 @@
-import { useGame } from '../../context/GameContext.jsx'
+import { useGame, useWordSet } from '../../context/GameContext.jsx'
 import styles from './ScrambledWord.module.css'
 
 function isNumericPrefix(token) {
@@ -7,6 +7,7 @@ function isNumericPrefix(token) {
 
 export default function ScrambledWord({ animKey }) {
   const { state } = useGame()
+  const wordSet = useWordSet()
   const { scrambledName } = state
 
   const words = scrambledName.split(' ')
@@ -35,7 +36,7 @@ export default function ScrambledWord({ animKey }) {
   return (
     <div className={styles.wrapper}>
       <div className={styles.group}>{elements}</div>
-      <p className={styles.hint}>{words.length > 1 ? `${words.length}-word book name` : 'Unscramble the letters'}</p>
+      <p className={styles.hint}>{words.length > 1 ? `${words.length}-word ${wordSet.noun} name` : 'Unscramble the letters'}</p>
     </div>
   )
 }

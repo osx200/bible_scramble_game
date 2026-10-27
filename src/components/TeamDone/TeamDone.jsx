@@ -17,7 +17,7 @@ export default function TeamDone() {
 
         <div className={styles.header}>
           <h1 className={styles.teamName} style={{ color: currentTeam.color }}>
-            {currentTeam.name} — Done!
+            {currentTeam.name} - Done!
           </h1>
           <p className={styles.subtitle}>Great effort! Here are your results.</p>
         </div>
@@ -43,8 +43,8 @@ export default function TeamDone() {
             <div key={i} className={`${styles.resultRow} ${r.correct ? styles.correct : styles.wrong}`}>
               <span className={styles.resultIcon}>{r.correct ? '✅' : '❌'}</span>
               <span className={styles.resultBook}>{r.book.name}</span>
-              <span className={`${styles.resultPts} ${r.pointsEarned === 0 ? styles.zero : ''}`}>
-                {r.correct ? `+${r.pointsEarned}` : '—'}
+              <span className={`${styles.resultPts} ${r.correct ? '' : styles.zero}`}>
+                {r.correct ? `+${r.pointsEarned}` : r.pointsEarned}
               </span>
             </div>
           ))}
@@ -63,7 +63,14 @@ export default function TeamDone() {
           full
           size="lg"
           onClick={() => dispatch({ type: 'NEXT_TEAM' })}
-          style={{ backgroundColor: nextTeam?.color ?? 'var(--color-primary)' }}
+          // Only force white text when sitting on an arbitrary team swatch;
+          // the plain --color-primary fallback already pairs correctly
+          // with the Button's own --color-on-primary token.
+          style={
+            nextTeam
+              ? { backgroundColor: nextTeam.color, color: '#fff' }
+              : undefined
+          }
         >
           Hand Off to {nextTeam ? nextTeam.name : 'Next Team'} →
         </Button>

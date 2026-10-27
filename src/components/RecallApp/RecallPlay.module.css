@@ -1,5 +1,4 @@
 .wrapper {
-  min-height: 100vh;
   min-height: 100dvh;
   display: flex;
   align-items: flex-start;
@@ -9,6 +8,7 @@
 }
 
 .card {
+  position: relative;
   width: 100%;
   max-width: 700px;
   background: var(--color-card);
@@ -23,6 +23,18 @@
   animation: fadeSlideUp 0.3s ease both;
 }
 
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 /* ── Top bar: timer + counter ── */
 .topBar {
   display: flex;
@@ -32,9 +44,10 @@
 }
 
 .timer {
+  font-variant-numeric: tabular-nums;
   font-family: var(--font-display);
   font-size: 2.8rem;
-  font-weight: 900;
+  font-weight: 800;
   color: var(--color-primary);
   line-height: 1;
   letter-spacing: 0.04em;
@@ -59,9 +72,16 @@
 }
 
 .counterNum {
+  font-variant-numeric: tabular-nums;
   font-size: 2.2rem;
   font-weight: 900;
   color: var(--color-primary);
+}
+
+.counterOf {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
 }
 
 /* ── Input row ── */
@@ -87,10 +107,10 @@
 
 .input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(107, 63, 160, 0.12);
+  box-shadow: var(--ring);
 }
 
-.input::placeholder { color: var(--color-text-muted); opacity: 0.7; }
+.input::placeholder { color: var(--color-text-muted); }
 
 .inputShake {
   animation: shake 0.4s ease;
@@ -104,20 +124,29 @@
   height: 50px;
   border: none;
   border-radius: var(--radius);
-  background: var(--color-primary);
-  color: #fff;
+  background: var(--gradient-primary);
+  color: var(--color-on-primary);
   font-size: 1.2rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast),
+    opacity var(--transition-fast),
+    filter var(--transition-fast);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: var(--shadow-primary);
 }
 
-.submitBtn:hover {
-  background: var(--color-primary-dark);
-  transform: translateY(-1px);
+@media (hover: hover) {
+  .submitBtn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+  }
 }
 
 /* ── Feedback slot ── */
@@ -150,17 +179,23 @@
 
 .chip {
   padding: 4px 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   font-size: 0.8rem;
   font-weight: 600;
   line-height: 1.4;
-  transition: all var(--transition-fast);
+  transition: background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast),
+    opacity var(--transition-fast),
+    filter var(--transition-fast);
 }
 
 .chipNamed {
-  background: rgba(46, 125, 82, 0.12);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
   color: var(--color-success);
-  border: 1.5px solid rgba(46, 125, 82, 0.3);
+  border: 1.5px solid color-mix(in srgb, var(--color-success) 30%, transparent);
   animation: chipPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
@@ -182,27 +217,46 @@
   align-self: center;
   padding: 8px 20px;
   border: 1.5px solid var(--color-border);
-  border-radius: 999px;
+  border-radius: var(--radius);
   background: transparent;
   font-family: var(--font-main);
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast),
+    opacity var(--transition-fast),
+    filter var(--transition-fast);
   margin-top: var(--spacing-sm);
 }
 
 .finishBtn:hover {
   border-color: var(--color-danger);
   color: var(--color-danger);
-  background: rgba(198, 40, 40, 0.05);
+  background: color-mix(in srgb, var(--color-danger) 5%, transparent);
 }
 
 /* ── Mobile ── */
-@media (max-width: 600px) {
-  .wrapper { padding: 8px; }
-  .card { padding: var(--spacing-md); margin: 8px 0; gap: var(--spacing-sm); }
+@media (max-width: 700px) {
+  .wrapper {
+    padding: 0;
+    align-items: flex-start;
+  }
+
+  .card {
+    width: 100%;
+    border-radius: 0;
+    box-shadow: none;
+    min-height: 100dvh;
+    padding: var(--spacing-lg) var(--spacing-md);
+    margin: 0;
+    gap: var(--spacing-sm);
+  }
+
   .timer { font-size: 2.2rem; }
   .counterNum { font-size: 1.8rem; }
 }

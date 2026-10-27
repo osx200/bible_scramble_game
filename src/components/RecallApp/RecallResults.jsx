@@ -22,6 +22,7 @@ export default function RecallResults({ namedBooks, targetBooks, onPlayAgain }) 
 
   const otBooks = targetBooks.filter(b => b.testament === 'OT')
   const ntBooks = targetBooks.filter(b => b.testament === 'NT')
+  const isWinner = total > 0 && pct >= 90
 
   return (
     <div className={styles.wrapper}>
@@ -29,8 +30,8 @@ export default function RecallResults({ namedBooks, targetBooks, onPlayAgain }) 
 
         {/* ── Score header ── */}
         <div className={styles.scoreHeader}>
-          <div className={styles.scoreEmoji}>{msg.emoji}</div>
-          <div className={styles.scoreNum}>
+          <div className={`${styles.scoreEmoji} ${isWinner ? styles.scoreEmojiWinner : ''}`}>{msg.emoji}</div>
+          <div className={`${styles.scoreNum} ${isWinner ? styles.scoreNumWinner : ''}`}>
             {score}<span className={styles.scoreTotal}> / {total}</span>
           </div>
           <div className={styles.scorePct}>{pct}% recalled</div>

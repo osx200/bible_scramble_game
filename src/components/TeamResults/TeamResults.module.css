@@ -1,5 +1,5 @@
 .wrapper {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -7,6 +7,7 @@
 }
 
 .card {
+  position: relative;
   width: 100%;
   max-width: 580px;
   background: var(--color-card);
@@ -15,6 +16,19 @@
   padding: var(--spacing-xl);
   animation: fadeSlideUp 0.4s ease both;
 }
+/* Hairline of gold leaf along the top edge, matching the shared Card system */
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 
 .header {
   text-align: center;
@@ -69,9 +83,9 @@
 }
 
 .teamRow.first {
-  background: linear-gradient(135deg, #FFF9E6, #FFF3CC);
-  border: 2px solid #F5C842;
-  box-shadow: 0 4px 16px rgba(245, 200, 66, 0.2);
+  background: linear-gradient(135deg, var(--color-accent-tint), color-mix(in srgb, var(--color-accent) 20%, transparent));
+  border: 2px solid var(--color-accent);
+  box-shadow: var(--shadow-accent);
 }
 
 .teamRow.winnerRow {
@@ -79,13 +93,13 @@
 }
 
 .teamRow.second {
-  background: linear-gradient(135deg, #F5F5F5, #E8E8E8);
-  border: 2px solid #C0C0C0;
+  background: var(--color-surface-sunken);
+  border: 2px solid var(--color-border-strong);
 }
 
 .teamRow.third {
-  background: linear-gradient(135deg, #FFF4EE, #FFE8DA);
-  border: 2px solid #CD7F32;
+  background: color-mix(in srgb, var(--color-accent-dark) 12%, var(--color-surface));
+  border: 2px solid color-mix(in srgb, var(--color-accent-dark) 55%, var(--color-border-strong));
 }
 
 .rank {
@@ -127,6 +141,7 @@
 }
 
 .teamScore {
+  font-variant-numeric: tabular-nums;
   font-family: var(--font-display);
   font-size: 1.5rem;
   font-weight: 800;
@@ -134,7 +149,7 @@
 }
 
 .winnerScore {
-  color: #B8860B;
+  color: var(--color-accent-dark);
   font-size: 1.7rem;
   animation: zoomIn 0.5s 0.6s ease both;
 }

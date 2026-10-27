@@ -1,39 +1,99 @@
-:root {
-  /* ── Colors (Royal Purple & Antique Gold) ── */
-  --color-bg: #F4EFF8;
-  --color-card: #FFFFFF;
-  --color-primary: #6B3FA0;
-  --color-primary-light: #8B5EC8;
-  --color-primary-dark: #4E2D78;
-  --color-accent: #C9A84C;
-  --color-accent-dark: #A68729;
-  --color-success: #2E7D52;
-  --color-success-light: #E8F5EE;
-  --color-danger: #C62828;
-  --color-danger-light: #FFEBEE;
-  --color-text: #160D24;
-  --color-text-muted: #7B6B9A;
-  --color-text-light: #C5B8DA;
-  --color-border: #DFD0F0;
-  --color-tile-bg: #EDE5F8;
-  --color-tile-border: #C5B0E5;
+/* ══════════════════════════════════════════════════════════════
+   MyRestStop Bible Games — "Verdigris"
+   Aged-copper green on cool limestone, with gold-leaf accents.
+   Deliberately NOT the beige + brass + espresso palette (skill
+   §4.2 premium-consumer ban): the ground is cool and stone-toned,
+   the accent is a clean saturated amber, never muddy brass.
+   ══════════════════════════════════════════════════════════════ */
 
-  /* ── Elevation ── */
-  --radius-sm: 8px;
-  --radius: 14px;
-  --radius-lg: 22px;
-  --shadow-sm: 0 2px 8px rgba(107, 63, 160, 0.1);
-  --shadow: 0 4px 16px rgba(107, 63, 160, 0.14);
-  --shadow-lg: 0 8px 32px rgba(107, 63, 160, 0.18);
+:root {
+  /* ── Core palette ── */
+  --color-bg: #E7ECE6;
+  --color-bg-deep: #D7DFD6;
+  --color-card: #FAFCF9;
+  --color-surface: #F1F5F0;
+  --color-surface-sunken: #E0E7DF;
+
+  --color-primary: #0D5A4E;
+  --color-primary-light: #158777;
+  --color-primary-dark: #073E35;
+  --color-primary-tint: rgba(13, 90, 78, 0.08);
+  --color-primary-tint-strong: rgba(13, 90, 78, 0.16);
+
+  --color-accent: #E0A116;
+  --color-accent-light: #F5C64F;
+  /* Deep enough to clear 4.5:1 as text on --color-accent-tint over both
+     --color-card and --color-bg (the badge/pill pattern). */
+  --color-accent-dark: #7E5708;
+  --color-accent-tint: rgba(224, 161, 22, 0.14);
+
+  --color-success: #2F7340;
+  --color-success-light: #DFEFE2;
+  --color-danger: #B3372F;
+  --color-danger-light: #FAE6E4;
+
+  --color-text: #131A17;
+  --color-text-muted: #5C6862;
+  --color-text-light: #97A29C;
+  --color-border: #CFD9CD;
+  --color-border-strong: #B2C0AF;
+
+  --color-tile-bg: #FAFCF9;
+  --color-tile-border: #C3D0C1;
+
+  /* Ink used on top of primary/accent/danger fills */
+  --color-on-primary: #FAFCF9;
+  --color-on-accent: #1C1405;
+  --color-on-danger: #FAFCF9;
+
+  /* ── Atmosphere ── */
+  /* Stop values are tuned so --color-on-primary / --color-on-accent clear
+     4.5:1 against EVERY stop, not just the midpoint. */
+  --gradient-primary: linear-gradient(145deg, #127A6B 0%, #0D5A4E 55%, #073E35 100%);
+  --gradient-accent: linear-gradient(145deg, #F5C64F 0%, #E0A116 55%, #AD7C0D 100%);
+  --gradient-page: radial-gradient(
+      ellipse 120% 80% at 50% -10%,
+      rgba(21, 135, 119, 0.14),
+      transparent 60%
+    ),
+    radial-gradient(ellipse 90% 60% at 100% 100%, rgba(224, 161, 22, 0.11), transparent 60%);
+  /* Vellum grain — inlined SVG turbulence, no network request */
+  --texture-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.32'/%3E%3C/svg%3E");
+  --grain-opacity: 0.045;
+  --grain-blend: multiply;
+
+  /* ── Elevation ──
+     SHAPE RULE (documented, follow everywhere — skill §4.4):
+       cards & full-screen panels  → --radius-lg
+       buttons, inputs, letter tiles → --radius
+       chips, badges, small pills   → --radius-sm
+       avatars / icon-only round btns → --radius-full
+     Do not mix outside this rule. */
+  --radius-sm: 10px;
+  --radius: 16px;
+  --radius-lg: 26px;
+  --radius-full: 999px;
+  /* Shadows are tinted to the ground hue, never pure black (skill §4.4) */
+  --shadow-sm: 0 1px 2px rgba(16, 34, 28, 0.06), 0 2px 8px rgba(16, 34, 28, 0.05);
+  --shadow: 0 2px 4px rgba(16, 34, 28, 0.06), 0 8px 22px rgba(16, 34, 28, 0.09);
+  --shadow-lg: 0 4px 8px rgba(16, 34, 28, 0.07), 0 20px 48px rgba(16, 34, 28, 0.14);
+  --shadow-primary: 0 4px 14px rgba(13, 90, 78, 0.28);
+  --shadow-accent: 0 4px 14px rgba(150, 105, 10, 0.28);
+  --ring: 0 0 0 3px rgba(21, 135, 119, 0.32);
+  --ring-accent: 0 0 0 3px rgba(224, 161, 22, 0.36);
 
   /* ── Typography ── */
   --font-main: 'Poppins', system-ui, sans-serif;
-  --font-display: 'Poppins', system-ui, sans-serif;
+  --font-display: 'Bricolage Grotesque', 'Poppins', system-ui, sans-serif;
+  --tracking-tight: -0.02em;
+  --tracking-wide: 0.06em;
+  --tracking-caps: 0.14em;
 
   /* ── Motion ── */
-  --transition-fast: 150ms ease;
-  --transition-normal: 300ms ease;
-  --transition-slow: 500ms ease;
+  --transition-fast: 140ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
   /* ── Layout ── */
   --max-width: 640px;
@@ -42,24 +102,65 @@
   --spacing-md: 16px;
   --spacing-lg: 24px;
   --spacing-xl: 40px;
+  --spacing-2xl: 64px;
 }
 
 [data-theme="dark"] {
-  --color-bg: #0C0917;
-  --color-card: #16122A;
-  --color-primary: #9575CD;
-  --color-primary-light: #B39DDB;
-  --color-primary-dark: #7E57C2;
-  --color-success-light: #0C1E12;
-  --color-danger: #EF5350;
-  --color-danger-light: #280E0E;
-  --color-text: #F0EAF8;
-  --color-text-muted: #9E8FC0;
-  --color-text-light: #3D3260;
-  --color-border: #251E40;
-  --color-tile-bg: #1E1836;
-  --color-tile-border: #332A55;
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
-  --shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+  --color-bg: #0A100E;
+  --color-bg-deep: #060A09;
+  --color-card: #141D1B;
+  --color-surface: #1A2523;
+  --color-surface-sunken: #0F1716;
+
+  --color-primary: #3FB8A6;
+  --color-primary-light: #6BD6C5;
+  --color-primary-dark: #1E8878;
+  --color-primary-tint: rgba(63, 184, 166, 0.12);
+  --color-primary-tint-strong: rgba(63, 184, 166, 0.22);
+
+  --color-accent: #EFB94F;
+  --color-accent-light: #FBD98F;
+  /* Lifted (light theme darkens, dark theme lightens) so it clears 4.5:1
+     as text on --color-accent-tint over --color-card. */
+  --color-accent-dark: #D4A134;
+  --color-accent-tint: rgba(239, 185, 79, 0.15);
+
+  --color-success: #7BC46A;
+  --color-success-light: #12200E;
+  --color-danger: #F0705C;
+  --color-danger-light: #2A1210;
+
+  --color-text: #F3EDE0;
+  --color-text-muted: #A39A8A;
+  --color-text-light: #5E5648;
+  --color-border: #27332F;
+  --color-border-strong: #3A4A45;
+
+  --color-tile-bg: #1A2523;
+  --color-tile-border: #35443F;
+
+  --color-on-primary: #06100E;
+  --color-on-accent: #201607;
+  /* Dark-theme --color-danger is a light salmon, so its ink must invert to
+     near-black. A fixed #fff here would read at 2.93:1. */
+  --color-on-danger: #2B0A05;
+
+  --gradient-primary: linear-gradient(145deg, #6BD6C5 0%, #3FB8A6 55%, #249688 100%);
+  --gradient-accent: linear-gradient(145deg, #FBD98F 0%, #EFB94F 55%, #C08D24 100%);
+  --gradient-page: radial-gradient(
+      ellipse 120% 80% at 50% -10%,
+      rgba(63, 184, 166, 0.14),
+      transparent 60%
+    ),
+    radial-gradient(ellipse 90% 60% at 100% 100%, rgba(239, 185, 79, 0.1), transparent 60%);
+  --grain-opacity: 0.055;
+  --grain-blend: overlay;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow: 0 2px 4px rgba(0, 0, 0, 0.5), 0 8px 22px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.55), 0 20px 48px rgba(0, 0, 0, 0.6);
+  --shadow-primary: 0 4px 14px rgba(63, 184, 166, 0.24);
+  --shadow-accent: 0 4px 14px rgba(239, 185, 79, 0.22);
+  --ring: 0 0 0 3px rgba(63, 184, 166, 0.4);
+  --ring-accent: 0 0 0 3px rgba(239, 185, 79, 0.4);
 }
