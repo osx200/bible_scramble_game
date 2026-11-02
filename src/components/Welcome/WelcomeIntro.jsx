@@ -56,8 +56,10 @@ export function WelcomeFooter() {
       <p className={styles.disclaimer}>
         <strong>Disclaimer:</strong> Bible Games is a free, independent resource for fellowship and
         personal study, and is not affiliated with any church or denomination. It is meant to
-        support Bible reading, not replace it. Names you enter may appear on the public monthly
-        leaderboard, so please avoid full names or personal details, especially for children.
+        support Bible reading, not replace it. For privacy, individual players only ever appear as
+        initials (a full name is shortened before it is saved). Group and team names are shown as
+        entered and may appear on the public monthly leaderboard, so please keep personal details
+        out of them, especially for children.
         Scripture quoted from the King James Version (public domain).
       </p>
     </footer>

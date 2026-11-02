@@ -14,6 +14,7 @@ import Reactions from './components/Reactions/Reactions.jsx'
 import QuizApp from './components/QuizApp/QuizApp.jsx'
 import ModeratorApp from './components/ModeratorApp/ModeratorApp.jsx'
 import RecallApp from './components/RecallApp/RecallApp.jsx'
+import MultiplayerApp from './components/Multiplayer/MultiplayerApp.jsx'
 import styles from './App.module.css'
 
 function GameRouter() {
@@ -59,6 +60,8 @@ function AppContent() {
         <QuizApp />
       ) : appMode === 'moderator' ? (
         <ModeratorApp />
+      ) : appMode === 'multiplayer' ? (
+        <MultiplayerApp />
       ) : (
         <RecallApp />
       )}

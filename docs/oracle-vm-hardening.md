@@ -452,8 +452,31 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_read_timeout 60s;
     }
+
+    # Multiplayer ("Play With Others") WebSocket. Required: without the
+    # Upgrade/Connection headers the browser can't open wss:// and remote
+    # games never connect. The app pings every 25 s; 1 h is an idle ceiling.
+    location = /api/mp/ws {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade           $http_upgrade;
+        proxy_set_header Connection        "upgrade";
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 1h;
+        proxy_send_timeout 1h;
+    }
 }
 ```
+
+> **Adding multiplayer to an existing server?** Paste the `location = /api/mp/ws { … }` block
+> into the `listen 443` server in `/etc/nginx/sites-available/app`, then
+> `sudo nginx -t && sudo systemctl reload nginx`. Check from any machine:
+> `curl -i https://<your-domain>/api/mp/ws` should answer **426** ("This address only accepts
+> WebSocket connections"), which proves the route reaches the game server. To test the
+> upgrade itself, create a game in the app and confirm the lobby shows players joining live.
 
 ```bash
 sudo ln -s /etc/nginx/sites-available/app /etc/nginx/sites-enabled/app

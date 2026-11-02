@@ -129,7 +129,7 @@ export default function ModeratorPlay({ config, onBack, backLabel = '← Setup',
             <div className={`${styles.timerTile} ${timerLow ? styles.timerLow : ''} ${timerDone ? styles.timerDone : ''}`}>
               <span className={styles.timerText}>{formatTime(timeRemaining)}</span>
               <div className={styles.timerBarTrack}>
-                <div className={styles.timerBarFill} style={{ width: `${timerPct}%` }} />
+                <div className={styles.timerBarFill} style={{ transform: `scaleX(${timerPct / 100})` }} />
               </div>
             </div>
             <button className={styles.timerAdj} onClick={() => adjustTime(15)} disabled={running} type="button" title="+15s">+</button>

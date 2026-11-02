@@ -5,7 +5,7 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-lg);
-  animation: fadeIn 0.15s ease both;
+  animation: fadeIn 200ms var(--ease-out) both;
   z-index: 10;
   pointer-events: none;
 }

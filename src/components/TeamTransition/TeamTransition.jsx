@@ -66,7 +66,7 @@ export default function TeamTransition() {
                   <div className={styles.progressTrack}>
                     <div
                       className={styles.progressFill}
-                      style={{ width: `${progressPct}%`, backgroundColor: ts.color }}
+                      style={{ transform: `scaleX(${progressPct / 100})`, backgroundColor: ts.color }}
                     />
                   </div>
                   <span className={styles.roundsLabel}>{ts.roundsPlayed}/{roundsPerTeam} rounds</span>

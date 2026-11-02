@@ -20,7 +20,7 @@
 }
 
 .value.bump {
-  animation: scoreBump 0.4s ease;
+  animation: scoreBump 280ms var(--ease-out);
 }
 
 .label {

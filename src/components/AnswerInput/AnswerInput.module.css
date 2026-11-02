@@ -56,7 +56,7 @@
   transition: border-color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-fast);
 }
 
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .micBtn:hover:not(:disabled) {
     border-color: var(--color-primary);
     background: var(--color-primary-tint);

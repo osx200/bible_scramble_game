@@ -35,10 +35,12 @@
   text-align: left;
 }
 
-.hintBtn:hover:not(:disabled) {
-  border-color: var(--color-accent);
-  color: var(--color-accent-dark);
-  background: var(--color-accent-tint);
+@media (hover: hover) and (pointer: fine) {
+  .hintBtn:hover:not(:disabled) {
+    border-color: var(--color-accent);
+    color: var(--color-accent-dark);
+    background: var(--color-accent-tint);
+  }
 }
 
 .hintBtn:disabled {

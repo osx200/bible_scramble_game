@@ -157,7 +157,7 @@ export default function QuizPlayer({ questions, onBack }) {
             <span className={styles.progressOf}> of {total}</span>
           </div>
           <div className={styles.progressBar}>
-            <div className={styles.progressFill} style={{ width: `${progress}%` }} />
+            <div className={styles.progressFill} style={{ transform: `scaleX(${progress / 100})` }} />
           </div>
           {/* Dot indicators for small quiz sets */}
           {total <= 20 && (

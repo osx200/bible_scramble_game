@@ -1,0 +1,943 @@
+/* "Play With Others" — every screen sits inside <Stage>, so these are content
+   styles only. Lapis & Ink rules: tokens only, flat fills, one accent. */
+
+.screen {
+  width: 100%;
+}
+
+.screen h1 {
+  margin-bottom: var(--spacing-sm);
+}
+
+.lead {
+  font-size: 1.02rem;
+  color: var(--color-text-muted);
+  max-width: 56ch;
+  margin-bottom: var(--spacing-lg);
+  text-wrap: pretty;
+}
+
+/* ── Form bits ── */
+.label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-xs);
+}
+
+.input {
+  width: 100%;
+  min-width: 0;
+  padding: 12px 14px;
+  font-family: var(--font-main);
+  font-size: 1rem;
+  color: var(--color-text);
+  background: var(--color-card);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius);
+  outline: none;
+  margin-bottom: var(--spacing-md);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.input::placeholder {
+  color: var(--color-text-light);
+}
+
+.input:focus {
+  border-color: var(--color-primary);
+  box-shadow: var(--ring);
+}
+
+/* Inside a setup-kit Field hint: inline text under the input */
+.namePreview {
+  font-size: inherit;
+  color: var(--color-text-muted);
+}
+
+/* Inputs inside the setup kit: the field's gap does the spacing */
+.input.fieldInput {
+  margin-bottom: 0;
+}
+
+.joinForm {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: var(--spacing-lg);
+}
+
+.joinForm .label {
+  margin-bottom: -10px;
+}
+
+.joinForm .roomFacts,
+.joinForm .actions,
+.joinForm .error {
+  margin: 0;
+}
+
+.namePreview strong {
+  font-family: var(--font-display);
+  letter-spacing: var(--tracking-wide);
+  color: var(--color-primary);
+}
+
+.codeInput {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.field {
+  border: none;
+  margin-bottom: var(--spacing-md);
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.pill {
+  padding: 8px 14px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-card);
+  font-family: var(--font-main);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pill:hover:not(.pillOn) {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+}
+
+.pillOn {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.teamEditor {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0 var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.teamEditor .input {
+  margin-bottom: var(--spacing-sm);
+}
+
+.inlineActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.teamEditor .inlineActions {
+  grid-column: 1 / -1;
+}
+
+.textBtn,
+.backLink,
+.dangerLink {
+  border: none;
+  background: none;
+  padding: 6px 0;
+  font-family: var(--font-main);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.textBtn { color: var(--color-primary); }
+.backLink { color: var(--color-text-muted); text-decoration-color: var(--color-border-strong); }
+.dangerLink { color: var(--color-danger); }
+
+.error {
+  margin: var(--spacing-sm) 0;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  background: var(--color-danger-light);
+  box-shadow: inset 3px 0 0 var(--color-danger);
+  color: var(--color-text);
+  font-size: 0.92rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-md) var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+}
+
+.cap { text-transform: capitalize; }
+
+/* ── Join: room facts ── */
+.roomFacts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+.roomFacts > div {
+  padding: 10px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-card);
+}
+
+.roomFacts dt {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.roomFacts dd {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* ── Lobby invite ── */
+.invite {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--spacing-lg);
+  align-items: center;
+  padding: var(--spacing-lg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-card);
+  box-shadow: inset 4px 0 0 var(--color-primary);
+  margin-bottom: var(--spacing-md);
+}
+
+.inviteMain {
+  min-width: 0;
+}
+
+.roomCode {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 5vw, 3.6rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-sm);
+  overflow-wrap: anywhere;
+}
+
+.inviteLink {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+  margin-bottom: var(--spacing-md);
+}
+
+.chipBtn {
+  padding: 7px 14px;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-family: var(--font-main);
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .chipBtn:hover { background: var(--color-primary-tint); }
+}
+
+.chipOn {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+/* QR stays black on white in both themes so phones can always read it */
+.qr {
+  display: block;
+  width: 168px;
+  height: 168px;
+  padding: 8px;
+  border-radius: var(--radius);
+  background: #FFFFFF;
+}
+
+.facts {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-lg);
+}
+
+.facts li {
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  margin-bottom: var(--spacing-sm);
+}
+
+.count {
+  min-width: 26px;
+  padding: 0 7px;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-family: var(--font-main);
+  font-size: 0.8rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  padding: var(--spacing-lg);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* ── Standings ── */
+.standings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.teamList,
+.playerList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.teamRow {
+  display: grid;
+  grid-template-columns: 14px 1fr auto auto;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+.teamSwatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+}
+
+.teamName { font-weight: 700; }
+.teamMembers { font-size: 0.8rem; color: var(--color-text-muted); }
+
+.teamScore,
+.playerScore {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-primary);
+  text-align: right;
+}
+
+.playerRow {
+  display: grid;
+  grid-template-columns: 2rem 1fr auto auto;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-card);
+  animation: fadeSlideUp 250ms var(--ease-out) both;
+}
+
+/* Lobby: just who's here (no ranks or zero scores before the game) */
+.playerCompact {
+  grid-template-columns: 1fr auto;
+}
+
+.playerYou {
+  border-color: var(--color-primary);
+  box-shadow: inset 3px 0 0 var(--color-primary);
+}
+
+.rank {
+  font-family: var(--font-display);
+  font-weight: 800;
+  color: var(--color-text-muted);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.playerName {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+/* Real state, not decoration: connected (lapis) or away (hollow) */
+.presence {
+  width: 9px;
+  height: 9px;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-border-strong);
+}
+
+.presenceOn {
+  border-color: var(--color-success);
+  background: var(--color-success);
+}
+
+.tag {
+  padding: 0 7px;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-tint-strong);
+  color: var(--color-primary);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.tagDone {
+  background: var(--color-success-light);
+  color: var(--color-success);
+}
+
+.playerMeta {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.delta {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  animation: fadeSlideUp 250ms var(--ease-out) both;
+}
+
+.deltaUp { color: var(--color-success); }
+.deltaDown { color: var(--color-danger); }
+
+.kickBtn {
+  border: none;
+  background: none;
+  font-family: var(--font-main);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-danger);
+  text-decoration: underline;
+}
+
+/* ── Play screen (full width) ── */
+.play {
+  display: flex;
+  flex-direction: column;
+  min-height: inherit;
+}
+
+.playTop {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: end;
+  gap: var(--spacing-md);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 2px solid var(--color-text);
+}
+
+.playRound {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.playRound span {
+  font-size: 1.1rem;
+  color: var(--color-text-muted);
+}
+
+.playCode {
+  text-align: center;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  letter-spacing: var(--tracking-wide);
+}
+
+.playScore {
+  text-align: right;
+}
+
+.playScore p {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.hostBadge {
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.playGrid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+  gap: clamp(20px, 3vw, 48px);
+  padding-top: var(--spacing-lg);
+}
+
+.playMain {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+  min-width: 0;
+}
+
+.playSide {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding-left: clamp(16px, 2vw, 32px);
+  border-left: 1px solid var(--color-border);
+}
+
+.countdown {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  width: 140px;
+}
+
+.countdownNum {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.countdownLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.countdownBar {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-surface-sunken);
+  overflow: hidden;
+}
+
+.countdownBar span {
+  display: block;
+  height: 100%;
+  background: var(--color-primary);
+  width: 100%;
+  /* scaleX, not width: stays on the compositor, no layout every frame */
+  transform-origin: left center;
+  transition: transform 250ms linear;
+}
+
+.countdownLow .countdownNum { color: var(--color-danger); }
+.countdownLow .countdownBar span { background: var(--color-danger); }
+
+.question {
+  max-width: 30ch;
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3.2vw, 2.8rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.tileWord {
+  display: inline-flex;
+  gap: inherit;
+}
+
+.clue {
+  margin-top: var(--spacing-sm);
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  background: var(--color-primary-tint);
+  box-shadow: inset 3px 0 0 var(--color-primary);
+}
+
+.clue .label { display: inline; margin-right: 6px; }
+
+.progressLine,
+.waitLine {
+  color: var(--color-text-muted);
+  font-weight: 600;
+  text-align: center;
+}
+
+.answerRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: var(--spacing-sm);
+  width: min(100%, 640px);
+}
+
+.answerRow .input {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.answerHint {
+  grid-column: 1 / -1;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.micBtn {
+  width: 48px;
+  height: 48px;
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  background: var(--color-card);
+  font-size: 1.2rem;
+}
+
+.micLive {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+}
+
+.sent {
+  width: min(100%, 640px);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius);
+  background: var(--color-primary-tint);
+  box-shadow: inset 3px 0 0 var(--color-primary);
+  text-align: center;
+}
+
+.sent {
+  animation: sentIn 200ms var(--ease-out) both;
+}
+
+@keyframes revealIn {
+  from { opacity: 0; transform: scale(0.97); filter: blur(4px); }
+  to   { opacity: 1; transform: none; filter: blur(0); }
+}
+
+@keyframes sentIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.sentNote {
+  color: var(--color-text-muted);
+  font-size: 0.92rem;
+}
+
+.reveal {
+  width: min(100%, 680px);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  text-align: center;
+  /* The round's one moment: a soft blur-to-sharp settle masks the swap from
+     the question to the answer (emil-design-eng: blur bridges crossfades) */
+  animation: revealIn 260ms var(--ease-out) both;
+}
+
+.revealLabel {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.revealAnswer {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 800;
+  line-height: 1.05;
+  color: var(--color-primary);
+  margin: 4px 0;
+}
+
+.revealRef {
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.myResult {
+  margin-top: var(--spacing-md);
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.good { color: var(--color-success); }
+.bad { color: var(--color-danger); }
+
+.solvers {
+  margin-top: var(--spacing-sm);
+  color: var(--color-text-muted);
+}
+
+/* ── Host dashboard ── */
+.hostPanel {
+  width: 100%;
+  margin-top: auto;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-top: 2px solid var(--color-text);
+  background: var(--color-surface);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.hostButtons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-sm) var(--spacing-md);
+}
+
+.review {
+  margin-bottom: var(--spacing-md);
+}
+
+.reviewLead {
+  font-weight: 600;
+  margin-bottom: var(--spacing-sm);
+}
+
+.reviewList,
+.liveAnswers {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: var(--spacing-md);
+}
+
+.reviewRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  background: var(--color-card);
+}
+
+.liveAnswers li {
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+/* ── Final ── */
+.resultEmoji {
+  font-size: 3rem;
+  line-height: 1;
+  margin-bottom: var(--spacing-sm);
+  animation: trophyBounce 1s 0.2s ease both;
+}
+
+/* ── Notices + reconnect ── */
+.notices {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 160;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.notice {
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  background: var(--color-text);
+  color: var(--color-bg);
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+  /* In fast, out faster: the toast lives 3.8s (useNotices) and fades out
+     over its last 180ms instead of vanishing */
+  animation: noticeIn 200ms var(--ease-out) both, noticeOut 180ms ease 3.6s both;
+}
+
+.noticeWarn {
+  background: var(--color-danger);
+  color: var(--color-on-danger);
+}
+
+.reconnect {
+  position: fixed;
+  inset: 0;
+  z-index: 170;
+  display: grid;
+  place-items: center;
+  padding: var(--spacing-lg);
+  background: rgba(12, 15, 26, 0.55);
+  /* Only show up if reconnecting lasts > 800ms: quick blips never flash a
+     full-screen overlay (hidden, and not blocking taps, until then) */
+  animation: reconnectIn 200ms var(--ease-out) 800ms both;
+}
+
+@keyframes reconnectIn {
+  from { opacity: 0; visibility: hidden; }
+  to   { opacity: 1; visibility: visible; }
+}
+
+@keyframes noticeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes noticeOut {
+  to { opacity: 0; }
+}
+
+@keyframes mpFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.reconnectCard {
+  max-width: 380px;
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  background: var(--color-card);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+}
+
+.reconnectTitle {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-bottom: var(--spacing-xs);
+}
+
+/* ── Phones and tablets ── */
+@media (max-width: 900px) {
+  .playGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .playSide {
+    padding-left: 0;
+    border-left: none;
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--spacing-md);
+  }
+}
+
+@media (max-width: 700px) {
+  .invite {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .playTop {
+    grid-template-columns: auto auto;
+    /* Room for the floating theme toggle in the top-right corner */
+    padding-right: 52px;
+  }
+
+  .playCode {
+    display: none;
+  }
+
+  .answerRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .answerRow > button[type='submit'] {
+    grid-column: 1 / -1;
+  }
+
+  .playerMeta {
+    display: none;
+  }
+
+  .playerRow {
+    grid-template-columns: 1.6rem 1fr auto auto;
+  }
+}
+
+/* Reduced motion: fades stay, movement goes */
+@media (prefers-reduced-motion: reduce) {
+  .notice {
+    animation: mpFade 200ms ease both, noticeOut 180ms ease 3.6s both !important;
+  }
+
+  .reveal,
+  .sent,
+  .playerRow {
+    animation: mpFade 200ms ease both !important;
+  }
+
+  .reconnect {
+    animation: reconnectIn 150ms ease 800ms both !important;
+  }
+}

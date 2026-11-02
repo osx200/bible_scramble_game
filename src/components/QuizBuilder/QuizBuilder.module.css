@@ -15,7 +15,7 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   padding: var(--spacing-xl);
-  animation: fadeSlideUp 0.3s ease both;
+  animation: fadeSlideUp 250ms var(--ease-out) both;
   margin: var(--spacing-lg) 0;
 }
 
@@ -62,10 +62,12 @@
   margin-bottom: var(--spacing-md);
 }
 
-.backBtn:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-  background: var(--color-primary-tint);
+@media (hover: hover) and (pointer: fine) {
+  .backBtn:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--color-primary-tint);
+  }
 }
 
 /* Small brass caps line above the title, as on Menu */
@@ -105,6 +107,12 @@
   margin-bottom: var(--spacing-lg);
   background: var(--color-surface-sunken);
   border-radius: var(--radius);
+  /* sliding indicator (data-seg, global.css): a card that slides under the active tab */
+  --seg-gap: var(--spacing-xs);
+  --seg-pad: var(--spacing-xs);
+  --seg-bg: var(--color-card);
+  --seg-radius: var(--radius-sm);
+  --seg-shadow: var(--shadow-sm), inset 0 -3px 0 var(--color-primary);
 }
 
 .tab {
@@ -124,16 +132,14 @@
     box-shadow var(--transition-fast);
 }
 
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .tab:hover:not(.tabActive) {
     color: var(--color-primary);
   }
 }
 
 .tabActive {
-  background: var(--color-card);
   color: var(--color-primary);
-  box-shadow: var(--shadow-sm), inset 0 -3px 0 var(--color-primary);
 }
 
 .tabCount {
@@ -219,7 +225,7 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  animation: fadeSlideUp 0.25s ease both;
+  animation: fadeSlideUp 250ms var(--ease-out) both;
 }
 
 .wordContent {
@@ -305,7 +311,7 @@
   cursor: not-allowed;
 }
 
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .pill:hover:not(:disabled):not(.pillActive) {
     border-color: var(--color-primary);
     color: var(--color-primary);
@@ -426,8 +432,10 @@
   transition: color var(--transition-fast);
 }
 
-.sampleBtn:hover {
-  color: var(--color-primary);
+@media (hover: hover) and (pointer: fine) {
+  .sampleBtn:hover {
+    color: var(--color-primary);
+  }
 }
 
 /* ── Question list ── */
@@ -466,8 +474,10 @@
   transition: border-color var(--transition-fast);
 }
 
-.questionItem:hover {
-  border-color: var(--color-primary);
+@media (hover: hover) and (pointer: fine) {
+  .questionItem:hover {
+    border-color: var(--color-primary);
+  }
 }
 
 .questionNum {
@@ -547,14 +557,20 @@
     filter var(--transition-fast);
 }
 
-.deleteBtn:hover {
-  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
-  color: var(--color-danger);
+@media (hover: hover) and (pointer: fine) {
+  .deleteBtn:hover {
+    background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+    color: var(--color-danger);
+  }
 }
 
 /* ── Footer ── */
 .footer {
   margin-top: var(--spacing-lg);
+}
+
+.hostOnline {
+  margin-top: var(--spacing-sm);
 }
 
 /* ── Mobile ── */
@@ -604,4 +620,16 @@
     height: 44px;
     transform: translate(-50%, -50%);
   }
+}
+
+/* Same quiet back link as every setup screen (components/Setup) */
+.header .backBtn {
+  margin-left: -10px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.92rem;
+  font-weight: 600;
 }

@@ -20,7 +20,7 @@
   flex-direction: column;
   gap: var(--spacing-xl);
   margin: var(--spacing-lg) 0;
-  animation: fadeSlideUp 0.3s ease both;
+  animation: fadeSlideUp 250ms var(--ease-out) both;
 }
 
 .card::before {
@@ -201,10 +201,12 @@
     filter var(--transition-fast);
 }
 
-.menuBtn:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-  background: var(--color-primary-tint);
+@media (hover: hover) and (pointer: fine) {
+  .menuBtn:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--color-primary-tint);
+  }
 }
 
 /* ── Mobile: single column ── */

@@ -8,6 +8,7 @@
    House rules (these are what keep it from looking generated):
    • One accent. --color-accent* are lapis variants, not a second
      hue. Success/danger are the only other colours, and only for state.
+     One exception: --pigment-* tint the home menu's game tiles, nowhere else.
    • Flat fills. --gradient-* are single colours on purpose.
    • No coloured glows. Emphasis = solid fill or a 3px rule.
    • Screens use the whole viewport (components/Stage); no floating
@@ -21,6 +22,8 @@
   --color-card: #F9FAFB;
   --color-surface: #E6EAF0;
   --color-surface-sunken: #DCE1E9;
+  /* A control lifted off a surface (the chosen segment, stepper keys) */
+  --color-raised: #FFFFFF;
 
   --color-primary: #23409A;
   --color-primary-light: #2F55C4;
@@ -39,6 +42,14 @@
   --color-danger: #B0302B;
   --color-danger-light: #F6E1DF;
 
+  /* Scribe's pigments: one per game on the home tiles (Menu) only.
+     Never for state or in-game UI. All ≥4.5:1 on --color-card. */
+  --pigment-lapis: var(--color-primary);
+  --pigment-vermilion: #A8432A;
+  --pigment-ochre: #8A6212;
+  --pigment-plum: #6E3A78;
+  --pigment-verdigris: #1D6A7A;
+
   --color-text: #12162A;
   --color-text-muted: #4C5468;
   --color-text-light: #5F667B; /* placeholders: 4.6:1, passes AA */
@@ -54,9 +65,10 @@
   --color-on-danger: #F9FAFB;
 
   /* ── Art panel (components/Stage) ── */
-  /* Engravings are greyscale; this colour is multiplied over them */
-  --art-tint: #23409A;
-  --art-tint-strength: 0.55;
+  /* Engravings are greyscale and screened over this, so their ink lines
+     print in it: a muted blue-black ink, lapis but not a blue poster */
+  --art-ink: #34436F;
+  --art-tint: var(--art-ink);
   --art-scrim: rgba(12, 15, 26, 0.72);
   --art-text: #F2F4F8; /* type set over the art's dark scrim, both themes */
 
@@ -88,17 +100,23 @@
   --ring-accent: 0 0 0 3px rgba(74, 104, 201, 0.35);
 
   /* ── Typography (self-hosted, public/fonts — see global.css) ── */
-  --font-main: 'Satoshi', system-ui, sans-serif;
-  --font-display: 'Cabinet Grotesk', 'Satoshi', system-ui, sans-serif;
-  --tracking-tight: -0.025em;
+  --font-main: 'General Sans', system-ui, sans-serif;
+  --font-display: 'Clash Grotesk', 'General Sans', system-ui, sans-serif;
+  /* Clash Grotesk is already compact: headings need less negative tracking */
+  --tracking-tight: -0.01em;
   --tracking-wide: 0.04em;
   --tracking-caps: 0.12em;
 
   /* ── Motion ── */
-  --transition-fast: 140ms cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-normal: 260ms cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-slow: 450ms cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  /* Motion (emil-design-eng): strong custom curves, UI motion under 300ms.
+     --ease-out for anything entering or responding; --ease-in-out for things
+     moving on screen. Never ease-in for UI. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --transition-fast: 140ms var(--ease-out);
+  --transition-normal: 220ms var(--ease-out);
+  --transition-slow: 320ms var(--ease-out);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1); /* rare celebration moments only */
 
   /* ── Layout ── */
   --max-width: 720px;
@@ -118,6 +136,7 @@
   --color-card: #151A2B;
   --color-surface: #1C2236;
   --color-surface-sunken: #10131F;
+  --color-raised: #2C3556;
 
   /* Lapis lifted so it reads on ink (7.4:1 on card) */
   --color-primary: #8EA6FF;
@@ -136,6 +155,12 @@
   --color-danger: #F07A6E;
   --color-danger-light: #2C1412;
 
+  /* Pigments lifted so they read on ink */
+  --pigment-vermilion: #F0957A;
+  --pigment-ochre: #E0B860;
+  --pigment-plum: #C9A0D6;
+  --pigment-verdigris: #7CC6CF;
+
   --color-text: #E9ECF5;
   --color-text-muted: #A3AAC0;
   --color-text-light: #8A92AB;
@@ -149,8 +174,7 @@
   --color-on-accent: #0C0F1A;
   --color-on-danger: #1E0806;
 
-  --art-tint: #1B2F78;
-  --art-tint-strength: 0.75;
+  --art-ink: #1B2F78;
   --art-scrim: rgba(6, 8, 15, 0.8);
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);

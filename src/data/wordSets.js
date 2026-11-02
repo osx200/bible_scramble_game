@@ -69,6 +69,7 @@ export const WORD_SETS = {
     noun: 'book',
     subtitle: 'Unscramble the names of the 66 books of the Bible',
     tileDesc: 'Unscramble the names of the 66 books of the Bible.',
+    cardDesc: 'The 66 books, Genesis to Revelation',
     allLabel: 'All Books',
     categories: TESTAMENTS,
     // Typing hint under the answer box
@@ -91,6 +92,7 @@ export const WORD_SETS = {
     noun: 'prophet or disciple',
     subtitle: 'Unscramble the names of the prophets and the disciples of Jesus',
     tileDesc: 'The prophets of the Bible and the disciples Jesus called.',
+    cardDesc: 'Prophets and the disciples Jesus called',
     allLabel: 'All Prophets & Disciples',
     categories: TESTAMENTS,
     typingHint: 'spell the full name (e.g. John the Baptist)',
@@ -110,6 +112,7 @@ export const WORD_SETS = {
     noun: 'spouse',
     subtitle: 'Name the missing husband or wife: Moses & ___?',
     tileDesc: 'Name the missing husband or wife: Moses & ___?',
+    cardDesc: 'Name the missing spouse: Moses & ___?',
     allLabel: 'All Couples',
     categories: TESTAMENTS, // still used by the testament hint
     typingHint: 'type the missing spouse’s name',
@@ -128,6 +131,7 @@ export const WORD_SETS = {
     noun: 'book, prophet, disciple or spouse',
     subtitle: 'Books, prophets, disciples and couples, all mixed together',
     tileDesc: 'Books, prophets, disciples and couples all mixed together. The ultimate challenge.',
+    cardDesc: 'Everything at once, the ultimate challenge',
     allLabel: 'Everything',
     categories: TESTAMENTS,
     typingHint: 'numbers required for books (e.g. 1 Samuel)',

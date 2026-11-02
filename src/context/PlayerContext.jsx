@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { toInitials } from '../utils/initials.js'
 
 /**
  * Who is playing: `{ name, kind: 'individual' | 'group' }`, or null before the
@@ -29,12 +30,23 @@ export function cleanPlayerName(raw) {
   return raw.replace(/[\u0000-\u001f\u007f]/g, '').replace(/\s+/g, ' ').trim()
 }
 
+/**
+ * The name as it is stored and shown. Individuals: initials only, for
+ * privacy ("Kwame Mensah" → "K.M."). Groups keep their name.
+ */
+export function publicName(raw, kind) {
+  return kind === 'individual' ? toInitials(raw) : cleanPlayerName(raw)
+}
+
 function loadProfile() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY))
-    const name = typeof saved?.name === 'string' ? cleanPlayerName(saved.name) : ''
-    if (name.length >= NAME_MIN && PLAYER_KINDS.includes(saved.kind)) {
-      return { name: name.slice(0, NAME_MAX), kind: saved.kind }
+    if (typeof saved?.name !== 'string' || !PLAYER_KINDS.includes(saved.kind)) return null
+    // Profiles saved before the initials rule get shortened here, once
+    const name = publicName(saved.name, saved.kind).slice(0, NAME_MAX)
+    if (name.length >= NAME_MIN) {
+      if (name !== saved.name) localStorage.setItem(STORAGE_KEY, JSON.stringify({ name, kind: saved.kind }))
+      return { name, kind: saved.kind }
     }
   } catch {
     // Private window, blocked storage or corrupt JSON — just ask again
@@ -51,7 +63,8 @@ export function PlayerProvider({ children }) {
     document.title = profile ? `${brandName(profile)} Bible Games` : 'Bible Games'
   }, [profile])
 
-  const setProfile = useCallback((next) => {
+  const setProfile = useCallback((input) => {
+    const next = { kind: input.kind, name: publicName(input.name, input.kind) }
     setProfileState(next)
     setEditing(false)
     try {

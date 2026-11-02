@@ -1,83 +1,33 @@
 import { useState } from 'react'
 import { useAppMode } from '../../context/AppModeContext.jsx'
-import styles from './RecallSetup.module.css'
+import { SetupScreen, Field, Segmented } from '../Setup/Setup.jsx'
 import Stage from '../Stage/Stage.jsx'
 
-const TIMERS = [
-  { value: 60,  label: '1 min'  },
-  { value: 120, label: '2 min'  },
-  { value: 180, label: '3 min'  },
-  { value: 300, label: '5 min'  },
-]
-
-const CATEGORIES = [
-  { value: 'all', label: 'All 66 Books'         },
-  { value: 'ot',  label: 'Old Testament (39)'   },
-  { value: 'nt',  label: 'New Testament (27)'   },
-]
+const TIMERS = [[60, '1 min'], [120, '2 min'], [180, '3 min'], [300, '5 min']]
+const CATEGORIES = [['all', 'All 66'], ['ot', 'Old Testament'], ['nt', 'New Testament']]
+const CATEGORY_SUMMARY = { all: 'All 66 books', ot: 'Old Testament (39)', nt: 'New Testament (27)' }
 
 export default function RecallSetup({ onStart }) {
   const { setAppMode } = useAppMode()
-  const [timer,    setTimer]    = useState(180)
+  const [timer, setTimer] = useState(180)
   const [category, setCategory] = useState('all')
 
   return (
     <Stage art="isaiah">
-      <div className={styles.card}>
-
-        <div className={styles.header}>
-          <button className={styles.backBtn} onClick={() => setAppMode('scramble')} type="button">
-            ← Back to Menu
-          </button>
-          <div className={styles.titleRow}>
-            <h1 className={styles.title}>Bible Book Recall</h1>
-          </div>
-          <p className={styles.subtitle}>
-            How many of the 66 books of the Bible can you name from memory?
-          </p>
-        </div>
-
-        <div className={styles.divider} />
-
-        <div className={styles.group}>
-          <span className={styles.groupLabel}>Category</span>
-          <div className={styles.pills}>
-            {CATEGORIES.map(c => (
-              <button
-                key={c.value}
-                type="button"
-                className={`${styles.pill} ${category === c.value ? styles.pillActive : ''}`}
-                onClick={() => setCategory(c.value)}
-              >{c.label}</button>
-            ))}
-          </div>
-        </div>
-
-        <div className={styles.group}>
-          <span className={styles.groupLabel}>Time Limit</span>
-          <div className={styles.pills}>
-            {TIMERS.map(t => (
-              <button
-                key={t.value}
-                type="button"
-                className={`${styles.pill} ${timer === t.value ? styles.pillActive : ''}`}
-                onClick={() => setTimer(t.value)}
-              >{t.label}</button>
-            ))}
-          </div>
-        </div>
-
-        <div className={styles.divider} />
-
-        <button
-          className={styles.startBtn}
-          type="button"
-          onClick={() => onStart({ category, timerDuration: timer })}
-        >
-          Start Game →
-        </button>
-
-      </div>
+      <SetupScreen
+        title="Book Recall"
+        subtitle="How many books of the Bible can you name from memory? Type them or say them out loud."
+        onBack={() => setAppMode('scramble')}
+        summary={`${CATEGORY_SUMMARY[category]} · ${TIMERS.find(([v]) => v === timer)[1]}`}
+        onStart={() => onStart({ category, timerDuration: timer })}
+      >
+        <Field label="Books to name">
+          <Segmented label="Books to name" options={CATEGORIES} value={category} onChange={setCategory} />
+        </Field>
+        <Field label="Time limit">
+          <Segmented label="Time limit" options={TIMERS} value={timer} onChange={setTimer} />
+        </Field>
+      </SetupScreen>
     </Stage>
   )
 }

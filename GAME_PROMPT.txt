@@ -22,9 +22,10 @@ Contact for suggestions: bible-games@proton.me
 Disclaimer (shown on the welcome page and the About view):
   Bible Games is a free, independent resource for fellowship and personal study, and is
   not affiliated with any church or denomination. It is meant to support Bible reading,
-  not replace it. Names you enter may appear on the public monthly leaderboard, so please
-  avoid full names or personal details, especially for children. Scripture quoted from the
-  King James Version (public domain).
+  not replace it. For privacy, individual players only ever appear as initials (a full
+  name is shortened before it is saved). Group and team names are shown as entered and may
+  appear on the public monthly leaderboard, so please keep personal details out of them,
+  especially for children. Scripture quoted from the King James Version (public domain).
 
 
 2. TECH STACK AND CONSTRAINTS
@@ -52,9 +53,13 @@ Disclaimer (shown on the welcome page and the About view):
   disclaimer.
 - Form: choose Individual or Group (segmented toggle), then a name (2 to 24 characters,
   whitespace collapsed, control characters stripped). Button: "Let's Play".
+- Privacy: an individual's name is reduced to initials before it is stored or shown
+  ("Kwame Mensah" -> "K.M.", "Kwame" -> "K."), with a live "You'll appear as K.M." line
+  under the field. Group names are kept as typed. The server applies the same rule to
+  leaderboard posts and multiplayer names, so a full name never leaves the device.
 - The profile { name, kind: 'individual' | 'group' } is saved in localStorage ("player").
 - The name personalises the whole app. There is no fixed product brand:
-    - Individuals get a possessive: "Kwame's Bible Games", "James' Bible Games".
+    - Individuals get a possessive of their initials: "K.M.'s Bible Games".
     - Groups use the plain name: "Grace Fellowship Bible Games".
     - Browser tab title follows the same rule ("Bible Games" before a name is set).
 - The home menu shows the name as a small caps line above a huge "Bible Games" wordmark,
@@ -223,6 +228,38 @@ Flow: choose a word set -> setup -> play -> results.
   with content asks for confirmation. Custom games never reach the leaderboard.
 
 
+8b. PLAY WITH OTHERS (REMOTE MULTIPLAYER)
+-----------------------------------------
+- A host creates a game; people anywhere join on their own devices with an invitation link
+  (/join/CODE), a room code like BETHEL4827, or a QR code. Same server-run game for everyone.
+- Create Game options: game (any Word Unscramble set, or Builder words/questions via the
+  Builder's "Host online"), difficulty, category, rounds (5/10/15/20), seconds per round,
+  results after each round or straight away, speed bonus (up to +10), "when someone gets
+  it right" (wait for the timer, or first correct answer wins), host presents on the
+  big screen or also plays, players needed to start, everyone-for-themselves or 2-6 teams.
+- Lobby: big room code, link, QR, copy/share buttons, live player list with connection
+  state; host can remove players, close the room, and start once enough have joined.
+- Play: everyone sees the same scramble or question and countdown; one answer per player per
+  round (duplicates rejected); "x of y answered"; reveal shows the answer (and reference for
+  quiz), who got it, and score changes. Host dashboard: pause/resume, close round, skip,
+  next (auto-advances 7 s after the reveal unless held), end, restart. Quiz answers that
+  don't clearly match go to a host review (Accept / Wrong) before the reveal.
+- Race rounds ("First correct answer wins"): the first correct answer to reach the server
+  scores +20 and ends the round; the reveal says "K.M. got it first!" and the next question
+  follows 4 s later. Players may retry after a wrong guess (1 s apart), each wrong guess
+  costing -2. Anyone silent scores 0 when someone won, or -2 if the timer ran out on
+  everyone. Speed bonus is off and verdicts are instant in this mode.
+- Server-authoritative: the server picks words, owns timers, judges answers and calculates
+  scores (+20 / -2, optional speed bonus from server time). Answers are never sent before
+  the reveal. Multiplayer scores never touch the monthly leaderboard.
+- Reliability: automatic reconnection; a refresh rejoins as the same player with the score
+  kept; if the host drops, the game pauses, and after 2 minutes the earliest-joined connected
+  player becomes host. Live rooms are in memory and do not survive a server restart (shown
+  as "That game ended when the server restarted").
+- Security: random tokens (only SHA-256 stored) decide host vs player; rate limits on
+  creating, joining and failed code lookups; validated messages; room size cap (50).
+- Full details: docs/multiplayer.md.
+
 9. MONTHLY LEADERBOARD
 ----------------------
 - Two shared boards: Top Players (individuals) and Top Groups. Top 5 each.
@@ -283,8 +320,8 @@ Colours (one accent only):
   All text passes WCAG AA (4.5:1), placeholders included.
 
 Fonts (sans-serif only, self-hosted, no Google Fonts request):
-  - Cabinet Grotesk 700/800 for headings and big numbers.
-  - Satoshi 400/500/700 for text.
+  - Clash Grotesk 500/600/700 for headings and big numbers (word-spacing 0.06em).
+  - General Sans 400/500/600/700 for text.
   (Fontshare, ITF Free Font License.)
 
 House rules:

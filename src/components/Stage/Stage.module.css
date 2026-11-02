@@ -6,15 +6,23 @@
   background: var(--color-bg);
 }
 
-/* The engraving: greyscale file "screened" over lapis, so black ink
-   lines print in lapis and the white paper stays paper. */
+/* The engraving: greyscale file "screened" over ink, so black ink lines
+   print in --art-ink and the white paper stays paper. */
 .art {
   position: sticky;
   top: 0;
   height: 100dvh;
   margin: 0;
   overflow: hidden;
-  background: var(--art-tint);
+  isolation: isolate;
+}
+
+/* One layer per plate (Stage.jsx stacks the previous plate under the new
+   one while it crossfades). Each layer blends only with its own ink. */
+.plate {
+  position: absolute;
+  inset: 0;
+  background: var(--art-ink);
   isolation: isolate;
 }
 
@@ -24,17 +32,40 @@
   height: 100%;
   object-fit: cover;
   mix-blend-mode: screen;
-  opacity: 1;
-  /* A slow settle on arrival — the one motion on the panel */
-  animation: artSettle 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  /* Lift the heavy shadow masses so the plate reads as ink on paper */
+  filter: brightness(1.05) contrast(0.92);
 }
 
-/* Fade the art into the content side so the seam isn't a hard edge */
+/* Screen changes happen tens of times a session: one quick opacity fade on
+   the same 240ms as the content's stageIn, and only once the image has
+   loaded. First load / back from a game: the whole panel fades in from the
+   page. New plate: it crossfades over the previous one. Same plate: none. */
+.artIn,
+.plateIn {
+  opacity: 0;
+}
+
+.artIn[data-ready='true'],
+.plateIn[data-ready='true'] {
+  animation: artIn 240ms var(--ease-out) both;
+}
+
+/* Fade the art into the content side. An eased ramp, not a straight
+   linear one, so there's no visible line where the fade begins. */
 .art::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent 72%, var(--color-bg) 100%);
+  z-index: 1;
+  background: linear-gradient(
+    90deg,
+    transparent 55%,
+    color-mix(in srgb, var(--color-bg) 15%, transparent) 66%,
+    color-mix(in srgb, var(--color-bg) 40%, transparent) 76%,
+    color-mix(in srgb, var(--color-bg) 68%, transparent) 85%,
+    color-mix(in srgb, var(--color-bg) 90%, transparent) 93%,
+    var(--color-bg) 100%
+  );
   pointer-events: none;
 }
 
@@ -42,11 +73,11 @@
 .overlay {
   position: absolute;
   inset: auto 0 0 0;
-  z-index: 1;
+  z-index: 2;
   padding: clamp(80px, 14vh, 160px) clamp(28px, 4vw, 64px) clamp(28px, 5vh, 56px);
   background: linear-gradient(180deg, transparent, var(--art-scrim) 45%);
   color: var(--art-text);
-  animation: stageIn 0.8s 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: stageIn 300ms 150ms var(--ease-out) both;
 }
 
 [data-theme="dark"] .artImg {
@@ -54,9 +85,9 @@
   filter: brightness(0.62) contrast(1.08);
 }
 
-@keyframes artSettle {
-  from { transform: scale(1.06); opacity: 0; }
-  to   { transform: scale(1);    opacity: 1; }
+@keyframes artIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 /* ── Content column ── */
@@ -82,7 +113,8 @@
   background: transparent;
   border-radius: 0;
   box-shadow: none;
-  animation: stageIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  /* Navigation happens tens of times a session: quick, small, ease-out */
+  animation: stageIn 240ms var(--ease-out) both;
 }
 
 .contentWide > div,
@@ -96,14 +128,14 @@
   display: none;
 }
 
-/* One heading scale for every art screen: big, tight Cabinet Grotesk.
+/* One heading scale for every art screen: big Clash Grotesk.
    (Element + class outranks each screen's own .title.) */
 .content h1 {
   font-family: var(--font-display);
   font-size: clamp(2.2rem, 3.4vw, 3.4rem);
   font-weight: 800;
   line-height: 1.02;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.015em;
   color: var(--color-text);
   text-wrap: balance;
 }
@@ -114,8 +146,13 @@
 }
 
 @keyframes stageIn {
-  from { opacity: 0; transform: translateY(14px); }
+  from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: none; }
+}
+
+@keyframes stageFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 /* Short laptop screens (≤ 940px tall): tighter vertical padding so a
@@ -159,7 +196,15 @@
   }
 
   .art::after {
-    background: linear-gradient(180deg, transparent 60%, var(--color-bg) 100%);
+    background: linear-gradient(
+      180deg,
+      transparent 50%,
+      color-mix(in srgb, var(--color-bg) 15%, transparent) 62%,
+      color-mix(in srgb, var(--color-bg) 40%, transparent) 73%,
+      color-mix(in srgb, var(--color-bg) 68%, transparent) 83%,
+      color-mix(in srgb, var(--color-bg) 90%, transparent) 92%,
+      var(--color-bg) 100%
+    );
   }
 
   .overlay {
@@ -182,5 +227,20 @@
 @media (max-width: 700px) {
   .play {
     padding: var(--spacing-sm);
+  }
+}
+
+/* Reduced motion: keep the fades (they help), drop the movement */
+@media (prefers-reduced-motion: reduce) {
+  .artIn[data-ready='true'],
+  .plateIn[data-ready='true'] {
+    animation: artIn 200ms ease both !important;
+  }
+
+  .content > div,
+  .content > form,
+  .playInner > div,
+  .overlay {
+    animation: stageFade 200ms ease both !important;
   }
 }

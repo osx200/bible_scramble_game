@@ -7,7 +7,8 @@ export default defineConfig({
     // `npm run api` serves the leaderboard on :3001; in production nginx
     // does this proxying instead
     proxy: {
-      '/api': 'http://localhost:3001',
+      // ws: true also carries the multiplayer WebSocket (/api/mp/ws)
+      '/api': { target: 'http://localhost:3001', ws: true },
     },
   },
 })

@@ -11,10 +11,14 @@ services:
     depends_on:
       - api
 
-  # Monthly leaderboard API. No published ports: only reachable through the
-  # bible-scramble container's nginx at /api/.
+  # Game server: monthly leaderboard API + multiplayer WebSocket. No published
+  # ports: only reachable through the bible-scramble container's nginx at /api/.
+  # Built from the repo root so it can copy the shared word lists from src/
+  # (server/Dockerfile.dockerignore keeps that context small).
   api:
-    build: ./server
+    build:
+      context: .
+      dockerfile: server/Dockerfile
     container_name: bible-scramble-api
     restart: unless-stopped
     environment:
@@ -23,6 +27,8 @@ services:
       ADMIN_TOKEN: ${ADMIN_TOKEN:-}
       # Timezone whose midnight on the 1st starts a new monthly board
       BOARD_TZ: ${BOARD_TZ:-UTC}
+      # Optional multiplayer room size cap (default 50)
+      MP_MAX_PLAYERS: ${MP_MAX_PLAYERS:-50}
     volumes:
       - leaderboard-data:/data
 

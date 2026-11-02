@@ -20,7 +20,7 @@
   background: var(--color-surface);
   border: 1px solid color-mix(in srgb, var(--color-accent) 30%, var(--color-border));
   overflow: hidden;
-  animation: fadeSlideUp 0.45s 0.15s ease both;
+  animation: fadeSlideUp 250ms 60ms var(--ease-out) both;
 }
 
 .verse::before {
@@ -101,7 +101,7 @@
   transition: text-decoration-color var(--transition-fast);
 }
 
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .contactLink:hover {
     text-decoration-color: currentColor;
   }
@@ -128,10 +128,13 @@
 .verseOnArt .verseText {
   font-family: var(--font-display);
   font-size: clamp(1.15rem, 1.6vw, 1.5rem);
-  font-weight: 700;
+  /* Clash Grotesk's word space is narrow: a running sentence needs the
+     lighter cut, neutral tracking and a touch of extra word spacing */
+  font-weight: 500;
   font-style: normal;
   line-height: 1.35;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
+  word-spacing: 0.08em;
   color: inherit;
 }
 

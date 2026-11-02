@@ -40,7 +40,7 @@
   font-weight: 500;
   font-size: 0.85rem;
   justify-content: center;
-  animation: fadeIn 0.3s ease both;
+  animation: fadeIn 200ms var(--ease-out) both;
 }
 
 .toggle {
@@ -61,7 +61,7 @@
     background-color var(--transition-fast);
 }
 
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .toggle:hover {
     border-color: var(--color-primary);
     color: var(--color-primary);
@@ -78,5 +78,5 @@
 }
 
 .panel {
-  animation: slideDown 0.3s ease both;
+  animation: slideDown 220ms var(--ease-out) both;
 }

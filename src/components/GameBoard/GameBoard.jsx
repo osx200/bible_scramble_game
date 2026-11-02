@@ -84,7 +84,7 @@ export default function GameBoard() {
             <div
               className={styles.progressFill}
               style={{
-                width: `${progress}%`,
+                transform: `scaleX(${progress / 100})`,
                 backgroundColor: currentTeam ? currentTeam.color : undefined,
               }}
             />

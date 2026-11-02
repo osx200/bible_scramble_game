@@ -14,7 +14,7 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   padding: var(--spacing-xl);
-  animation: fadeSlideUp 0.35s ease both;
+  animation: fadeSlideUp 250ms var(--ease-out) both;
 }
 .card::before {
   content: '';
@@ -182,7 +182,10 @@
 .progressFill {
   height: 100%;
   border-radius: 2px;
-  transition: width 0.4s ease;
+  width: 100%;
+  /* scaleX, not width: stays on the compositor, no layout every frame */
+  transform-origin: left center;
+  transition: transform 300ms var(--ease-out);
 }
 
 .roundsLabel {

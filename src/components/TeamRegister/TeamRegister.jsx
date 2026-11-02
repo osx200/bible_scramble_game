@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useGame } from '../../context/GameContext.jsx'
 import { usePlayer } from '../../context/PlayerContext.jsx'
-import Button from '../shared/Button.jsx'
+import { SetupScreen } from '../Setup/Setup.jsx'
 import styles from './TeamRegister.module.css'
 import Stage from '../Stage/Stage.jsx'
 
@@ -63,13 +63,15 @@ export default function TeamRegister() {
 
   return (
     <Stage art="joshua">
-      <div className={styles.card}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>Register Teams</h1>
-          <p className={styles.subtitle}>
-            {MIN_TEAMS}-{MAX_TEAMS} teams · Each team plays {10} rounds
-          </p>
-        </div>
+      <SetupScreen
+        title="Name your teams"
+        subtitle={`${MIN_TEAMS} to ${MAX_TEAMS} teams take turns on this screen. Tap a colour dot to change it.`}
+        onBack={() => dispatch({ type: 'RESTART' })}
+        summary={`${teams.length} teams · 10 rounds each`}
+        startLabel="Start tournament"
+        onStart={handleStart}
+        error={error}
+      >
 
         <div className={styles.teamList}>
           {teams.map((team, i) => (
@@ -112,25 +114,14 @@ export default function TeamRegister() {
 
         <button
           className={styles.addBtn}
+          type="button"
           onClick={addTeam}
           disabled={teams.length >= MAX_TEAMS}
         >
-          + Add Team {teams.length < MAX_TEAMS ? `(${MAX_TEAMS - teams.length} more allowed)` : '(max reached)'}
+          + Add team {teams.length < MAX_TEAMS ? `(${MAX_TEAMS - teams.length} more allowed)` : '(max reached)'}
         </button>
 
-        {error && <p className={styles.error}>{error}</p>}
-
-        <div className={styles.divider} />
-
-        <div className={styles.actions}>
-          <Button full size="lg" onClick={handleStart}>
-            Start Tournament
-          </Button>
-          <Button full variant="ghost" onClick={() => dispatch({ type: 'RESTART' })}>
-            Back to Menu
-          </Button>
-        </div>
-      </div>
+      </SetupScreen>
     </Stage>
   )
 }

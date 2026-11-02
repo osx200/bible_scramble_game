@@ -17,7 +17,7 @@
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
 }
 
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .toggle:hover {
     border-color: var(--color-primary);
     box-shadow: var(--shadow-lg);

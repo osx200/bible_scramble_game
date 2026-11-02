@@ -1,7 +1,10 @@
-// Leaderboard API — the only server-side piece of the app.
+// The app's server: the monthly leaderboard API and remote multiplayer.
 //
-// Zero npm dependencies on purpose: node:http + node:sqlite ship with Node 24,
-// so there is nothing to install, audit, or accidentally commit.
+// The leaderboard uses Node built-ins only (node:http + node:sqlite).
+// Multiplayer (./multiplayer/) adds two packages, installed inside the Docker
+// image: `ws` for the WebSocket endpoint and `qrcode` for invite QR codes.
+//
+//   Multiplayer: /api/mp/… (HTTP) and /api/mp/ws (WebSocket) — see multiplayer/http.js
 //
 //   GET    /api/health
 //   GET    /api/leaderboard?board=individual|group[&month=YYYY-MM]
@@ -18,6 +21,11 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { DatabaseSync } from 'node:sqlite'
 import { isBlocked } from './blocklist.js'
+import { toInitials } from '../src/utils/initials.js'
+import { initRooms } from './multiplayer/rooms.js'
+import { handleMultiplayerHttp } from './multiplayer/http.js'
+import { attachMultiplayerSockets } from './multiplayer/socket.js'
+import { validateSettings } from './multiplayer/settings.js'
 
 const PORT = Number(process.env.PORT) || 3001
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -88,6 +96,45 @@ const insertScore = db.prepare(`
 `)
 const deleteScore = db.prepare('DELETE FROM scores WHERE id = ?')
 
+// ── Multiplayer session records ────────────────────────────
+// Live rooms are in memory (multiplayer/rooms.js); SQLite only keeps what
+// outlives them: who hosted, the settings (never custom Builder content),
+// the status and the final standings. Player tokens are stored as SHA-256.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS mp_sessions (
+    code        TEXT PRIMARY KEY,
+    host_name   TEXT NOT NULL,
+    mode        TEXT NOT NULL,
+    settings    TEXT NOT NULL,
+    status      TEXT NOT NULL,
+    created_at  INTEGER NOT NULL,
+    ended_at    INTEGER,
+    standings   TEXT
+  );
+  CREATE TABLE IF NOT EXISTS mp_players (
+    session_code TEXT NOT NULL,
+    player_id    TEXT NOT NULL,
+    name         TEXT NOT NULL,
+    token_hash   TEXT NOT NULL,
+    team_id      TEXT,
+    joined_at    INTEGER NOT NULL,
+    final_score  INTEGER,
+    PRIMARY KEY (session_code, player_id)
+  );
+`)
+const mpStatement = db.prepare('SELECT status FROM mp_sessions WHERE code = ?')
+initRooms({
+  insertSession: db.prepare('INSERT INTO mp_sessions (code, host_name, mode, settings, status, created_at) VALUES (?, ?, ?, ?, ?, ?)'),
+  findSession: mpStatement,
+  setStatus: db.prepare('UPDATE mp_sessions SET status = ?, ended_at = ? WHERE code = ?'),
+  setSettings: db.prepare('UPDATE mp_sessions SET settings = ? WHERE code = ?'),
+  finishSession: db.prepare('UPDATE mp_sessions SET status = ?, ended_at = ?, standings = ? WHERE code = ?'),
+  interruptAll: db.prepare("UPDATE mp_sessions SET status = 'interrupted', ended_at = ? WHERE status IN ('lobby', 'playing')"),
+  insertPlayer: db.prepare('INSERT INTO mp_players (session_code, player_id, name, token_hash, team_id, joined_at) VALUES (?, ?, ?, ?, ?, ?)'),
+  setPlayerScore: db.prepare('UPDATE mp_players SET final_score = ? WHERE session_code = ? AND player_id = ?'),
+})
+const mpStatusOf = (code) => mpStatement.get(code)?.status ?? null
+
 // ── Helpers ────────────────────────────────────────────────
 
 const monthFormat = new Intl.DateTimeFormat('en-CA', {
@@ -124,13 +171,13 @@ function send(res, status, body) {
   res.end(JSON.stringify(body))
 }
 
-function readJson(req) {
+function readJson(req, maxBytes = MAX_BODY) {
   return new Promise((resolve, reject) => {
     let size = 0
     const chunks = []
     req.on('data', (chunk) => {
       size += chunk.length
-      if (size > MAX_BODY) {
+      if (size > maxBytes) {
         reject(Object.assign(new Error('Body too large'), { status: 413 }))
         req.destroy()
         return
@@ -187,7 +234,11 @@ function getLeaderboard(url, res) {
   const monthParam = url.searchParams.get('month')
   if (monthParam && !/^\d{4}-\d{2}$/.test(monthParam)) return send(res, 400, { error: 'Bad month' })
   const month = monthParam || currentMonth()
-  send(res, 200, { board, month, entries: topQuery.all(board, month) })
+  let entries = topQuery.all(board, month)
+  // Privacy: individuals only ever appear as initials (rows saved before the
+  // rule may hold full names, so this applies on the way out too)
+  if (board === 'individual') entries = entries.map((e) => ({ ...e, name: toInitials(e.name) }))
+  send(res, 200, { board, month, entries })
 }
 
 async function postScore(req, res) {
@@ -195,7 +246,8 @@ async function postScore(req, res) {
 
   const body = await readJson(req)
   const { id, board, score, correct, total, difficulty, wordSet } = body ?? {}
-  const name = cleanName(body?.name)
+  // Individuals are stored as initials only ("Kwame Mensah" → "K.M.")
+  const name = board === 'individual' ? cleanName(toInitials(body?.name)) : cleanName(body?.name)
 
   if (typeof id !== 'string' || !/^[a-z0-9]{8,40}$/.test(id)) return send(res, 400, { error: 'Bad id' })
   if (!BOARDS.includes(board)) return send(res, 400, { error: 'Unknown board' })
@@ -244,11 +296,18 @@ const server = http.createServer(async (req, res) => {
     const del = pathname.match(/^\/api\/scores\/([a-z0-9]{8,40})$/)
     if (req.method === 'DELETE' && del) return removeScore(req, res, del[1])
 
+    if (await handleMultiplayerHttp(req, res, url, { send, readJson, clientIp, cleanName, isBlocked, statusOf: mpStatusOf })) return
+
     send(res, 404, { error: 'Not found' })
   } catch (err) {
     if (!err.status) console.error(err)
     if (!res.headersSent) send(res, err.status || 500, { error: err.status ? err.message : 'Server error' })
   }
+})
+
+attachMultiplayerSockets(server, {
+  validateSettings: (settings) => validateSettings(settings, { cleanName, isBlocked }),
+  statusOf: mpStatusOf,
 })
 
 server.listen(PORT, () => {

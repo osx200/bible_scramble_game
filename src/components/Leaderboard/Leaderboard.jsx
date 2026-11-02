@@ -32,7 +32,12 @@ export default function Leaderboard({ defaultBoard = 'individual', highlightName
 
   return (
     <section className={styles.board} aria-label="Monthly leaderboard">
-      <div className={styles.tabs} role="tablist">
+      <div
+        className={styles.tabs}
+        role="tablist"
+        data-seg
+        style={{ '--seg-count': Object.keys(BOARDS).length, '--seg-index': Object.keys(BOARDS).indexOf(board) }}
+      >
         {Object.values(BOARDS).map((b) => (
           <button
             key={b.id}

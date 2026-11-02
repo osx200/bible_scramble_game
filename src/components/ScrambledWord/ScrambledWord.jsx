@@ -34,15 +34,18 @@ export default function ScrambledWord({ animKey }) {
 
   const words = scrambledName.split(' ')
 
-  // Build tile elements: words separated by spacer divs
+  // Build tile elements: words separated by spacer divs.
+  // Tiles cascade in 25ms apart, capped so even a long name is fully on
+  // screen within ~300ms: this is seen every round, and the player is waiting.
   const elements = []
+  let letterIndex = 0
   words.forEach((word, wordIdx) => {
     if (wordIdx > 0) {
       elements.push(<div key={`gap-${wordIdx}`} className={styles.wordGap} />)
     }
     const isPrefix = isNumericPrefix(word)
     word.split('').forEach((char, charIdx) => {
-      const delay = (wordIdx * 8 + charIdx) * 50
+      const delay = Math.min(letterIndex++ * 25, 300)
       elements.push(
         <div
           key={`${animKey}-${wordIdx}-${charIdx}`}

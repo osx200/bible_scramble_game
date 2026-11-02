@@ -20,7 +20,7 @@
   flex-direction: column;
   gap: var(--spacing-md);
   margin: var(--spacing-lg) 0;
-  animation: fadeSlideUp 0.3s ease both;
+  animation: fadeSlideUp 250ms var(--ease-out) both;
 }
 
 .card::before {
@@ -58,7 +58,7 @@
 }
 
 .timerLow    { color: var(--color-accent-dark); animation: timerPulse 0.9s ease-in-out infinite; }
-.timerDanger { color: var(--color-danger);       animation: timerPulse 0.5s ease-in-out infinite; }
+.timerDanger { color: var(--color-danger);       animation: timerPulse 0.9s var(--ease-in-out) infinite; }
 
 @keyframes timerPulse {
   0%, 100% { opacity: 1; }
@@ -144,7 +144,7 @@
   box-shadow: var(--shadow-primary);
 }
 
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .submitBtn:hover {
     transform: translateY(-1px);
     filter: brightness(1.05);
@@ -166,7 +166,7 @@
     box-shadow var(--transition-fast);
 }
 
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .micBtn:hover {
     border-color: var(--color-primary);
   }
@@ -211,7 +211,7 @@
 .feedback {
   font-size: 0.85rem;
   font-weight: 700;
-  animation: fadeIn 0.15s ease both;
+  animation: fadeIn 200ms var(--ease-out) both;
 }
 
 .feedbackSuccess { color: var(--color-success); }
@@ -252,8 +252,8 @@
 }
 
 @keyframes chipPop {
-  from { transform: scale(0.6); opacity: 0; }
-  to   { transform: scale(1);   opacity: 1; }
+  from { transform: scale(0.85); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
 }
 
 .chipEmpty {
@@ -286,10 +286,12 @@
   margin-top: var(--spacing-sm);
 }
 
-.finishBtn:hover {
-  border-color: var(--color-danger);
-  color: var(--color-danger);
-  background: color-mix(in srgb, var(--color-danger) 5%, transparent);
+@media (hover: hover) and (pointer: fine) {
+  .finishBtn:hover {
+    border-color: var(--color-danger);
+    color: var(--color-danger);
+    background: color-mix(in srgb, var(--color-danger) 5%, transparent);
+  }
 }
 
 /* ── Mobile ── */

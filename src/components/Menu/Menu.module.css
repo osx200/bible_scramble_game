@@ -1,5 +1,6 @@
 /* Menu sits inside <Stage>, which supplies the full-screen layout and the
-   artwork; .card is just the content column (Stage neutralises its box). */
+   artwork; .card is just the content column (Stage neutralises its box).
+   Setup screens use the shared kit in components/Setup. */
 .card {
   position: relative;
   width: 100%;
@@ -7,7 +8,7 @@
 
 /* ── Header ── */
 .header {
-  margin-bottom: var(--spacing-xl);
+  margin-bottom: var(--spacing-lg);
 }
 
 /* Small caps line above the home masthead: the player's own name */
@@ -19,7 +20,7 @@
   text-transform: uppercase;
   color: var(--color-primary);
   margin-bottom: var(--spacing-sm);
-  animation: fadeIn 0.4s ease both;
+  animation: fadeIn 200ms var(--ease-out) both;
 }
 
 .title {
@@ -32,10 +33,10 @@
 /* Home screen only: the big wordmark with a lapis rule beneath.
    Two classes, so it outranks Stage's shared h1 scale. */
 .title.masthead {
-  /* Capped by height too, so short laptop screens keep the list in view */
-  font-size: clamp(3.2rem, min(6.4vw, 9.5vh), 6rem);
+  /* Capped by height too, so short laptop screens keep the cards in view */
+  font-size: clamp(3rem, min(5.8vw, 8.5vh), 5.4rem);
   line-height: 0.92;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.02em;
   color: var(--color-primary);
   padding-bottom: var(--spacing-md);
   margin-bottom: var(--spacing-md);
@@ -49,6 +50,7 @@
   bottom: 0;
   width: 72px;
   height: 4px;
+  border-radius: 2px;
   background: var(--color-primary);
 }
 
@@ -58,132 +60,139 @@
   max-width: 52ch;
 }
 
-.divider {
-  height: 1px;
-  background: var(--color-border);
-  margin: var(--spacing-lg) 0;
-}
-
-/* ── Game list: a table of contents, not a grid of tiles ── */
-.modeList {
+/* ── Games: a two-column grid of cards ── */
+.modeGrid {
   list-style: none;
-  border-top: 2px solid var(--color-text);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
-.modeRow {
+.wide {
+  grid-column: 1 / -1;
+}
+
+.modeCard {
   position: relative;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
   width: 100%;
-  padding: 18px 8px 18px 4px;
-  border: none;
-  border-bottom: 1px solid var(--color-border-strong);
-  background: none;
+  height: 100%;
+  padding: 16px 48px 16px 18px;
+  /* --tone is the card's pigment, set inline from MODES: a faint wash,
+     a 3px left rule, and the title/arrow/chips in that colour */
+  border: 1px solid color-mix(in srgb, var(--tone, var(--color-primary)) 18%, var(--color-border));
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--tone, var(--color-primary)) 5%, var(--color-card));
+  box-shadow: inset 3px 0 0 var(--tone, var(--color-primary)), var(--shadow-sm);
   font-family: var(--font-main);
   color: var(--color-text);
   text-align: left;
-  isolation: isolate;
-  animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-  animation-delay: calc(120ms + var(--i, 0) * 70ms);
+  transition: border-color 200ms ease, box-shadow 200ms ease, transform var(--transition-fast);
+  /* Short stagger (40ms) and no lead-in: decoration never makes anyone wait */
+  animation: fadeSlideUp 260ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 40ms);
 }
 
-/* Hover: a lapis wash slides in from the left behind the row */
-.modeRow::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: var(--color-primary-tint);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform var(--transition-normal);
-}
-
-.modeRow:focus-visible::before {
-  transform: scaleX(1);
-}
-
-@media (hover: hover) {
-  .modeRow:hover::before {
-    transform: scaleX(1);
+@media (hover: hover) and (pointer: fine) {
+  .modeCard:hover {
+    border-color: color-mix(in srgb, var(--tone, var(--color-primary)) 38%, var(--color-border));
+    box-shadow: inset 3px 0 0 var(--tone, var(--color-primary)), var(--shadow);
   }
 
-  .modeRow:hover .modeTitle {
-    color: var(--color-primary);
-  }
-
-  .modeRow:hover .modeArrow {
-    transform: translateX(6px);
+  .modeCard:hover .modeArrow {
+    transform: translateX(4px);
   }
 }
 
-.modeRow:active {
-  transform: scale(0.995);
-}
-
-.modeText {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
+.modeCard:active {
+  transform: scale(0.985);
 }
 
 .modeTitle {
   font-family: var(--font-display);
-  font-size: clamp(1.35rem, 2.1vw, 1.85rem);
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-  transition: color var(--transition-fast);
+  font-size: 1.28rem;
+  font-weight: 600;
+  line-height: 1.15;
+  word-spacing: 0.06em;
+  color: var(--tone, var(--color-text));
 }
 
 .modeDesc {
-  font-size: 0.95rem;
-  color: var(--color-text-muted);
+  font-size: 0.9rem;
   line-height: 1.45;
+  color: var(--color-text-muted);
   max-width: 54ch;
 }
 
+/* Small facts ("Solo or teams · 4 word sets") */
+.modeMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.modeMeta span {
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--tone, var(--color-primary)) 10%, var(--color-card));
+  color: var(--color-text-muted);
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
 .modeArrow {
+  position: absolute;
+  top: 16px;
+  right: 18px;
   font-family: var(--font-display);
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--color-primary);
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--tone, var(--color-primary));
   transition: transform var(--transition-normal);
 }
 
-/* The leaderboard row: a solid lapis bar, set apart from the games */
-.modeRow.featured {
-  margin-top: var(--spacing-lg);
-  padding: 18px var(--spacing-lg);
-  border: none;
-  border-radius: var(--radius);
+/* Word Unscramble: the main game, a little more presence (its lapis
+   comes from --tone like the others; just a stronger wash) */
+.featuredCard {
+  padding: 20px 56px 20px 22px;
+  background: color-mix(in srgb, var(--tone) 8%, var(--color-card));
+}
+
+.featuredCard .modeTitle {
+  font-size: 1.6rem;
+}
+
+/* Leaderboard: the one solid lapis card */
+.boardCard {
+  flex-direction: column;
+  border: 0;
   background: var(--color-primary);
   color: var(--color-on-primary);
+  box-shadow: var(--shadow-primary);
 }
 
-.modeRow.featured::before {
-  display: none;
-}
-
-.featured .modeDesc,
-.featured .modeArrow {
+.boardCard .modeTitle,
+.boardCard .modeDesc,
+.boardCard .modeArrow {
   color: inherit;
 }
 
-.featured .modeDesc {
+.boardCard .modeDesc {
   opacity: 0.85;
 }
 
-@media (hover: hover) {
-  .modeRow.featured:hover {
-    background: var(--color-primary-light);
-  }
+.boardCard .modeArrow {
+  top: 50%;
+  margin-top: -0.65em;
+}
 
-  .modeRow.featured:hover .modeTitle {
-    color: inherit;
+@media (hover: hover) and (pointer: fine) {
+  .boardCard:hover {
+    background: var(--color-primary-light);
   }
 }
 
@@ -193,31 +202,28 @@
   align-items: center;
   gap: var(--spacing-sm);
   margin-top: var(--spacing-md);
-  padding: 5px 5px 5px 12px;
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-sm);
-  background: transparent;
+  padding: 4px 4px 4px 12px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
   font-family: var(--font-main);
-  font-size: 0.86rem;
+  font-size: 0.85rem;
   font-weight: 500;
   color: var(--color-text-muted);
-  transition: border-color var(--transition-fast);
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
 }
 
 .playerChipAction {
   padding: 3px 10px;
-  border-radius: 4px;
-  background: var(--color-primary-tint);
+  border-radius: var(--radius-full);
+  background: var(--color-card);
+  box-shadow: var(--shadow-sm);
   color: var(--color-primary);
   font-weight: 700;
   transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
-@media (hover: hover) {
-  .playerChip:hover {
-    border-color: var(--color-primary);
-  }
-
+@media (hover: hover) and (pointer: fine) {
   .playerChip:hover .playerChipAction {
     background: var(--color-primary);
     color: var(--color-on-primary);
@@ -226,7 +232,7 @@
 
 .aboutLink {
   display: inline-block;
-  margin-top: var(--spacing-lg);
+  margin-top: var(--spacing-md);
   padding: var(--spacing-xs) 0;
   border: none;
   background: none;
@@ -240,83 +246,85 @@
   transition: color var(--transition-fast), text-decoration-color var(--transition-fast);
 }
 
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .aboutLink:hover {
     color: var(--color-primary);
     text-decoration-color: currentColor;
   }
 }
 
-/* ── Sub-views (setup, leaderboard, about) ── */
-.startBtn {
-  margin-top: var(--spacing-sm);
-}
-
-.backBtn {
+/* ── Sub-views (leaderboard, about): the same back link as the setups ── */
+.backLink {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-top: var(--spacing-lg);
-  padding: 10px 16px;
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius);
+  margin: 0 0 var(--spacing-md) -10px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
   background: transparent;
   font-family: var(--font-main);
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-weight: 600;
   color: var(--color-text-muted);
-  transition: border-color var(--transition-fast), color var(--transition-fast),
-    background-color var(--transition-fast);
+  transition: color var(--transition-fast), background-color var(--transition-fast);
 }
 
-@media (hover: hover) {
-  .backBtn:hover {
-    border-color: var(--color-primary);
+@media (hover: hover) and (pointer: fine) {
+  .backLink:hover {
     color: var(--color-primary);
     background: var(--color-primary-tint);
   }
 }
 
+/* Short laptop screens: tighter so the whole grid stays in view */
 @media (min-width: 701px) and (max-height: 940px) {
   .header {
-    margin-bottom: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
   }
 
-  .modeRow {
-    padding-top: 12px;
-    padding-bottom: 12px;
+  .modeCard {
+    padding-top: 13px;
+    padding-bottom: 13px;
   }
 
-  .modeRow.featured {
-    margin-top: var(--spacing-md);
-    padding-top: 14px;
-    padding-bottom: 14px;
+  .featuredCard {
+    padding-top: 16px;
+    padding-bottom: 16px;
   }
 }
 
-/* ── Phones ── */
+/* ── Phones: one column ── */
 @media (max-width: 700px) {
-  .header {
-    margin-bottom: var(--spacing-lg);
-  }
-
   .title.masthead {
     font-size: 2.9rem;
   }
 
-  .modeRow {
-    padding: 14px 4px;
+  .modeGrid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .modeCard {
+    padding: 14px 44px 14px 16px;
   }
 
   .modeTitle {
-    font-size: 1.2rem;
+    font-size: 1.18rem;
+  }
+
+  .featuredCard .modeTitle {
+    font-size: 1.4rem;
   }
 
   .modeDesc {
     font-size: 0.86rem;
   }
+}
 
-  .modeRow.featured {
-    padding: 14px var(--spacing-md);
+/* Reduced motion: cards still fade in, without moving */
+@media (prefers-reduced-motion: reduce) {
+  .modeCard {
+    animation: fadeIn 180ms ease both !important;
   }
 }

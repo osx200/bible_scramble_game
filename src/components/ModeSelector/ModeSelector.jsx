@@ -1,27 +1,16 @@
 import { useGame } from '../../context/GameContext.jsx'
-import styles from './ModeSelector.module.css'
+import { ChoiceCards, Field } from '../Setup/Setup.jsx'
+
+const OPTIONS = [
+  { value: 'solo', title: 'Solo', desc: 'Play on your own and post to the leaderboard' },
+  { value: 'teams', title: 'Teams', desc: 'Take turns on one screen, team against team' },
+]
 
 export default function ModeSelector() {
   const { state, dispatch } = useGame()
-  const { mode } = state
-
   return (
-    <div className={styles.section}>
-      <p className={styles.label}>Game Mode</p>
-      <div className={styles.group}>
-        <button
-          className={`${styles.option} ${mode === 'solo' ? styles.active : ''}`}
-          onClick={() => dispatch({ type: 'SET_MODE', payload: 'solo' })}
-        >
-          Solo
-        </button>
-        <button
-          className={`${styles.option} ${mode === 'teams' ? styles.active : ''}`}
-          onClick={() => dispatch({ type: 'SET_MODE', payload: 'teams' })}
-        >
-          Teams
-        </button>
-      </div>
-    </div>
+    <Field label="Who's playing">
+      <ChoiceCards label="Who's playing" options={OPTIONS} value={state.mode} onChange={(v) => dispatch({ type: 'SET_MODE', payload: v })} />
+    </Field>
   )
 }

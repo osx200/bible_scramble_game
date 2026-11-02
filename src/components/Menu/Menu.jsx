@@ -3,7 +3,8 @@ import { useGame, useWordSet } from '../../context/GameContext.jsx'
 import { useAppMode } from '../../context/AppModeContext.jsx'
 import { usePlayer, brandName } from '../../context/PlayerContext.jsx'
 import { WORD_SET_LIST } from '../../data/wordSets.js'
-import Button from '../shared/Button.jsx'
+import { SetupScreen, Field, ChoiceCards, MoreOptions } from '../Setup/Setup.jsx'
+import { DIFFICULTY_CONFIG } from '../../utils/scoring.js'
 import ModeSelector from '../ModeSelector/ModeSelector.jsx'
 import DifficultySelector from '../DifficultySelector/DifficultySelector.jsx'
 import CategorySelector from '../CategorySelector/CategorySelector.jsx'
@@ -14,26 +15,44 @@ import styles from './Menu.module.css'
 import Stage from '../Stage/Stage.jsx'
 import { WORD_SET_ART } from '../../data/art.js'
 
+// meta: the short facts under each card's description
+// tone: the card's pigment (--pigment-* in variables.css)
 const MODES = [
   {
     id: 'scramble',
     title: 'Word Unscramble',
-    desc: 'Unscramble books, prophets, disciples and Bible couples. Solo or teams, three difficulty levels.',
+    desc: 'Unscramble books, prophets, disciples and Bible couples against the clock.',
+    meta: ['Solo or teams', '4 word sets', 'Leaderboard'],
+    featured: true,
+    tone: 'lapis',
+  },
+  {
+    id: 'multiplayer',
+    title: 'Play With Others',
+    desc: 'Everyone joins on their own phone with a link or code.',
+    meta: ['Live', 'Up to 50 players'],
+    tone: 'vermilion',
   },
   {
     id: 'recall',
     title: 'Book Recall',
-    desc: 'Name as many books of the Bible as you can before the timer runs out.',
+    desc: 'Name as many books of the Bible as you can before time runs out.',
+    meta: ['Solo', 'Voice or typing'],
+    tone: 'ochre',
   },
   {
     id: 'moderator',
     title: 'Moderator View',
-    desc: 'Host a live group session - reveal answers on demand with reactions.',
+    desc: 'Run a session on one big screen and reveal answers when ready.',
+    meta: ['For leaders'],
+    tone: 'plum',
   },
   {
     id: 'quiz',
     title: 'Quiz & Scramble Builder',
-    desc: 'Make your own quiz or word scramble, typed in or uploaded from Excel, and host it for your group.',
+    desc: 'Make your own quiz or scramble, typed in or from Excel.',
+    meta: ['Custom content'],
+    tone: 'verdigris',
   },
 ]
 
@@ -43,7 +62,7 @@ export default function Menu() {
   const { mode } = state
   const wordSet = useWordSet()
   const { profile, startEditing } = usePlayer()
-  // null = app-mode grid | 'scramble' = pick a word set | 'setup' = game options
+  // null = app-mode grid | 'scramble' = word set + game options on one screen
   // | 'leaderboard' = this month's boards | 'about' = purpose, disclaimer, contact
   const [selected, setSelected] = useState(null)
 
@@ -55,10 +74,6 @@ export default function Menu() {
     }
   }
 
-  function handleWordSetClick(id) {
-    dispatch({ type: 'SET_WORD_SET', payload: id })
-    setSelected('setup')
-  }
 
   function handleStart() {
     if (mode === 'teams') {
@@ -68,39 +83,43 @@ export default function Menu() {
     }
   }
 
-  // ── Word Unscramble: pick a word set ──────────────────────
+  // ── Word Unscramble: one screen, word set + options ───────
   if (selected === 'scramble') {
+    const seconds = state.customTime ?? DIFFICULTY_CONFIG[state.difficulty].maxTime
+    const category = wordSet.categoryFilter !== false && state.category !== 'all' ? wordSet.categories[state.category] : null
+    const summary = [
+      wordSet.label,
+      mode === 'teams' ? 'Teams' : 'Solo',
+      state.difficulty[0].toUpperCase() + state.difficulty.slice(1),
+      category,
+      `${seconds}s a round`,
+    ].filter(Boolean).join(' · ')
+    const changed = (category ? 1 : 0) + (state.customTime != null ? 1 : 0)
     return (
-      <Stage art="canaan">
-        <div className={`${styles.card}`}>
-          <div className={styles.header}>
-            <h1 className={styles.title}>Word Unscramble</h1>
-            <p className={styles.subtitle}>Choose what you want to unscramble</p>
-          </div>
-
-          <ul className={styles.modeList}>
-            {WORD_SET_LIST.map((ws, i) => (
-              <li key={ws.id}>
-                <button
-                  className={styles.modeRow}
-                  style={{ '--i': i }}
-                  onClick={() => handleWordSetClick(ws.id)}
-                  type="button"
-                >
-                  <span className={styles.modeText}>
-                    <span className={styles.modeTitle}>{ws.label}</span>
-                    <span className={styles.modeDesc}>{ws.tileDesc}</span>
-                  </span>
-                  <span className={styles.modeArrow} aria-hidden="true">→</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-
-          <button className={styles.backBtn} type="button" onClick={() => setSelected(null)}>
-            ← Back to Menu
-          </button>
-        </div>
+      <Stage art={WORD_SET_ART[state.wordSet]}>
+        <SetupScreen
+          title="Word Unscramble"
+          subtitle="Pick what to unscramble, then how you want to play."
+          onBack={() => setSelected(null)}
+          summary={summary}
+          startLabel={mode === 'teams' ? 'Set up teams' : 'Start game'}
+          onStart={handleStart}
+        >
+          <Field label="Unscramble">
+            <ChoiceCards
+              label="Word set"
+              options={WORD_SET_LIST.map((ws) => ({ value: ws.id, title: ws.label, desc: ws.cardDesc }))}
+              value={state.wordSet}
+              onChange={(id) => dispatch({ type: 'SET_WORD_SET', payload: id })}
+            />
+          </Field>
+          <ModeSelector />
+          <DifficultySelector />
+          <MoreOptions changed={changed}>
+            <CategorySelector />
+            <TimerAdjuster />
+          </MoreOptions>
+        </SetupScreen>
       </Stage>
     )
   }
@@ -110,6 +129,9 @@ export default function Menu() {
     return (
       <Stage art="jonathan">
         <div className={styles.card}>
+          <button className={styles.backLink} type="button" onClick={() => setSelected(null)}>
+            <span aria-hidden="true">←</span> Menu
+          </button>
           <div className={styles.header}>
             <h1 className={styles.title}>Leaderboard</h1>
             <p className={styles.subtitle}>This month’s top 5 Word Unscramble scores</p>
@@ -117,9 +139,6 @@ export default function Menu() {
 
           <Leaderboard defaultBoard={profile.kind} highlightNames={[profile.name]} />
 
-          <button className={styles.backBtn} type="button" onClick={() => setSelected(null)}>
-            ← Back to Menu
-          </button>
         </div>
       </Stage>
     )
@@ -130,6 +149,9 @@ export default function Menu() {
     return (
       <Stage art="abraham">
         <div className={styles.card}>
+          <button className={styles.backLink} type="button" onClick={() => setSelected(null)}>
+            <span aria-hidden="true">←</span> Menu
+          </button>
           <div className={styles.header}>
             <h1 className={styles.title}>About Bible Games</h1>
           </div>
@@ -137,38 +159,6 @@ export default function Menu() {
           <WelcomeIntro />
           <WelcomeFooter />
 
-          <button className={styles.backBtn} type="button" onClick={() => setSelected(null)}>
-            ← Back to Menu
-          </button>
-        </div>
-      </Stage>
-    )
-  }
-
-  // ── Word Unscramble: game options ─────────────────────────
-  if (selected === 'setup') {
-    return (
-      <Stage art={WORD_SET_ART[state.wordSet]}>
-        <div className={styles.card}>
-          <div className={styles.header}>
-            <h1 className={styles.title}>Unscramble: {wordSet.label}</h1>
-            <p className={styles.subtitle}>{wordSet.subtitle}</p>
-          </div>
-
-          <div className={styles.divider} />
-
-          <ModeSelector />
-          <DifficultySelector />
-          <CategorySelector />
-          <TimerAdjuster />
-
-          <Button full size="lg" className={styles.startBtn} onClick={handleStart}>
-            {mode === 'teams' ? '👥 Set Up Teams →' : 'Start Game'}
-          </Button>
-
-          <button className={styles.backBtn} type="button" onClick={() => setSelected('scramble')}>
-            ← Back
-          </button>
         </div>
       </Stage>
     )
@@ -188,37 +178,37 @@ export default function Menu() {
           </button>
         </div>
 
-        <ul className={styles.modeList}>
+        <ul className={styles.modeGrid}>
           {MODES.map((m, i) => (
-            <li key={m.id}>
+            <li key={m.id} className={m.featured ? styles.wide : ''}>
               <button
-                className={styles.modeRow}
-                style={{ '--i': i }}
+                className={`${styles.modeCard} ${m.featured ? styles.featuredCard : ''}`}
+                style={{ '--i': i, '--tone': `var(--pigment-${m.tone})` }}
                 onClick={() => handleModeClick(m.id)}
                 type="button"
               >
-                <span className={styles.modeText}>
-                  <span className={styles.modeTitle}>{m.title}</span>
-                  <span className={styles.modeDesc}>{m.desc}</span>
+                <span className={styles.modeTitle}>{m.title}</span>
+                <span className={styles.modeDesc}>{m.desc}</span>
+                <span className={styles.modeMeta}>
+                  {m.meta.map((x) => <span key={x}>{x}</span>)}
                 </span>
                 <span className={styles.modeArrow} aria-hidden="true">→</span>
               </button>
             </li>
           ))}
+          <li className={styles.wide}>
+            <button
+              type="button"
+              className={`${styles.modeCard} ${styles.boardCard}`}
+              style={{ '--i': MODES.length }}
+              onClick={() => setSelected('leaderboard')}
+            >
+              <span className={styles.modeTitle}>Monthly Leaderboard</span>
+              <span className={styles.modeDesc}>Top 5 players and groups. Resets on the 1st.</span>
+              <span className={styles.modeArrow} aria-hidden="true">→</span>
+            </button>
+          </li>
         </ul>
-
-        <button
-          type="button"
-          className={`${styles.modeRow} ${styles.featured}`}
-          style={{ '--i': MODES.length }}
-          onClick={() => setSelected('leaderboard')}
-        >
-          <span className={styles.modeText}>
-            <span className={styles.modeTitle}>Monthly Leaderboard</span>
-            <span className={styles.modeDesc}>Top 5 players and groups. Resets on the 1st.</span>
-          </span>
-          <span className={styles.modeArrow} aria-hidden="true">→</span>
-        </button>
 
         <button type="button" className={styles.aboutLink} onClick={() => setSelected('about')}>
           About and suggestions

@@ -25,7 +25,7 @@
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
   color: var(--color-accent-dark);
-  animation: fadeSlideUp 0.35s ease both;
+  animation: fadeSlideUp 240ms var(--ease-out) both;
 }
 
 .pairName {
@@ -60,11 +60,11 @@
   color: var(--color-primary);
   text-transform: uppercase;
   box-shadow: var(--shadow-sm), inset 0 -3px 0 var(--color-tile-border);
-  animation: dropIn 0.35s var(--ease-spring) both;
+  animation: dropIn 260ms var(--ease-out) both;
   transition: transform 140ms ease;
 }
 
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .tile:hover {
     transform: translateY(-2px);
   }

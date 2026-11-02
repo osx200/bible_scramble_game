@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Button from '../shared/Button.jsx'
 import { usePlayer, brandName } from '../../context/PlayerContext.jsx'
+import { useAppMode } from '../../context/AppModeContext.jsx'
 import { uid } from '../../utils/builderImport.js'
 import BulkUpload from './BulkUpload.jsx'
 import ScrambleTab from './ScrambleTab.jsx'
@@ -58,7 +59,7 @@ export default function QuizBuilder({
         {/* Header */}
         <div className={styles.header}>
           <button className={styles.backBtn} onClick={handleBack} type="button">
-            ← Back to Menu
+            ← Menu
           </button>
           <h1 className={styles.title}>Quiz &amp; Scramble Builder</h1>
           <p className={styles.subtitle}>
@@ -67,7 +68,13 @@ export default function QuizBuilder({
           </p>
         </div>
 
-        <div className={styles.tabs} role="tablist" aria-label="What to build">
+        <div
+          className={styles.tabs}
+          role="tablist"
+          aria-label="What to build"
+          data-seg
+          style={{ '--seg-count': TABS.length, '--seg-index': TABS.findIndex((t) => t.id === tab) }}
+        >
           {TABS.map((t) => {
             const count = t.id === 'quiz' ? questions.length : words.length
             return (
@@ -97,6 +104,7 @@ export default function QuizBuilder({
 }
 
 function QuizTab({ questions, onChange, onStart }) {
+  const { launchMultiplayer } = useAppMode()
   const [form, setForm] = useState({ question: '', answer: '', reference: '' })
   const [error, setError] = useState('')
 
@@ -226,6 +234,17 @@ function QuizTab({ questions, onChange, onStart }) {
       <div className={styles.footer}>
         <Button full size="lg" onClick={onStart} disabled={questions.length === 0}>
           Start Quiz → ({questions.length} question{questions.length !== 1 ? 's' : ''})
+        </Button>
+        {/* Same questions, played remotely: they go to the game server's memory
+            for that one game only (session-only, like everything here) */}
+        <Button
+          full
+          variant="ghost"
+          className={styles.hostOnline}
+          disabled={questions.length === 0}
+          onClick={() => launchMultiplayer({ kind: 'questions', questions: questions.map(({ question, answer, reference }) => ({ question, answer, reference })) })}
+        >
+          Host online: players answer on their own phones
         </Button>
       </div>
     </>

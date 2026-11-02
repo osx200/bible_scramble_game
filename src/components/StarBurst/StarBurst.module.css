@@ -25,7 +25,7 @@
     opacity: 1;
   }
   100% {
-    transform: translate(-50%, -50%) translate(var(--tx, 60px), var(--ty, -60px)) scale(0);
+    transform: translate(-50%, -50%) translate(var(--tx, 60px), var(--ty, -60px)) scale(0.4);
     opacity: 0;
   }
 }

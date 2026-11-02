@@ -4,6 +4,7 @@ import BulkUpload from './BulkUpload.jsx'
 import { TIMERS } from '../ModeratorSetup/ModeratorSetup.jsx'
 import { DIFFICULTIES, makeWord, wordProblem } from '../../utils/builderImport.js'
 import { scrambleName } from '../../utils/scramble.js'
+import { useAppMode } from '../../context/AppModeContext.jsx'
 import styles from './QuizBuilder.module.css'
 
 const SAMPLE_WORDS = [
@@ -35,6 +36,7 @@ function shuffle(list) {
  * config ({ words: [{ name, scrambled, clue }], timerDuration }) to QuizApp.
  */
 export default function ScrambleTab({ words, onChange, onStart }) {
+  const { launchMultiplayer } = useAppMode()
   const [form, setForm] = useState({ word: '', clue: '', difficulty: '' })
   const [error, setError] = useState('')
   const [chosenFilter, setFilter] = useState('all') // 'all' | 1 | 2 | 3
@@ -228,6 +230,15 @@ export default function ScrambleTab({ words, onChange, onStart }) {
       <div className={styles.footer}>
         <Button full size="lg" onClick={handleStart} disabled={playable.length === 0}>
           Start Scramble → ({playable.length} word{playable.length !== 1 ? 's' : ''})
+        </Button>
+        <Button
+          full
+          variant="ghost"
+          className={styles.hostOnline}
+          disabled={playable.length === 0}
+          onClick={() => launchMultiplayer({ kind: 'words', words: (shuffled ? shuffle(playable) : playable).map(({ name, clue }) => ({ name, clue })) })}
+        >
+          Host online: players unscramble on their own phones
         </Button>
       </div>
     </>

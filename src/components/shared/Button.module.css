@@ -22,8 +22,9 @@
 }
 
 /* Tactile push (skill §4.5) */
+/* Press feedback: a subtle 0.97 confirms the tap (emil-design-eng) */
 .btn:active:not(:disabled) {
-  transform: translateY(1px) scale(0.985);
+  transform: scale(0.97);
   box-shadow: none;
 }
 
@@ -42,10 +43,9 @@
   color: var(--color-on-primary);
   box-shadow: var(--shadow-primary);
 }
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .primary:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-primary), var(--ring);
+    background: var(--color-primary-light);
   }
 }
 
@@ -54,23 +54,21 @@
   color: var(--color-on-accent);
   box-shadow: var(--shadow-accent);
 }
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .accent:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-accent), var(--ring-accent);
+    background: var(--color-primary-light);
   }
 }
 
+/* Secondary: a soft tinted surface, quieter than an outline */
 .ghost {
-  background-color: transparent;
-  border-color: var(--color-border-strong);
+  background-color: var(--color-surface);
   color: var(--color-text);
 }
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .ghost:hover:not(:disabled) {
-    border-color: var(--color-primary);
     color: var(--color-primary);
-    background-color: var(--color-primary-tint);
+    background-color: var(--color-primary-tint-strong);
   }
 }
 
@@ -79,10 +77,9 @@
   color: var(--color-on-danger);
   box-shadow: var(--shadow-sm);
 }
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .danger:hover:not(:disabled) {
     background-color: color-mix(in srgb, var(--color-danger) 84%, #000);
-    transform: translateY(-1px);
   }
 }
 

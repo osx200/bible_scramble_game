@@ -1,9 +1,13 @@
 {
-  "name": "bible-games-leaderboard-api",
+  "name": "bible-games-server",
   "private": true,
   "type": "module",
-  "description": "Monthly leaderboard API. Node built-ins only - no dependencies to install.",
+  "description": "Leaderboard API (Node built-ins) and multiplayer server (ws + qrcode).",
   "engines": {
     "node": ">=24"
+  },
+  "dependencies": {
+    "qrcode": "^1.5.4",
+    "ws": "^8.22.1"
   }
 }

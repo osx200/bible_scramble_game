@@ -1,30 +1,18 @@
 import { useGame } from '../../context/GameContext.jsx'
-import styles from './DifficultySelector.module.css'
+import { Field, Segmented } from '../Setup/Setup.jsx'
 
-const OPTIONS = [
-  { value: 'easy',   label: 'Easy',   colorClass: 'easy',   desc: '45s · Hints on' },
-  { value: 'medium', label: 'Medium', colorClass: 'medium', desc: '30s · Some hints' },
-  { value: 'hard',   label: 'Hard',   colorClass: 'hard',   desc: '20s · No hints' },
-]
+const OPTIONS = [['easy', 'Easy'], ['medium', 'Medium'], ['hard', 'Hard']]
+const HINT = {
+  easy: 'Well-known names, 45 seconds a round.',
+  medium: 'Adds less familiar names, 30 seconds a round.',
+  hard: 'Everything, including the rarest names, 20 seconds a round.',
+}
 
 export default function DifficultySelector() {
   const { state, dispatch } = useGame()
-
   return (
-    <div className={styles.section}>
-      <p className={styles.label}>Difficulty</p>
-      <div className={styles.group}>
-        {OPTIONS.map((opt) => (
-          <button
-            key={opt.value}
-            className={`${styles.option} ${state.difficulty === opt.value ? styles.active : ''}`}
-            onClick={() => dispatch({ type: 'SET_DIFFICULTY', payload: opt.value })}
-          >
-            <span className={`${styles.dot} ${state.difficulty !== opt.value ? styles[opt.colorClass] : ''}`} />
-            {opt.label}
-          </button>
-        ))}
-      </div>
-    </div>
+    <Field label="Difficulty" hint={HINT[state.difficulty]}>
+      <Segmented label="Difficulty" options={OPTIONS} value={state.difficulty} onChange={(v) => dispatch({ type: 'SET_DIFFICULTY', payload: v })} />
+    </Field>
   )
 }

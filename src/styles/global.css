@@ -1,40 +1,55 @@
 @import './variables.css';
 
 /* ── Fonts: self-hosted from public/fonts (Fontshare, ITF Free Font
-   License — free for commercial use). Cabinet Grotesk for display,
-   Satoshi for text. No third-party font request at runtime. ── */
+   License — free for commercial use). Clash Grotesk for display, General
+   Sans for text. No third-party font request at runtime. The bold files also
+   cover heavier requested weights (700–900), so nothing is faux-bolded. ── */
 @font-face {
-  font-family: 'Cabinet Grotesk';
-  src: url('/fonts/CabinetGrotesk-Bold.woff2') format('woff2');
-  font-weight: 700;
+  font-family: 'Clash Grotesk';
+  src: url('/fonts/ClashGrotesk-Medium.woff2') format('woff2');
+  font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: 'Cabinet Grotesk';
-  src: url('/fonts/CabinetGrotesk-Extrabold.woff2') format('woff2');
-  font-weight: 800;
+  font-family: 'Clash Grotesk';
+  src: url('/fonts/ClashGrotesk-Semibold.woff2') format('woff2');
+  font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: 'Satoshi';
-  src: url('/fonts/Satoshi-Regular.woff2') format('woff2');
+  font-family: 'Clash Grotesk';
+  src: url('/fonts/ClashGrotesk-Bold.woff2') format('woff2');
+  font-weight: 700 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'General Sans';
+  src: url('/fonts/GeneralSans-Regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: 'Satoshi';
-  src: url('/fonts/Satoshi-Medium.woff2') format('woff2');
-  font-weight: 500 600;
+  font-family: 'General Sans';
+  src: url('/fonts/GeneralSans-Medium.woff2') format('woff2');
+  font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: 'Satoshi';
-  src: url('/fonts/Satoshi-Bold.woff2') format('woff2');
-  font-weight: 700 800;
+  font-family: 'General Sans';
+  src: url('/fonts/GeneralSans-Semibold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'General Sans';
+  src: url('/fonts/GeneralSans-Bold.woff2') format('woff2');
+  font-weight: 700 900;
   font-style: normal;
   font-display: swap;
 }
@@ -73,6 +88,7 @@ h1, h2, h3, h4 {
   font-family: var(--font-display);
   font-weight: 800;
   letter-spacing: var(--tracking-tight);
+  word-spacing: 0.06em; /* Clash Grotesk sets words close; keeps them apart */
   line-height: 1.15;
   text-wrap: balance; /* no lone orphan word on a second title line */
 }
@@ -82,6 +98,45 @@ button {
   font-family: inherit;
   /* Drops the double-tap-zoom delay, so rapid taps in timed rounds register */
   touch-action: manipulation;
+}
+
+/* ── Segmented controls: one indicator that slides to the chosen option ──
+   Opt in with data-seg on the options' container plus
+     style={{ '--seg-count': n, '--seg-index': i }}   (i = -1 hides it)
+   and set --seg-gap (the container's gap), --seg-pad (its padding) and
+   optionally --seg-bg / --seg-radius in the component's CSS. The chosen
+   option itself goes transparent so the indicator shows through.
+   A transition (not keyframes) so rapid taps retarget mid-slide. */
+[data-seg] {
+  position: relative;
+  isolation: isolate;
+}
+
+[data-seg]::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: var(--seg-pad, 0px);
+  bottom: var(--seg-pad, 0px);
+  left: var(--seg-pad, 0px);
+  width: calc((100% - 2 * var(--seg-pad, 0px) - var(--seg-gap, 8px) * (var(--seg-count) - 1)) / var(--seg-count));
+  border-radius: var(--seg-radius, var(--radius));
+  background: var(--seg-bg, var(--color-primary));
+  box-shadow: var(--seg-shadow, none);
+  transform: translateX(calc(var(--seg-index, 0) * (100% + var(--seg-gap, 8px))));
+  opacity: 1;
+  transition: transform 280ms var(--ease-out), opacity 150ms ease;
+  pointer-events: none;
+}
+
+[data-seg][style*='--seg-index: -1']::before {
+  opacity: 0;
+}
+
+/* Press feedback for everything pressable: the interface confirms it heard
+   the tap. Zero specificity (:where), so a component's own :active wins. */
+:where(button, [role='tab'], [role='radio'], label[for]):where(:not(:disabled)):active {
+  transform: scale(0.97);
 }
 
 input,
@@ -107,7 +162,7 @@ select {
 @keyframes dropIn {
   from {
     opacity: 0;
-    transform: translateY(-16px);
+    transform: translateY(-8px);
   }
   to {
     opacity: 1;
@@ -138,7 +193,7 @@ select {
 
 @keyframes scoreBump {
   0% { transform: scale(1); }
-  50% { transform: scale(1.2); color: var(--color-accent-dark); }
+  40% { transform: scale(1.12); color: var(--color-accent-dark); }
   100% { transform: scale(1); }
 }
 
@@ -176,15 +231,15 @@ select {
   50%       { box-shadow: 0 0 0 4px var(--color-accent); }
 }
 
+/* Never from scale(0): even a celebration starts from a visible shape */
 @keyframes winnerNamePop {
-  0%   { transform: scale(0.6); opacity: 0; }
-  60%  { transform: scale(1.1); opacity: 1; }
-  80%  { transform: scale(0.96); }
+  0%   { transform: scale(0.9); opacity: 0; }
+  60%  { transform: scale(1.04); opacity: 1; }
   100% { transform: scale(1); }
 }
 
 @keyframes zoomIn {
-  from { transform: scale(0.5); opacity: 0; }
+  from { transform: scale(0.9); opacity: 0; }
   to   { transform: scale(1);   opacity: 1; }
 }
 
@@ -206,13 +261,28 @@ select {
   50%      { opacity: 1;    transform: scale(1.04); }
 }
 
+/* Reduced motion means gentler, not none.
+   Safety net: every keyframe animation (bounces, pulses, loops, shimmer)
+   is neutralised here. Key surfaces then opt back into a short opacity-only
+   fade with their own !important rule (a class outranks *), e.g. Stage
+   content, menu rows, toasts, the answer reveal. Colour transitions are left
+   alone: they help comprehension and don't move anything. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
     scroll-behavior: auto !important;
+  }
+
+  :where(button, [role='tab'], [role='radio'], label[for]):active {
+    transform: none;
+  }
+
+  /* Segmented indicator jumps instead of sliding */
+  [data-seg]::before {
+    transition: opacity 150ms ease;
   }
 }

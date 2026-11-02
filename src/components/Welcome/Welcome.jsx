@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import { usePlayer, cleanPlayerName, NAME_MIN, NAME_MAX } from '../../context/PlayerContext.jsx'
+import { usePlayer, cleanPlayerName, publicName, NAME_MIN, NAME_MAX } from '../../context/PlayerContext.jsx'
 import Button from '../shared/Button.jsx'
 import { WelcomeIntro, WelcomeFooter, Verse } from './WelcomeIntro.jsx'
 import styles from './Welcome.module.css'
 import Stage from '../Stage/Stage.jsx'
 
 const KINDS = [
-  { id: 'individual', label: 'Individual', placeholder: 'Your name' },
+  { id: 'individual', label: 'Individual', placeholder: 'Your name or initials' },
   { id: 'group', label: 'Group', placeholder: 'e.g. Grace Fellowship Youth' },
 ]
 
@@ -23,7 +23,11 @@ export default function Welcome() {
   const [touched, setTouched] = useState(false)
 
   const cleaned = cleanPlayerName(name)
-  const valid = cleaned.length >= NAME_MIN && cleaned.length <= NAME_MAX
+  // Individuals may type a full name: only the initials are kept and shown
+  const shownAs = publicName(name, kind)
+  const valid = kind === 'individual'
+    ? shownAs.length >= NAME_MIN && cleaned.length <= 60
+    : cleaned.length >= NAME_MIN && cleaned.length <= NAME_MAX
   const activeKind = KINDS.find((k) => k.id === kind)
 
   function handleSubmit(e) {
@@ -35,7 +39,13 @@ export default function Welcome() {
   const fields = (
     <>
       <p className={styles.label} id="kind-label">Playing as</p>
-      <div className={styles.kindGroup} role="radiogroup" aria-labelledby="kind-label">
+      <div
+        className={styles.kindGroup}
+        role="radiogroup"
+        aria-labelledby="kind-label"
+        data-seg
+        style={{ '--seg-count': KINDS.length, '--seg-index': KINDS.findIndex((k) => k.id === kind) }}
+      >
         {KINDS.map((k) => (
           <button
             key={k.id}
@@ -60,7 +70,7 @@ export default function Welcome() {
         onChange={(e) => setName(e.target.value)}
         onBlur={() => setTouched(true)}
         placeholder={activeKind.placeholder}
-        maxLength={NAME_MAX + 8 /* room for stray spaces that get trimmed */}
+        maxLength={kind === 'individual' ? 60 : NAME_MAX + 8 /* room for stray spaces that get trimmed */}
         autoComplete={kind === 'individual' ? 'given-name' : 'organization'}
         // Only on "Change": on a first visit it would pop the keyboard and
         // scroll past the welcome message
@@ -68,12 +78,24 @@ export default function Welcome() {
         enterKeyHint="go"
       />
       <div className={styles.hintRow}>
-        <span className={touched && !valid ? styles.error : styles.hint}>
-          {touched && !valid ? `Use ${NAME_MIN} to ${NAME_MAX} characters` : 'Shown on the public leaderboard'}
-        </span>
-        <span className={`${styles.count} ${cleaned.length > NAME_MAX ? styles.error : ''}`}>
-          {cleaned.length}/{NAME_MAX}
-        </span>
+        {kind === 'individual' ? (
+          <span className={touched && !valid ? styles.error : styles.hint} aria-live="polite">
+            {touched && !valid
+              ? 'Type your name or initials'
+              : shownAs
+                ? <>You’ll appear as <strong className={styles.initials}>{shownAs}</strong> Only initials are shown, for privacy.</>
+                : 'Only your initials are shown, for privacy.'}
+          </span>
+        ) : (
+          <>
+            <span className={touched && !valid ? styles.error : styles.hint}>
+              {touched && !valid ? `Use ${NAME_MIN} to ${NAME_MAX} characters` : 'Shown on the public leaderboard'}
+            </span>
+            <span className={`${styles.count} ${cleaned.length > NAME_MAX ? styles.error : ''}`}>
+              {cleaned.length}/{NAME_MAX}
+            </span>
+          </>
+        )}
       </div>
 
       <Button type="submit" full size="lg" className={styles.submit}>

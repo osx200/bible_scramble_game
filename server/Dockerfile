@@ -1,8 +1,25 @@
-# Leaderboard API. No npm install step — the server uses only Node built-ins.
+# Game server: leaderboard API + multiplayer (WebSocket) in one Node process.
+#
+# Built from the REPO ROOT (see docker-compose.yml) because multiplayer imports
+# the client's own word lists, word selection, scrambler and scoring rules
+# from src/ rather than duplicating them. server/Dockerfile.dockerignore keeps
+# the build context to just those files.
 FROM node:24-alpine
 
-WORKDIR /app
-COPY index.js blocklist.js package.json ./
+WORKDIR /app/server
+
+# Server packages (ws, qrcode) — installed here, never committed
+COPY server/package.json server/package-lock.json ./
+RUN npm ci --omit=dev --no-audit --no-fund
+
+COPY server/*.js ./
+COPY server/multiplayer ./multiplayer
+
+# Shared game data and logic, at the same relative path as in the repo
+COPY src/data /app/src/data
+COPY src/utils/wordFilter.js src/utils/scramble.js src/utils/scoring.js src/utils/initials.js /app/src/utils/
+# src/ is ES modules (the repo root package.json says "type": "module")
+RUN echo '{ "type": "module" }' > /app/package.json
 
 # The SQLite file lives on a named volume so scores survive rebuilds
 ENV DB_PATH=/data/leaderboard.db \
