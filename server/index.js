@@ -10,18 +10,22 @@
 //   GET    /api/leaderboard?board=individual|group[&month=YYYY-MM]
 //   POST   /api/scores          { id, board, name, score, correct, total, difficulty, wordSet }
 //   DELETE /api/scores/:id      header X-Admin-Token: $ADMIN_TOKEN
+//   POST   /api/hit             { event, detail }  anonymous daily counters (see Analytics)
+//   GET    /api/stats?days=30   header X-Admin-Token: $ADMIN_TOKEN
 //
 // The monthly reset is a WHERE clause, not a job: every score is stamped with
 // its month and the board only reads the current one. Old months stay in the
 // table so a "last month's champion" view stays possible.
 
 import http from 'node:http'
+import { createHash, randomBytes } from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { DatabaseSync } from 'node:sqlite'
 import { isBlocked } from './blocklist.js'
 import { toInitials } from '../src/utils/initials.js'
+import { parsePresetName, PRESET_NAME_MAX } from '../src/data/presetNames.js'
 import { initRooms } from './multiplayer/rooms.js'
 import { handleMultiplayerHttp } from './multiplayer/http.js'
 import { attachMultiplayerSockets } from './multiplayer/socket.js'
@@ -151,7 +155,7 @@ function cleanName(raw) {
   if (typeof raw !== 'string') return null
   // Strip control characters and collapse runs of whitespace
   const name = raw.replace(/[\u0000-\u001f\u007f]/g, '').replace(/\s+/g, ' ').trim()
-  return name.length >= 2 && name.length <= 24 ? name : null
+  return name.length >= 2 && name.length <= PRESET_NAME_MAX ? name : null
 }
 
 function nameKey(name) {
@@ -235,9 +239,11 @@ function getLeaderboard(url, res) {
   if (monthParam && !/^\d{4}-\d{2}$/.test(monthParam)) return send(res, 400, { error: 'Bad month' })
   const month = monthParam || currentMonth()
   let entries = topQuery.all(board, month)
-  // Privacy: individuals only ever appear as initials (rows saved before the
-  // rule may hold full names, so this applies on the way out too)
-  if (board === 'individual') entries = entries.map((e) => ({ ...e, name: toInitials(e.name) }))
+  // Privacy: names are preset nicknames now. Rows saved before that may hold
+  // typed names, so on the individual board those still go out as initials
+  if (board === 'individual') {
+    entries = entries.map((e) => (parsePresetName(e.name, 'individual') ? e : { ...e, name: toInitials(e.name) }))
+  }
   send(res, 200, { board, month, entries })
 }
 
@@ -246,13 +252,13 @@ async function postScore(req, res) {
 
   const body = await readJson(req)
   const { id, board, score, correct, total, difficulty, wordSet } = body ?? {}
-  // Individuals are stored as initials only ("Kwame Mensah" → "K.M.")
-  const name = board === 'individual' ? cleanName(toInitials(body?.name)) : cleanName(body?.name)
+  // Preset nicknames only (src/data/presetNames.js): solo names on the
+  // individual board, group / team names on the group board
+  const name = parsePresetName(cleanName(body?.name) ?? '', board === 'group' ? 'group' : 'individual')?.name ?? null
 
   if (typeof id !== 'string' || !/^[a-z0-9]{8,40}$/.test(id)) return send(res, 400, { error: 'Bad id' })
   if (!BOARDS.includes(board)) return send(res, 400, { error: 'Unknown board' })
-  if (!name) return send(res, 400, { error: 'Name must be 2 to 24 characters' })
-  if (isBlocked(name)) return send(res, 400, { error: 'Please choose a different name' })
+  if (!name) return send(res, 400, { error: 'Pick a nickname from the list first' })
   if (!(difficulty in DIFFICULTIES)) return send(res, 400, { error: 'Unknown difficulty' })
   if (!WORD_SETS.includes(wordSet)) return send(res, 400, { error: 'Unknown word set' })
   if (!isInt(total, 1, MAX_ROUNDS) || !isInt(correct, 0, total)) {
@@ -285,6 +291,121 @@ function removeScore(req, res, id) {
   send(res, changes ? 200 : 404, changes ? { deleted: id } : { error: 'Not found' })
 }
 
+// ── Analytics ──────────────────────────────────────────────
+// Privacy-friendly by construction: no cookies, nothing stored per person.
+// Each hit bumps a daily counter (day, event, detail). Unique visitors are
+// counted with a hash of (daily random salt + IP + browser) held only in
+// memory: the salt is never written down and is replaced every day, so the
+// hashes can't be linked across days or turned back into an IP. Only the
+// count reaches SQLite. Browsers sending Do Not Track / Global Privacy
+// Control are not counted (the client skips them too).
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS analytics_daily (
+    day    TEXT NOT NULL,
+    event  TEXT NOT NULL,
+    detail TEXT NOT NULL,
+    count  INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (day, event, detail)
+  );
+  CREATE TABLE IF NOT EXISTS analytics_visitors (
+    day      TEXT PRIMARY KEY,
+    visitors INTEGER NOT NULL DEFAULT 0
+  );
+`)
+
+const APP_MODES = ['scramble', 'multiplayer', 'recall', 'moderator', 'quiz']
+const FINISHED_GAMES = [
+  ...WORD_SETS.flatMap((w) => [`solo:${w}`, `teams:${w}`]),
+  'recall', 'quiz', 'multiplayer',
+]
+// event → allowed details ('' = none). Anything else is ignored.
+const ANALYTICS_EVENTS = {
+  visit: new Set(['']),
+  mode_open: new Set(APP_MODES),
+  game_finish: new Set(FINISHED_GAMES),
+  share: new Set(FINISHED_GAMES),
+  tv_mode: new Set(['']),
+}
+
+const dayFormat = new Intl.DateTimeFormat('en-CA', { timeZone: BOARD_TZ, year: 'numeric', month: '2-digit', day: '2-digit' })
+const today = () => dayFormat.format(new Date()) // "2026-11-23"
+
+const bumpEvent = db.prepare(`
+  INSERT INTO analytics_daily (day, event, detail, count) VALUES (?, ?, ?, 1)
+  ON CONFLICT (day, event, detail) DO UPDATE SET count = count + 1
+`)
+const bumpVisitors = db.prepare(`
+  INSERT INTO analytics_visitors (day, visitors) VALUES (?, 1)
+  ON CONFLICT (day) DO UPDATE SET visitors = visitors + 1
+`)
+const statsEvents = db.prepare('SELECT day, event, detail, count FROM analytics_daily WHERE day >= ? ORDER BY day')
+const statsVisitors = db.prepare('SELECT day, visitors FROM analytics_visitors WHERE day >= ? ORDER BY day')
+
+const MAX_DAILY_VISITORS = 200_000 // memory bound for the in-memory set
+let visitorDay = ''
+let visitorSalt = null
+let visitorsSeen = new Set()
+
+function countVisitor(req) {
+  const day = today()
+  if (day !== visitorDay) {
+    visitorDay = day
+    visitorSalt = randomBytes(32)
+    visitorsSeen = new Set()
+  }
+  if (visitorsSeen.size >= MAX_DAILY_VISITORS) return
+  const hash = createHash('sha256')
+    .update(visitorSalt).update(clientIp(req)).update(String(req.headers['user-agent'] || ''))
+    .digest('base64')
+  if (visitorsSeen.has(hash)) return
+  visitorsSeen.add(hash)
+  bumpVisitors.run(day)
+}
+
+const hitsByIp = new Map()
+const HIT_MAX = 120 // per IP per RATE_WINDOW_MS
+
+function hitLimited(ip) {
+  const now = Date.now()
+  const recent = (hitsByIp.get(ip) || []).filter((t) => now - t < RATE_WINDOW_MS)
+  const over = recent.length >= HIT_MAX
+  if (!over) recent.push(now)
+  hitsByIp.set(ip, recent)
+  return over
+}
+
+setInterval(() => {
+  const now = Date.now()
+  for (const [ip, times] of hitsByIp) {
+    if (!times.some((t) => now - t < RATE_WINDOW_MS)) hitsByIp.delete(ip)
+  }
+}, RATE_WINDOW_MS).unref()
+
+async function postHit(req, res) {
+  const body = await readJson(req, 512)
+  const optedOut = req.headers['sec-gpc'] === '1' || req.headers.dnt === '1'
+  const event = typeof body?.event === 'string' ? body.event : ''
+  const detail = typeof body?.detail === 'string' ? body.detail : ''
+  const allowed = ANALYTICS_EVENTS[event]?.has(detail)
+  if (!optedOut && allowed && !hitLimited(clientIp(req))) {
+    const day = today()
+    bumpEvent.run(day, event, detail)
+    if (event === 'visit') countVisitor(req)
+  }
+  // Same answer either way: nothing to learn from the response
+  res.writeHead(204, { 'Cache-Control': 'no-store' })
+  res.end()
+}
+
+function getStats(req, url, res) {
+  if (!ADMIN_TOKEN) return send(res, 403, { error: 'Stats are disabled (no ADMIN_TOKEN set)' })
+  if (req.headers['x-admin-token'] !== ADMIN_TOKEN) return send(res, 403, { error: 'Wrong admin token' })
+  const days = Math.min(Math.max(Number(url.searchParams.get('days')) || 30, 1), 366)
+  const since = dayFormat.format(new Date(Date.now() - (days - 1) * 86_400_000))
+  send(res, 200, { since, today: today(), visitors: statsVisitors.all(since), events: statsEvents.all(since) })
+}
+
 const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, 'http://localhost')
@@ -295,6 +416,8 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'POST' && pathname === '/api/scores') return await postScore(req, res)
     const del = pathname.match(/^\/api\/scores\/([a-z0-9]{8,40})$/)
     if (req.method === 'DELETE' && del) return removeScore(req, res, del[1])
+    if (req.method === 'POST' && pathname === '/api/hit') return await postHit(req, res)
+    if (req.method === 'GET' && pathname === '/api/stats') return getStats(req, url, res)
 
     if (await handleMultiplayerHttp(req, res, url, { send, readJson, clientIp, cleanName, isBlocked, statusOf: mpStatusOf })) return
 

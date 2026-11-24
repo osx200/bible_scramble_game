@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useGame } from '../../context/GameContext.jsx'
 import { usePlayer } from '../../context/PlayerContext.jsx'
 import { SetupScreen } from '../Setup/Setup.jsx'
+import { GroupNameSelect, freeGroupNames } from '../NamePicker/NamePicker.jsx'
+import { isPresetName } from '../../data/presetNames.js'
 import styles from './TeamRegister.module.css'
 import Stage from '../Stage/Stage.jsx'
 
@@ -13,8 +15,10 @@ function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2)
 }
 
-function makeTeam(index) {
-  return { id: uid(), name: `Team ${index + 1}`, color: DEFAULT_COLORS[index] }
+// Team names come from the preset group list (no typing); a new team gets
+// the first name no other team is using
+function makeTeam(index, takenNames) {
+  return { id: uid(), name: freeGroupNames(1, takenNames)[0], color: DEFAULT_COLORS[index] }
 }
 
 export default function TeamRegister() {
@@ -22,9 +26,9 @@ export default function TeamRegister() {
   const { profile } = usePlayer()
   // A group profile is most likely one of the teams, so start it off first
   const [teams, setTeams] = useState(() => {
-    const first = makeTeam(0)
-    if (profile.kind === 'group') first.name = profile.name
-    return [first, makeTeam(1)]
+    const own = profile.kind === 'group' && isPresetName(profile.name, 'group') ? [profile.name] : []
+    const first = { ...makeTeam(0, []), name: own[0] ?? freeGroupNames(1)[0] }
+    return [first, makeTeam(1, [first.name])]
   })
   const [error, setError] = useState('')
 
@@ -39,7 +43,7 @@ export default function TeamRegister() {
 
   function addTeam() {
     if (teams.length >= MAX_TEAMS) return
-    setTeams((prev) => [...prev, makeTeam(prev.length)])
+    setTeams((prev) => [...prev, makeTeam(prev.length, prev.map((t) => t.name))])
   }
 
   function removeTeam(id) {
@@ -48,24 +52,19 @@ export default function TeamRegister() {
   }
 
   function handleStart() {
-    const blanks = teams.filter((t) => !t.name.trim())
-    if (blanks.length > 0) {
-      setError('All teams need a name.')
-      return
-    }
-    const dupes = new Set(teams.map((t) => t.name.trim().toLowerCase()))
+    const dupes = new Set(teams.map((t) => t.name.toLowerCase()))
     if (dupes.size !== teams.length) {
       setError('Team names must be unique.')
       return
     }
-    dispatch({ type: 'SET_TEAMS', payload: teams.map((t) => ({ ...t, name: t.name.trim() })) })
+    dispatch({ type: 'SET_TEAMS', payload: teams })
   }
 
   return (
     <Stage art="joshua">
       <SetupScreen
         title="Name your teams"
-        subtitle={`${MIN_TEAMS} to ${MAX_TEAMS} teams take turns on this screen. Tap a colour dot to change it.`}
+        subtitle={`${MIN_TEAMS} to ${MAX_TEAMS} teams take turns on this screen. Pick a name for each team, and tap a colour dot to change it.`}
         onBack={() => dispatch({ type: 'RESTART' })}
         summary={`${teams.length} teams · 10 rounds each`}
         startLabel="Start tournament"
@@ -88,14 +87,12 @@ export default function TeamRegister() {
                 />
               </div>
 
-              <input
+              <GroupNameSelect
                 className={styles.teamInput}
-                type="text"
-                maxLength={24}
                 aria-label={`Team ${i + 1} name`}
-                placeholder={`Team ${i + 1} name`}
                 value={team.name}
-                onChange={(e) => updateName(team.id, e.target.value)}
+                taken={teams.filter((t) => t.id !== team.id).map((t) => t.name)}
+                onChange={(name) => updateName(team.id, name)}
               />
 
               <button

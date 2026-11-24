@@ -8,6 +8,9 @@ import EndScreenLeaderboard from '../Leaderboard/EndScreenLeaderboard.jsx'
 import useLeaderboardSubmit from '../../hooks/useLeaderboardSubmit.js'
 import styles from './TeamResults.module.css'
 import Stage from '../Stage/Stage.jsx'
+import ShareScore from '../ShareScore/ShareScore.jsx'
+import { gameKey } from '../../utils/analytics.js'
+import { getWordSet } from '../../data/wordSets.js'
 
 const RANK_EMOJIS = ['🥇', '🥈', '🥉']
 const RANK_CLASSES = ['first', 'second', 'third']
@@ -99,6 +102,13 @@ export default function TeamResults() {
             submission={submission}
             defaultBoard="group"
             highlightNames={teamStates.map((t) => t.name)}
+          />
+
+          <ShareScore
+            game={gameKey('teams', wordSet)}
+            message={hasTie
+              ? `It was a tie at ${winner.score} points in a team game of Word Unscramble (${getWordSet(wordSet).label}) on Bible Games!`
+              : `${winner.name} won a team game of Word Unscramble (${getWordSet(wordSet).label}) with ${winner.score} points on Bible Games!`}
           />
 
           <div className={styles.actions}>

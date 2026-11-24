@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { toInitials } from '../utils/initials.js'
+import { parsePresetName, PRESET_NAME_MAX } from '../data/presetNames.js'
 
 /**
  * Who is playing: `{ name, kind: 'individual' | 'group' }`, or null before the
@@ -11,7 +11,7 @@ const PlayerContext = createContext(null)
 
 const STORAGE_KEY = 'player'
 export const NAME_MIN = 2
-export const NAME_MAX = 24
+export const NAME_MAX = PRESET_NAME_MAX
 export const PLAYER_KINDS = ['individual', 'group']
 
 /**
@@ -31,23 +31,22 @@ export function cleanPlayerName(raw) {
 }
 
 /**
- * The name as it is stored and shown. Individuals: initials only, for
- * privacy ("Kwame Mensah" → "K.M."). Groups keep their name.
+ * Names are picked from preset lists (src/data/presetNames.js), never typed,
+ * so no real name is stored or shown. Returns the canonical spelling, or ''
+ * when the name isn't a preset for that kind.
  */
-export function publicName(raw, kind) {
-  return kind === 'individual' ? toInitials(raw) : cleanPlayerName(raw)
+export function presetProfileName(raw, kind) {
+  return parsePresetName(raw, kind)?.name ?? ''
 }
 
 function loadProfile() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY))
     if (typeof saved?.name !== 'string' || !PLAYER_KINDS.includes(saved.kind)) return null
-    // Profiles saved before the initials rule get shortened here, once
-    const name = publicName(saved.name, saved.kind).slice(0, NAME_MAX)
-    if (name.length >= NAME_MIN) {
-      if (name !== saved.name) localStorage.setItem(STORAGE_KEY, JSON.stringify({ name, kind: saved.kind }))
-      return { name, kind: saved.kind }
-    }
+    // Typed names / initials from before the preset lists don't load, so
+    // those players pick a nickname on their next visit
+    const name = presetProfileName(saved.name, saved.kind)
+    if (name) return { name, kind: saved.kind }
   } catch {
     // Private window, blocked storage or corrupt JSON — just ask again
   }
@@ -64,7 +63,9 @@ export function PlayerProvider({ children }) {
   }, [profile])
 
   const setProfile = useCallback((input) => {
-    const next = { kind: input.kind, name: publicName(input.name, input.kind) }
+    const name = presetProfileName(input.name, input.kind)
+    if (!name) return
+    const next = { kind: input.kind, name }
     setProfileState(next)
     setEditing(false)
     try {

@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from 'react'
+import { track } from '../utils/analytics.js'
 
 const AppModeContext = createContext(null)
 
@@ -19,6 +20,9 @@ export function AppModeProvider({ children }) {
     // Leaving multiplayer drops the /join/CODE address so a refresh lands on the menu
     if (mode !== 'multiplayer' && window.location.pathname !== '/') window.history.replaceState(null, '', '/')
     if (mode !== 'multiplayer') setMultiplayerLaunch(null)
+    // 'scramble' is also the way back to the menu, so it's counted where its
+    // tile opens (Menu) instead of here
+    if (mode !== 'scramble') track('mode_open', mode)
     setAppModeState(mode)
   }
 

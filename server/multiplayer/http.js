@@ -1,7 +1,7 @@
 // HTTP side of multiplayer (under /api/mp/):
 //   POST /api/mp/rooms                 create a room → { code, token, joinPath }
 //   GET  /api/mp/rooms/:code           lobby info for the join screen
-//   POST /api/mp/rooms/:code/join      { name, teamId? } → { token, playerId }
+//   POST /api/mp/rooms/:code/join      { name, teamId?, asGroup? } → { token, playerId, name }
 //   GET  /api/mp/qr/:code              invite QR code (SVG), live rooms only
 // Everything after joining happens over the WebSocket (socket.js).
 import QRCode from 'qrcode'
@@ -9,7 +9,7 @@ import { createRoom, getRoom, hashToken, newToken } from './rooms.js'
 import { normaliseRoomCode } from './codes.js'
 import { validateSettings, validatePayload } from './settings.js'
 import { closedMessage } from './socket.js'
-import { toInitials } from '../../src/utils/initials.js'
+import { parsePresetName, nextFreeName, presetBase } from '../../src/data/presetNames.js'
 
 const WINDOW_MS = 10 * 60 * 1000
 const MAX_CREATE_BODY = 256 * 1024 // a full Builder upload fits comfortably
@@ -53,10 +53,9 @@ export async function handleMultiplayerHttp(req, res, url, helpers) {
   if (req.method === 'POST' && pathname === '/api/mp/rooms') {
     if (limited('create', ip)) { send(res, 429, { error: 'Too many games created. Please wait a few minutes.' }); return true }
     const body = await readJson(req, MAX_CREATE_BODY)
-    // Privacy: individuals appear as initials; a group host keeps its name
-    const hostName = cleanName(body?.hostKind === 'group' ? body?.hostName : toInitials(body?.hostName))
-    if (!hostName) { send(res, 400, { error: 'Your name must be 2 to 24 characters' }); return true }
-    if (isBlocked(hostName)) { send(res, 400, { error: 'Please choose a different name' }); return true }
+    // Privacy: only preset nicknames (src/data/presetNames.js), never typed names
+    const hostName = parsePresetName(cleanName(body?.hostName) ?? '', body?.hostKind === 'group' ? 'group' : 'individual')?.name
+    if (!hostName) { send(res, 400, { error: 'Pick a nickname from the list first (Menu, then Change).' }); return true }
     const v = validateSettings(body?.settings, { cleanName, isBlocked })
     if (v.error) { send(res, 400, { error: v.error }); return true }
     const p = validatePayload(v.settings, body?.payload)
@@ -110,21 +109,20 @@ export async function handleMultiplayerHttp(req, res, url, helpers) {
   if (kind === 'rooms' && req.method === 'POST' && joinSuffix) {
     if (limited('join', ip)) { send(res, 429, { error: 'Too many join attempts. Please wait a few minutes.' }); return true }
     const body = await readJson(req, 2048)
-    const name = cleanName(body?.asGroup === true ? body?.name : toInitials(body?.name))
-    if (!name) { send(res, 400, { error: 'Your name must be 2 to 24 characters' }); return true }
-    if (isBlocked(name)) { send(res, 400, { error: 'Please choose a different name' }); return true }
-    if (room.kickedNames.has(name.toLowerCase())) { send(res, 403, { error: 'The host removed that name from this game.' }); return true }
-    const taken = room.nameTaken(name)
-    if (taken) {
-      send(res, 409, { error: `Someone with the initials ${taken} is already in this game. Add a middle initial so you can be told apart.` })
-      return true
-    }
+    const kind = body?.asGroup === true ? 'group' : 'individual'
+    const base = parsePresetName(cleanName(body?.name) ?? '', kind)?.name
+    if (!base) { send(res, 400, { error: 'Pick a nickname from the list first (Menu, then Change).' }); return true }
+    // Kicks are by base name, so "… 2" can't walk straight back in
+    if (room.kickedNames.has(base.toLowerCase())) { send(res, 403, { error: 'The host removed that name from this game. Pick a different nickname from the Menu.' }); return true }
     if (room.full) { send(res, 409, { error: 'This game is full.' }); return true }
+    // Same nickname already here: "Joyful Lion 2" / "Team Joy Blue"
+    const name = nextFreeName(base, kind, room.participants.map((p) => p.name))
+    if (!name) { send(res, 409, { error: 'Too many players share that nickname. Pick a different one from the Menu.' }); return true }
     const token = newToken()
     const player = room.addPlayer({ name, tokenHash: hashToken(token), teamId: typeof body?.teamId === 'string' ? body.teamId : null })
     room.notice(`${name} joined`)
     room.broadcast()
-    send(res, 201, { token, playerId: player.id, code: room.code })
+    send(res, 201, { token, playerId: player.id, code: room.code, name })
     return true
   }
 

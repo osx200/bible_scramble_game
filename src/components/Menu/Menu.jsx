@@ -11,9 +11,11 @@ import CategorySelector from '../CategorySelector/CategorySelector.jsx'
 import TimerAdjuster from '../TimerAdjuster/TimerAdjuster.jsx'
 import Leaderboard from '../Leaderboard/Leaderboard.jsx'
 import { WelcomeIntro, WelcomeFooter } from '../Welcome/WelcomeIntro.jsx'
+import Privacy from '../Welcome/Privacy.jsx'
 import styles from './Menu.module.css'
 import Stage from '../Stage/Stage.jsx'
 import { WORD_SET_ART } from '../../data/art.js'
+import { track } from '../../utils/analytics.js'
 
 // meta: the short facts under each card's description
 // tone: the card's pigment (--pigment-* in variables.css)
@@ -64,10 +66,12 @@ export default function Menu() {
   const { profile, startEditing } = usePlayer()
   // null = app-mode grid | 'scramble' = word set + game options on one screen
   // | 'leaderboard' = this month's boards | 'about' = purpose, disclaimer, contact
+  // | 'privacy' = what is stored and for how long
   const [selected, setSelected] = useState(null)
 
   function handleModeClick(id) {
     if (id === 'scramble') {
+      track('mode_open', 'scramble')
       setSelected('scramble')
     } else {
       setAppMode(id)
@@ -157,8 +161,25 @@ export default function Menu() {
           </div>
 
           <WelcomeIntro />
-          <WelcomeFooter />
+          <WelcomeFooter onPrivacy={() => setSelected('privacy')} />
 
+        </div>
+      </Stage>
+    )
+  }
+
+  // ── Privacy ───────────────────────────────────────────────
+  if (selected === 'privacy') {
+    return (
+      <Stage art="abraham">
+        <div className={styles.card}>
+          <button className={styles.backLink} type="button" onClick={() => setSelected(null)}>
+            <span aria-hidden="true">←</span> Menu
+          </button>
+          <div className={styles.header}>
+            <h1 className={styles.title}>Privacy</h1>
+          </div>
+          <Privacy />
         </div>
       </Stage>
     )
@@ -210,9 +231,14 @@ export default function Menu() {
           </li>
         </ul>
 
-        <button type="button" className={styles.aboutLink} onClick={() => setSelected('about')}>
-          About and suggestions
-        </button>
+        <div className={styles.footerLinks}>
+          <button type="button" className={styles.aboutLink} onClick={() => setSelected('about')}>
+            About and suggestions
+          </button>
+          <button type="button" className={styles.aboutLink} onClick={() => setSelected('privacy')}>
+            Privacy
+          </button>
+        </div>
       </div>
     </Stage>
   )

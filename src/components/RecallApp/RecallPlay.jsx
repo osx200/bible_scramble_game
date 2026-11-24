@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { matchBookName } from '../../data/canonicalBooks.js'
+import { matchBookNameForgiving } from '../../data/canonicalBooks.js'
 import { useVoiceInput } from '../../hooks/useVoiceInput.js'
 import { extractSpokenBooks, cleanTranscript } from '../../utils/voiceMatch.js'
 import styles from './RecallPlay.module.css'
@@ -104,14 +104,16 @@ export default function RecallPlay({ config, onFinish }) {
     const raw = inputValue.trim()
     if (!raw) return
 
-    const canonical = matchBookName(raw)
+    // Forgiving: "Habakuk" or "Revalation" still count, shown with the right spelling
+    const match = matchBookNameForgiving(raw)
 
-    if (!canonical) {
+    if (!match) {
       triggerShake()
       showFeedback('Not a Bible book - check your spelling', 'error')
       return
     }
 
+    const canonical = match.name
     const { added, duplicates } = addBooks([canonical])
     if (!added.length) {
       triggerShake()
@@ -122,7 +124,7 @@ export default function RecallPlay({ config, onFinish }) {
     }
 
     setInputValue('')
-    showFeedback(`✓ ${canonical}`, 'success', 1200)
+    showFeedback(match.exact ? `✓ ${canonical}` : `✓ Counted as ${canonical}`, 'success', match.exact ? 1200 : 1800)
     inputRef.current?.focus()
   }
 

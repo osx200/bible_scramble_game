@@ -3,6 +3,31 @@ import { useReactionTrigger, useActiveReaction } from '../../context/ReactionCon
 import { REACTIONS } from '../../data/reactions.js'
 import styles from './ModeratorPlay.module.css'
 import Stage from '../Stage/Stage.jsx'
+import { track } from '../../utils/analytics.js'
+
+// Fullscreen, with Safari's prefixed API as a fallback. iPhone Safari has
+// neither for a page, so TV mode there is just the larger layout.
+const fullscreenElement = () => document.fullscreenElement ?? document.webkitFullscreenElement ?? null
+
+function requestFullscreen() {
+  const el = document.documentElement
+  try {
+    const result = el.requestFullscreen?.({ navigationUI: 'hide' }) ?? el.webkitRequestFullscreen?.()
+    result?.catch?.(() => {})
+  } catch {
+    // Refused (no user gesture, iframe, policy): the large layout still applies
+  }
+}
+
+function exitFullscreen() {
+  if (!fullscreenElement()) return
+  try {
+    const result = document.exitFullscreen?.() ?? document.webkitExitFullscreen?.()
+    result?.catch?.(() => {})
+  } catch {
+    // Already gone
+  }
+}
 
 function formatTime(s) {
   const m = Math.floor(s / 60)
@@ -24,6 +49,8 @@ export default function ModeratorPlay({ config, onBack, backLabel = '← Setup',
   const { triggerReaction }               = useReactionTrigger()
   const reaction                          = useActiveReaction()
   const intervalRef  = useRef(null)
+  // TV mode: full screen (no browser chrome) and larger type for a room screen
+  const [tv,            setTv]            = useState(false)
 
   const word    = words[index]
   const timeUp  = timeRemaining === 0
@@ -47,6 +74,47 @@ export default function ModeratorPlay({ config, onBack, backLabel = '← Setup',
     }
     return () => clearInterval(intervalRef.current)
   }, [running])
+
+  // ── TV mode ────────────────────────────────────────────────
+  function enterTv() {
+    setTv(true)
+    track('tv_mode')
+    requestFullscreen()
+  }
+
+  function exitTv() {
+    setTv(false)
+    exitFullscreen()
+  }
+
+  // Esc (or the browser's own exit) leaves fullscreen: drop the TV layout too.
+  // Leaving the screen always gives the browser chrome back.
+  useEffect(() => {
+    function onChange() {
+      if (!fullscreenElement()) setTv(false)
+    }
+    document.addEventListener('fullscreenchange', onChange)
+    document.addEventListener('webkitfullscreenchange', onChange)
+    return () => {
+      document.removeEventListener('fullscreenchange', onChange)
+      document.removeEventListener('webkitfullscreenchange', onChange)
+      exitFullscreen()
+    }
+  }, [])
+
+  // "F" toggles TV mode (a presenter remote or keyboard by the screen)
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key !== 'f' && e.key !== 'F') return
+      if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return
+      if (e.target.closest?.('input, textarea, select, [contenteditable="true"]')) return
+      e.preventDefault()
+      if (tv) exitTv()
+      else enterTv()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  })
 
   // ── Controls ───────────────────────────────────────────────
   function handleStart() {
@@ -83,7 +151,7 @@ export default function ModeratorPlay({ config, onBack, backLabel = '← Setup',
 
   return (
     <Stage>
-      <div className={styles.card}>
+      <div className={`${styles.card} ${tv ? styles.tv : ''}`}>
 
         {/* ── Top bar ── */}
         <div className={styles.topBar}>
@@ -91,7 +159,17 @@ export default function ModeratorPlay({ config, onBack, backLabel = '← Setup',
           <span className={styles.progress}>
             Word <strong>{index + 1}</strong> / {total}
           </span>
-          <div className={styles.spacer} />
+          <div className={styles.spacer}>
+            <button
+              type="button"
+              className={styles.tvBtn}
+              onClick={tv ? exitTv : enterTv}
+              aria-pressed={tv}
+              title={tv ? 'Leave TV mode (F or Esc)' : 'Full screen with larger text (F)'}
+            >
+              {tv ? 'Exit TV mode' : 'TV mode'}
+            </button>
+          </div>
         </div>
 
         {/* ── Scrambled word tile ── */}

@@ -58,6 +58,15 @@
   color: var(--color-text-muted);
 }
 
+/* The profile nickname on the join form (no typing: names are presets) */
+.joinName {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 600;
+  word-spacing: 0.06em;
+  color: var(--color-primary);
+}
+
 /* Inputs inside the setup kit: the field's gap does the spacing */
 .input.fieldInput {
   margin-bottom: 0;

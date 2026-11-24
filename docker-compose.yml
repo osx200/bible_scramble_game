@@ -6,6 +6,13 @@ services:
     ports:
       - "127.0.0.1:8080:80"
     restart: unless-stopped
+    # Container logs are capped by size (the Privacy page promises request
+    # logs are short-lived; see docs/oracle-vm-hardening.md §6c)
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
     # nginx proxies /api/ to this service. Not a hard requirement — nginx.conf
     # resolves `api` lazily, so the game still loads if the API is down.
     depends_on:
@@ -21,9 +28,17 @@ services:
       dockerfile: server/Dockerfile
     container_name: bible-scramble-api
     restart: unless-stopped
+    # Container logs are capped by size (the Privacy page promises request
+    # logs are short-lived; see docs/oracle-vm-hardening.md §6c)
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
     environment:
       # Set in a .env file next to this one to enable admin deletes:
       #   ADMIN_TOKEN=some-long-random-string
+      # (the same token opens the visit counts at https://<host>/stats)
       ADMIN_TOKEN: ${ADMIN_TOKEN:-}
       # Timezone whose midnight on the 1st starts a new monthly board
       BOARD_TZ: ${BOARD_TZ:-UTC}

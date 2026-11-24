@@ -5,6 +5,8 @@ import Stage from '../Stage/Stage.jsx'
 import Button from '../shared/Button.jsx'
 import Confetti from '../Confetti/Confetti.jsx'
 import { Standings } from './parts.jsx'
+import ShareScore from '../ShareScore/ShareScore.jsx'
+import { gameKey } from '../../utils/analytics.js'
 import styles from './Multiplayer.module.css'
 
 /** Final rankings. Winners get the trophy reaction and confetti; a tie at the top gets 🤝 */
@@ -15,6 +17,13 @@ export default function FinalResults({ mp, onLeave }) {
   const teamTie = teams && teams.length > 1 && teams[0].score === teams[1].score
   const tie = teams ? teamTie : top.length > 1
   const winner = teams ? teams[0]?.name : top[0]?.name
+
+  // Players share their own place; a host who only ran the screen shares the result
+  const me = players.find((p) => p.id === you.playerId)
+  const shareMessage = me
+    ? `${me.name} finished #${me.rank} of ${players.length} with ${me.score} points in a live game on Bible Games!`
+    : tie ? 'We just played a live game on Bible Games, and it ended in a tie!'
+      : `${winner} won our live game on Bible Games!`
 
   const { triggerReaction } = useReactionTrigger()
   useEffect(() => {
@@ -35,6 +44,8 @@ export default function FinalResults({ mp, onLeave }) {
           <p className={styles.lead}>Final standings for this game. They don’t count toward the monthly leaderboard.</p>
 
           <Standings players={players} teams={teams} youId={you.playerId} />
+
+          <ShareScore game={gameKey('multiplayer')} message={shareMessage} />
 
           <div className={styles.actions}>
             {you.isHost && <Button size="lg" onClick={() => send('restart')}>Play again with everyone</Button>}

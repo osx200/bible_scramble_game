@@ -1,5 +1,6 @@
 import { CANONICAL_BOOKS, matchBookName } from '../data/canonicalBooks.js'
 import { getWordSet, DEFAULT_WORD_SET } from '../data/wordSets.js'
+import { levenshtein } from './levenshtein.js'
 
 /**
  * Turns what the speech engine heard into a name the game accepts, for
@@ -64,25 +65,6 @@ function digitsForWords(s) {
     return words.join(' ')
   }
   return s
-}
-
-function levenshtein(a, b) {
-  if (a === b) return 0
-  const prev = Array.from({ length: b.length + 1 }, (_, i) => i)
-  for (let i = 1; i <= a.length; i++) {
-    let diagonal = prev[0]
-    prev[0] = i
-    for (let j = 1; j <= b.length; j++) {
-      const carry = prev[j]
-      prev[j] = Math.min(
-        prev[j] + 1,                                    // deletion
-        prev[j - 1] + 1,                                // insertion
-        diagonal + (a[i - 1] === b[j - 1] ? 0 : 1),     // substitution
-      )
-      diagonal = carry
-    }
-  }
-  return prev[b.length]
 }
 
 /** Splits "1 samuel" into ['1', 'samuel']; unnumbered names get an empty prefix. */

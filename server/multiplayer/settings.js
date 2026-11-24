@@ -1,6 +1,7 @@
 // Validation for everything a host sends when creating or editing a room.
 // Returns { settings, payload } or { error }. Nothing from the browser is
 // trusted: every field is whitelisted, typed and bounded here.
+import { parsePresetName } from '../../src/data/presetNames.js'
 import { getMode } from './modes/index.js'
 
 export const MP_MAX_PLAYERS = Number(process.env.MP_MAX_PLAYERS) || 50
@@ -50,9 +51,9 @@ export function validateSettings(input, { cleanName, isBlocked }) {
     if (!Array.isArray(input.teams) || input.teams.length < 2 || input.teams.length > 6) {
       return { error: 'Teams need 2 to 6 names' }
     }
-    const names = input.teams.map((t) => cleanName(t))
-    if (names.some((n) => !n)) return { error: 'Team names must be 2 to 24 characters' }
-    if (names.some((n) => isBlocked(n))) return { error: 'Please choose different team names' }
+    // Preset group names only (src/data/presetNames.js)
+    const names = input.teams.map((t) => parsePresetName(cleanName(t) ?? '', 'group')?.name)
+    if (names.some((n) => !n)) return { error: 'Pick each team name from the list' }
     if (new Set(names.map((n) => n.toLowerCase())).size !== names.length) return { error: 'Team names must be different' }
     settings.teams = names.map((name, i) => ({ id: `t${i + 1}`, name }))
   }

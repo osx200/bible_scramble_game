@@ -3,6 +3,9 @@ import { useAppMode } from '../../context/AppModeContext.jsx'
 import Button from '../shared/Button.jsx'
 import styles from './RecallResults.module.css'
 import Stage from '../Stage/Stage.jsx'
+import ShareScore from '../ShareScore/ShareScore.jsx'
+import { gameKey } from '../../utils/analytics.js'
+
 
 function getMessage(score, total) {
   const pct = total > 0 ? score / total : 0
@@ -88,6 +91,11 @@ export default function RecallResults({ namedBooks, targetBooks, onPlayAgain }) 
             </div>
           )}
         </div>
+
+        <ShareScore
+          game={gameKey('recall')}
+          message={`${profile.name} named ${score} of ${total} books of the Bible in Book Recall on Bible Games. How many can you name?`}
+        />
 
         {/* ── Actions ── */}
         <div className={styles.actions}>

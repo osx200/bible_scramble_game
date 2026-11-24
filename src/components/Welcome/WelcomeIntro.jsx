@@ -1,6 +1,6 @@
 import styles from './WelcomeIntro.module.css'
 
-export const CONTACT_EMAIL = 'bible-games@proton.me'
+export const CONTACT_EMAIL = 'bible-games@protonmail.com'
 
 /**
  * The anchor verse. `onArt` sets it in light type over the artwork panel
@@ -38,8 +38,11 @@ export function WelcomeIntro({ verseOnArt = false }) {
   )
 }
 
-/** Suggestions contact + disclaimer. Sits below the form / at the end of About. */
-export function WelcomeFooter() {
+/**
+ * Suggestions contact + disclaimer. Sits below the form / at the end of About.
+ * `onPrivacy` opens the privacy page (the link is hidden without it).
+ */
+export function WelcomeFooter({ onPrivacy }) {
   const mailto = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('Bible Games suggestion')}`
 
   return (
@@ -56,12 +59,16 @@ export function WelcomeFooter() {
       <p className={styles.disclaimer}>
         <strong>Disclaimer:</strong> Bible Games is a free, independent resource for fellowship and
         personal study, and is not affiliated with any church or denomination. It is meant to
-        support Bible reading, not replace it. For privacy, individual players only ever appear as
-        initials (a full name is shortened before it is saved). Group and team names are shown as
-        entered and may appear on the public monthly leaderboard, so please keep personal details
-        out of them, especially for children.
+        support Bible reading, not replace it. Players and groups appear only under nicknames
+        picked from a list, so no real names are entered or shown.
         Scripture quoted from the King James Version (public domain).
       </p>
+
+      {onPrivacy && (
+        <button type="button" className={styles.privacyLink} onClick={onPrivacy}>
+          Privacy: what we keep and why
+        </button>
+      )}
     </footer>
   )
 }

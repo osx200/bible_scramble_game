@@ -1,39 +1,44 @@
 import { useState } from 'react'
-import { usePlayer, cleanPlayerName, publicName, NAME_MIN, NAME_MAX } from '../../context/PlayerContext.jsx'
+import { usePlayer, presetProfileName } from '../../context/PlayerContext.jsx'
 import Button from '../shared/Button.jsx'
+import NamePicker from '../NamePicker/NamePicker.jsx'
 import { WelcomeIntro, WelcomeFooter, Verse } from './WelcomeIntro.jsx'
+import Privacy from './Privacy.jsx'
 import styles from './Welcome.module.css'
+import menu from '../Menu/Menu.module.css'
 import Stage from '../Stage/Stage.jsx'
 
 const KINDS = [
-  { id: 'individual', label: 'Individual', placeholder: 'Your name or initials' },
-  { id: 'group', label: 'Group', placeholder: 'e.g. Grace Fellowship Youth' },
+  { id: 'individual', label: 'Individual' },
+  { id: 'group', label: 'Group' },
 ]
 
 /**
  * First screen on a new device, and the "Change" screen from the Menu.
- * Captures the name used in titles, greetings and on the leaderboard. A first
- * visit also introduces the app (purpose, verse, contact, disclaimer); the
- * "Change" screen is just the form.
+ * The player picks a preset nickname (no typing), used in titles, greetings
+ * and on the leaderboard. A first visit also introduces the app (purpose,
+ * verse, contact, disclaimer, privacy); the "Change" screen is just the form.
  */
 export default function Welcome() {
   const { profile, setProfile, editing, cancelEditing } = usePlayer()
   const [kind, setKind] = useState(profile?.kind ?? 'individual')
   const [name, setName] = useState(profile?.name ?? '')
   const [touched, setTouched] = useState(false)
+  const [showPrivacy, setShowPrivacy] = useState(false)
 
-  const cleaned = cleanPlayerName(name)
-  // Individuals may type a full name: only the initials are kept and shown
-  const shownAs = publicName(name, kind)
-  const valid = kind === 'individual'
-    ? shownAs.length >= NAME_MIN && cleaned.length <= 60
-    : cleaned.length >= NAME_MIN && cleaned.length <= NAME_MAX
-  const activeKind = KINDS.find((k) => k.id === kind)
+  const valid = presetProfileName(name, kind) !== ''
+
+  function chooseKind(id) {
+    if (id === kind) return
+    setKind(id)
+    setName('') // solo names and group names are different lists
+    setTouched(false)
+  }
 
   function handleSubmit(e) {
     e.preventDefault()
     setTouched(true)
-    if (valid) setProfile({ name: cleaned, kind })
+    if (valid) setProfile({ name, kind })
   }
 
   const fields = (
@@ -53,50 +58,21 @@ export default function Welcome() {
             role="radio"
             aria-checked={kind === k.id}
             className={`${styles.kind} ${kind === k.id ? styles.kindActive : ''}`}
-            onClick={() => setKind(k.id)}
+            onClick={() => chooseKind(k.id)}
           >
             {k.label}
           </button>
         ))}
       </div>
 
-      <label className={styles.label} htmlFor="player-name">
-        {kind === 'group' ? 'Group name' : 'Your name'}
-      </label>
-      <input
-        id="player-name"
-        className={`${styles.input} ${touched && !valid ? styles.inputError : ''}`}
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        onBlur={() => setTouched(true)}
-        placeholder={activeKind.placeholder}
-        maxLength={kind === 'individual' ? 60 : NAME_MAX + 8 /* room for stray spaces that get trimmed */}
-        autoComplete={kind === 'individual' ? 'given-name' : 'organization'}
-        // Only on "Change": on a first visit it would pop the keyboard and
-        // scroll past the welcome message
-        autoFocus={editing}
-        enterKeyHint="go"
-      />
-      <div className={styles.hintRow}>
-        {kind === 'individual' ? (
-          <span className={touched && !valid ? styles.error : styles.hint} aria-live="polite">
-            {touched && !valid
-              ? 'Type your name or initials'
-              : shownAs
-                ? <>You’ll appear as <strong className={styles.initials}>{shownAs}</strong> Only initials are shown, for privacy.</>
-                : 'Only your initials are shown, for privacy.'}
-          </span>
-        ) : (
-          <>
-            <span className={touched && !valid ? styles.error : styles.hint}>
-              {touched && !valid ? `Use ${NAME_MIN} to ${NAME_MAX} characters` : 'Shown on the public leaderboard'}
-            </span>
-            <span className={`${styles.count} ${cleaned.length > NAME_MAX ? styles.error : ''}`}>
-              {cleaned.length}/{NAME_MAX}
-            </span>
-          </>
-        )}
-      </div>
+      {/* key: a fresh picker per kind, so a half-made solo pick doesn't linger */}
+      <NamePicker key={kind} kind={kind} value={name} onChange={setName} />
+
+      {touched && !valid && (
+        <p className={styles.error} role="alert">
+          {kind === 'group' ? 'Pick a group name' : 'Pick a first word and a second word'}
+        </p>
+      )}
 
       <Button type="submit" full size="lg" className={styles.submit}>
         {editing ? 'Save' : "Let's Play →"}
@@ -112,13 +88,30 @@ export default function Welcome() {
           <div className={styles.header}>
             <p className={styles.eyebrow}>Bible Games</p>
             <h1 className={styles.title}>Change Player</h1>
-            <p className={styles.subtitle}>Update who is playing on this device.</p>
+            <p className={styles.subtitle}>Pick a new nickname for this device.</p>
           </div>
           {fields}
           <Button full variant="ghost" className={styles.cancel} onClick={cancelEditing}>
             Cancel
           </Button>
         </form>
+      </Stage>
+    )
+  }
+
+  // First visit, privacy page open from the footer
+  if (showPrivacy) {
+    return (
+      <Stage art="creation">
+        <div className={styles.card}>
+          <button type="button" className={menu.backLink} onClick={() => setShowPrivacy(false)}>
+            <span aria-hidden="true">←</span> Back
+          </button>
+          <div className={styles.header}>
+            <h1 className={styles.title}>Privacy</h1>
+          </div>
+          <Privacy />
+        </div>
       </Stage>
     )
   }
@@ -135,11 +128,11 @@ export default function Welcome() {
 
         <h2 className={styles.formHeading}>Who’s playing?</h2>
         <p className={styles.formLead}>
-          Your name becomes the title of your games and appears on the monthly leaderboard.
+          Pick a nickname. It becomes the title of your games and appears on the monthly leaderboard.
         </p>
         {fields}
 
-        <WelcomeFooter />
+        <WelcomeFooter onPrivacy={() => { setShowPrivacy(true); window.scrollTo(0, 0) }} />
       </form>
     </Stage>
   )

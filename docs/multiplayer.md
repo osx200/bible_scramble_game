@@ -124,11 +124,12 @@ Every client action carries an `actionId`; a repeated id is acknowledged but nev
   - WebSocket: 20 messages/s per socket, and a socket sustaining 3× that is closed
 - **Validation:**
   - every HTTP body and WebSocket message is type- and length-checked against a whitelist
-  - individual names are reduced to initials on the server ("Kwame Mensah" → "K.M."); a
-    host playing as a group (`hostKind: 'group'`) or a joiner whose profile is a group
-    (`asGroup: true`) keeps the typed name
-  - names follow the leaderboard rules (2 to 24 characters, profanity blocklist) and must be
-    unique within a room; two players with the same initials are asked to add a middle initial
+  - names are preset nicknames only (`src/data/presetNames.js`): solo names, or group
+    names when the host plays as a group (`hostKind: 'group'`) or the joiner's profile is a
+    group (`asGroup: true`). Team names must be group presets too
+  - a name already in the room is made unique by the server instead of refused: "Joyful
+    Lion 2" for solo names, "Team Joy Blue" for groups; the join response returns the
+    assigned `name`. A kicked name blocks its base ("Joyful Lion"), so "… 2" can't rejoin
   - rooms are capped at `MP_MAX_PLAYERS` (default 50)
 - **Origin check:** browsers may only open the game socket from this site.
 - **No answer leaks:** answers and scripture references are only in snapshots after the
@@ -147,7 +148,7 @@ Every client action carries an `actionId`; a repeated id is acknowledged but nev
 | Host closes the room | Everyone sees "The host closed this game"; status `closed` |
 | Nobody connected for 15 min | Room closed as `abandoned` |
 | Lobby never started within 3 h | Room closed as `expired` |
-| Player removed by host | Their screen shows "removed"; that name can't rejoin the room |
+| Player removed by host | Their screen shows "removed"; that nickname (with or without a number/colour) can't rejoin the room |
 | **Server restart** | Live rooms are **lost** (they live in memory). On start-up, rooms still marked running are set to `interrupted`, and anyone opening the old link sees "That game ended when the server restarted." There is **no recovery across restarts**. |
 
 ## Deployment

@@ -5,6 +5,8 @@ import { WINNER_REACTION } from '../../data/reactions.js'
 import Button from '../shared/Button.jsx'
 import styles from './QuizPlayer.module.css'
 import Stage from '../Stage/Stage.jsx'
+import ShareScore from '../ShareScore/ShareScore.jsx'
+import { gameKey } from '../../utils/analytics.js'
 
 export default function QuizPlayer({ questions, onBack }) {
   const { triggerReaction, triggerRandomReaction } = useReactionTrigger()
@@ -94,6 +96,11 @@ export default function QuizPlayer({ questions, onBack }) {
               <span className={styles.statLabel}>Skipped</span>
             </div>
           </div>
+
+          <ShareScore
+            game={gameKey('quiz')}
+            message={`${profile.name} got ${correct} of ${answered} right (${pct}%) in a Bible quiz on Bible Games.`}
+          />
 
           <div className={styles.summaryActions}>
             <Button full size="lg" onClick={restart}>Play Again</Button>

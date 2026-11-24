@@ -507,6 +507,29 @@ it for a year and there is no easy undo.
 
 ---
 
+### 6c. Log retention (the privacy page promises 7 days)
+
+The in-app Privacy page says request logs (IP, browser, time) are kept for
+**no more than 7 days**. The host nginx is the only place that records them:
+the container nginx has `access_log off` and the API logs no IPs. Ubuntu's
+default keeps 14 days, so shorten it:
+
+```bash
+cat /etc/logrotate.d/nginx          # Ubuntu default: daily + rotate 14 (14 days)
+
+# Keep 7 daily files, and delete anything older than 7 days even if a rotation was missed
+sudo sed -i 's/^\(\s*\)rotate [0-9]\+/\1rotate 7\n\1maxage 7/' /etc/logrotate.d/nginx
+grep -E 'daily|rotate|maxage' /etc/logrotate.d/nginx   # expect: daily, rotate 7, maxage 7
+
+sudo logrotate -d /etc/logrotate.d/nginx   # dry run: checks the file parses
+sudo logrotate -f /etc/logrotate.d/nginx   # rotate now, so files older than 7 days go today
+```
+
+The file must say `daily` (not `weekly`), or `rotate 7` would mean 7 weeks.
+This covers both `access.log` and `error.log`; fail2ban only reads the last
+few minutes of `error.log`, so 7 days doesn't affect it. Docker's own
+container logs are capped by size in `docker-compose.yml` (`logging:`).
+
 ## 7. Users and sudo
 
 For a single-operator box, `ubuntu` with key-only auth is defensible. Once a second person

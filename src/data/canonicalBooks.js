@@ -1,3 +1,5 @@
+import { levenshtein } from '../utils/levenshtein.js'
+
 /**
  * The 66 canonical books of the Bible in order.
  * Separate from bibleBooks.js (which has 69 entries for the scramble game
@@ -88,6 +90,9 @@ const EXTRA_ALIASES = [
   ['canticles',                  'Song of Solomon'],
   ['canticle of canticles',      'Song of Solomon'],
   ['psalm',                      'Psalms'],
+  ['songs of solomon',           'Song of Solomon'],
+  ['song of solomons',           'Song of Solomon'],
+  ['songs of songs',             'Song of Solomon'],
   ['the psalms',                 'Psalms'],
   ['acts of the apostles',       'Acts'],
 
@@ -106,24 +111,91 @@ const EXTRA_ALIASES = [
 EXTRA_ALIASES.forEach(([alias, canonical]) => ALIASES.set(alias, canonical))
 
 /**
- * Normalise Roman-numeral prefixes before alias lookup.
- * "iii john" → "3 john", "ii kings" → "2 kings", "i samuel" → "1 samuel"
- * Only converts a leading Roman numeral followed by a space.
+ * Normalise a leading book number to a digit before alias lookup:
+ * "iii john" / "third john" / "3rd john" → "3 john", "1samuel" → "1 samuel".
+ * Only the first word is touched, so "Job" or "Isaiah" can't be mistaken for one.
  */
-function normaliseRoman(s) {
+const NUMBER_PREFIXES = [
+  [/^(?:iii|3rd|third)\.?\s+/, '3 '],
+  [/^(?:ii|2nd|second)\.?\s+/, '2 '],
+  [/^(?:i|1st|first)\.?\s+/,   '1 '],
+  [/^([123])(?:st|nd|rd)?\.?\s*(?=[a-z])/, '$1 '],
+]
+
+function normaliseNumber(s) {
+  for (const [re, to] of NUMBER_PREFIXES) {
+    if (re.test(s)) return s.replace(re, to)
+  }
   return s
-    .replace(/^iii\s+/, '3 ')
-    .replace(/^ii\s+/,  '2 ')
-    .replace(/^i\s+/,   '1 ')
+}
+
+function normalise(input) {
+  return normaliseNumber(input.trim().replace(/\s+/g, ' ').toLowerCase())
 }
 
 /**
- * Match a player's freeform input to a canonical Bible book name.
+ * Match a player's freeform input to a canonical Bible book name, exactly
+ * (after case, spacing, number-prefix and alias normalisation).
  * Returns the canonical name string, or null if unrecognised.
+ * Voice input relies on this staying exact; typed Recall input uses
+ * matchBookNameForgiving below.
  */
 export function matchBookName(input) {
-  const normalised = normaliseRoman(
-    input.trim().replace(/\s+/g, ' ').toLowerCase()
-  )
-  return ALIASES.get(normalised) ?? null
+  return ALIASES.get(normalise(input)) ?? null
+}
+
+// Fuzzy candidates: every alias split into [number prefix, letters only]
+// (normalised first, so "1john" files under 1, not as a rival to "John")
+const FUZZY_KEYS = [...ALIASES].map(([alias, name]) => {
+  const key = normaliseNumber(alias)
+  const m = /^([123]) (.*)$/.exec(key)
+  return { num: m ? m[1] : '', body: (m ? m[2] : key).replace(/[^a-z]/g, ''), name }
+})
+
+/**
+ * How many slips (a letter added, dropped or swapped) a book name forgives:
+ * short names none (Job, Joel, Mark, John…), mid-length names one
+ * (Habakuk, Isiah), long names two (Phillipians, Ecclesiastics).
+ */
+export function forgivenTypos(length) {
+  if (length <= 4) return 0
+  if (length <= 7) return 1
+  return 2
+}
+
+/**
+ * Typed Book Recall input, pardoning minor slips ("Habakuk", "Revalation").
+ * Returns { name, exact } or null.
+ * - Numbered books (1 Samuel, 2 John…) are never guessed: they must be spelt
+ *   exactly, though the number may be written 1 / 1st / first / I.
+ * - Other books allow forgivenTypos() slips, and the match must be clearly
+ *   closer than any other book, so a guess between two books is refused.
+ */
+export function matchBookNameForgiving(input) {
+  const exact = matchBookName(input)
+  if (exact) return { name: exact, exact: true }
+
+  const normalised = normalise(input)
+  if (/^[123] /.test(normalised)) return null
+  const body = normalised.replace(/[^a-z]/g, '')
+  if (body.length < 3) return null
+
+  let best = null
+  let bestDistance = Infinity
+  let runnerUp = Infinity
+  for (const key of FUZZY_KEYS) {
+    if (key.num) continue // numbered books: exact only
+    const distance = levenshtein(body, key.body)
+    if (distance > forgivenTypos(key.body.length)) continue
+    if (key.name === best) { bestDistance = Math.min(bestDistance, distance); continue }
+    if (distance < bestDistance) {
+      runnerUp = bestDistance
+      bestDistance = distance
+      best = key.name
+    } else if (distance < runnerUp) {
+      runnerUp = distance
+    }
+  }
+  if (!best || bestDistance === runnerUp) return null
+  return { name: best, exact: false }
 }

@@ -5,6 +5,7 @@
 //
 // Room lifecycle: lobby → playing → finished   (or closed / abandoned / expired)
 // Round phases:   open → (review, quiz only) → revealed
+import { presetBase } from '../../src/data/presetNames.js'
 import { createHash, randomBytes } from 'node:crypto'
 import { getMode } from './modes/index.js'
 import { pointsFor, racePoints } from './modes/scoring.js'
@@ -402,7 +403,7 @@ class Room {
     if (!p) return 'Player not found'
     if (p.id === this.hostPlayerId) return 'The host cannot be removed'
     this.players.delete(playerId)
-    this.kickedNames.add(p.name.toLowerCase())
+    this.kickedNames.add(presetBase(p.name).toLowerCase())
     this.round?.answers.delete(playerId)
     for (const c of [...this.conns]) {
       if (c.playerId === playerId) {

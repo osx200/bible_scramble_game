@@ -9,6 +9,9 @@ import { usePlayer } from '../../context/PlayerContext.jsx'
 import useLeaderboardSubmit from '../../hooks/useLeaderboardSubmit.js'
 import styles from './GameOver.module.css'
 import Stage from '../Stage/Stage.jsx'
+import ShareScore from '../ShareScore/ShareScore.jsx'
+import { gameKey } from '../../utils/analytics.js'
+import { getWordSet } from '../../data/wordSets.js'
 
 function getRating(correct, total) {
   const pct = correct / total
@@ -98,6 +101,11 @@ export default function GameOver() {
           solo
           defaultBoard={profile.kind}
           highlightNames={[profile.name]}
+        />
+
+        <ShareScore
+          game={gameKey('solo', wordSet)}
+          message={`${profile.name} scored ${score} in Word Unscramble (${getWordSet(wordSet).label}, ${difficulty[0].toUpperCase()}${difficulty.slice(1)}) with ${correctCount}/${total} correct on Bible Games. Can you beat it?`}
         />
 
         <div className={styles.actions}>

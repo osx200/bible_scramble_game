@@ -15,6 +15,8 @@ import QuizApp from './components/QuizApp/QuizApp.jsx'
 import ModeratorApp from './components/ModeratorApp/ModeratorApp.jsx'
 import RecallApp from './components/RecallApp/RecallApp.jsx'
 import MultiplayerApp from './components/Multiplayer/MultiplayerApp.jsx'
+import Stats from './components/Stats/Stats.jsx'
+import { trackVisit } from './utils/analytics.js'
 import styles from './App.module.css'
 
 function GameRouter() {
@@ -69,7 +71,20 @@ function AppContent() {
   )
 }
 
+// The owner's visit counts (/stats, admin token): outside the player gate,
+// and not itself counted as a visit
+const IS_STATS = window.location.pathname.replace(/\/$/, '') === '/stats'
+if (!IS_STATS) trackVisit()
+
 export default function App() {
+  if (IS_STATS) {
+    return (
+      <div className={styles.app}>
+        <ThemeToggle />
+        <Stats />
+      </div>
+    )
+  }
   return (
     <PlayerProvider>
       <AppModeProvider>

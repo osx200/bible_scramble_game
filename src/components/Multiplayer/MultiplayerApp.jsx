@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAppMode, joinCodeFromUrl } from '../../context/AppModeContext.jsx'
-import { usePlayer, publicName } from '../../context/PlayerContext.jsx'
+import { usePlayer } from '../../context/PlayerContext.jsx'
+import { GroupNameSelect, freeGroupNames } from '../NamePicker/NamePicker.jsx'
 import { WORD_SET_LIST } from '../../data/wordSets.js'
 import { createRoom, getRoomInfo, joinRoom, loadSeat, saveSeat, clearSeat } from '../../utils/multiplayerApi.js'
 import Stage from '../Stage/Stage.jsx'
@@ -88,13 +89,15 @@ function Home({ onCreate, onJoin, onBack }) {
   )
 }
 
-/** "You'll appear as K.M.": individuals are only ever shown by initials */
-function NamePreview({ name, kind }) {
-  if (kind === 'group') return null
-  const shown = publicName(name, 'individual')
+/**
+ * Everyone plays under their profile's preset nickname. The server adds a
+ * number ("Joyful Lion 2") or a colour ("Team Joy Blue") if it's taken.
+ */
+function NameNote({ kind }) {
   return (
-    <span className={styles.namePreview} aria-live="polite">
-      {shown ? <>You’ll appear as <strong>{shown}</strong> Only initials are shown, for privacy.</> : 'Only your initials are shown, for privacy.'}
+    <span className={styles.namePreview}>
+      If someone in the game already has it, {kind === 'group' ? 'a colour' : 'a number'} is added
+      so you can be told apart. Change your nickname from the Menu.
     </span>
   )
 }
@@ -113,14 +116,13 @@ function CreateGame({ launch, onCreated, onBack }) {
   const { profile } = usePlayer()
   // From the Builder's "Host online": custom words or quiz questions
   const custom = launch?.kind ?? null // 'words' | 'questions' | null
-  const [hostName, setHostName] = useState(profile?.name ?? '')
   const [wordSet, setWordSet] = useState(custom === 'words' ? 'custom' : 'books')
   const [difficulty, setDifficulty] = useState('easy')
   const [category, setCategory] = useState('all')
   const [rounds, setRounds] = useState(10)
   const [seconds, setSeconds] = useState(30)
   const [useTeams, setUseTeams] = useState(false)
-  const [teamNames, setTeamNames] = useState(['Team A', 'Team B'])
+  const [teamNames, setTeamNames] = useState(() => freeGroupNames(2))
   const [reveal, setReveal] = useState('round')
   const [speedBonus, setSpeedBonus] = useState(false)
   const [firstCorrect, setFirstCorrect] = useState(false)
@@ -138,7 +140,7 @@ function CreateGame({ launch, onCreated, onBack }) {
     setBusy(true)
     setError('')
     const res = await createRoom({
-      hostName,
+      hostName: profile?.name,
       hostKind: profile?.kind ?? 'individual',
       settings: {
         mode, wordSet, difficulty, category: showCategory ? category : 'all', rounds, seconds,
@@ -153,7 +155,7 @@ function CreateGame({ launch, onCreated, onBack }) {
   }
 
   const summary = [
-    `Host ${publicName(hostName, profile?.kind) || '?'}`,
+    `Host ${profile?.name ?? '?'}`,
     setLabel,
     mode === 'unscramble' && !custom && cap(difficulty),
     mode === 'unscramble' && `${rounds} rounds`,
@@ -163,7 +165,7 @@ function CreateGame({ launch, onCreated, onBack }) {
     hostPlays ? 'You play too' : null,
   ].filter(Boolean).join(' · ')
 
-  const changed = (hostName !== (profile?.name ?? '')) + (showCategory && category !== 'all') + (rounds !== 10) + (seconds !== 30)
+  const changed = (showCategory && category !== 'all') + (rounds !== 10) + (seconds !== 30)
     + (reveal !== 'round') + speedBonus + hostPlays + (minPlayers !== 2)
 
   return (
@@ -207,17 +209,17 @@ function CreateGame({ launch, onCreated, onBack }) {
           {useTeams && (
             <div className={styles.teamEditor}>
               {teamNames.map((t, i) => (
-                <input
+                <GroupNameSelect
                   key={i}
                   className={styles.input}
                   value={t}
-                  maxLength={24}
+                  taken={teamNames.filter((_, j) => j !== i)}
                   aria-label={`Team ${i + 1} name`}
-                  onChange={(e) => setTeamNames((names) => names.map((n, j) => (j === i ? e.target.value : n)))}
+                  onChange={(name) => setTeamNames((names) => names.map((n, j) => (j === i ? name : n)))}
                 />
               ))}
               <div className={styles.inlineActions}>
-                {teamNames.length < 6 && <button type="button" className={styles.textBtn} onClick={() => setTeamNames((n) => [...n, `Team ${String.fromCharCode(65 + n.length)}`])}>+ Add team</button>}
+                {teamNames.length < 6 && <button type="button" className={styles.textBtn} onClick={() => setTeamNames((n) => [...n, freeGroupNames(1, n)[0]])}>+ Add team</button>}
                 {teamNames.length > 2 && <button type="button" className={styles.textBtn} onClick={() => setTeamNames((n) => n.slice(0, -1))}>Remove last</button>}
               </div>
             </div>
@@ -225,9 +227,6 @@ function CreateGame({ launch, onCreated, onBack }) {
         </Field>
 
         <MoreOptions changed={changed}>
-          <Field label="Your name (shown as host)" hint={<NamePreview name={hostName} kind={profile?.kind} />}>
-            <input id="mp-host" className={`${styles.input} ${styles.fieldInput}`} value={hostName} onChange={(e) => setHostName(e.target.value)} maxLength={60} aria-label="Your name" />
-          </Field>
           {showCategory && (
             <Field label="Category">
               <Segmented label="Category" options={[['all', 'All'], ['OT', 'Old Testament'], ['NT', 'New Testament']]} value={category} onChange={setCategory} />
@@ -268,7 +267,6 @@ function JoinGame({ initialCode, onJoined, onBack }) {
   const { profile } = usePlayer()
   const [code, setCode] = useState(initialCode ?? '')
   const [info, setInfo] = useState(null)
-  const [name, setName] = useState(profile?.name ?? '')
   const [teamId, setTeamId] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -294,7 +292,7 @@ function JoinGame({ initialCode, onJoined, onBack }) {
     e.preventDefault()
     setBusy(true)
     setError('')
-    const res = await joinRoom(info.code, { name, teamId, asGroup: profile?.kind === 'group' })
+    const res = await joinRoom(info.code, { name: profile?.name, teamId, asGroup: profile?.kind === 'group' })
     setBusy(false)
     if (!res.ok) return setError(res.error)
     onJoined(res.code, { token: res.token, role: 'player' })
@@ -340,8 +338,8 @@ function JoinGame({ initialCode, onJoined, onBack }) {
               {info.mode === 'unscramble' && <div><dt>Difficulty</dt><dd className={styles.cap}>{info.difficulty}</dd></div>}
               <div><dt>Status</dt><dd>{info.status === 'lobby' ? 'Waiting to start' : 'In progress (you can still join)'}</dd></div>
             </dl>
-            <Field label="Your name" hint={<NamePreview name={name} kind={profile?.kind} />}>
-              <input id="mp-name" className={`${styles.input} ${styles.fieldInput}`} value={name} onChange={(e) => setName(e.target.value)} maxLength={60} required aria-label="Your name" />
+            <Field label="You’ll join as" hint={<NameNote kind={profile?.kind} />}>
+              <p className={styles.joinName}>{profile?.name}</p>
             </Field>
             {info.teams && (
               <Field label="Your team">

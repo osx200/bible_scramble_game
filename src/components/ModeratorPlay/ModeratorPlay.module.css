@@ -81,7 +81,35 @@
 
 .spacer {
   flex-shrink: 0;
-  width: 72px; /* mirror backBtn width */
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* TV mode toggle: a quiet secondary button, same family as backBtn */
+.tvBtn {
+  padding: 6px 14px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-family: var(--font-main);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast),
+    color var(--transition-fast), transform var(--transition-fast);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tvBtn:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--color-primary-tint);
+  }
+}
+
+.tvBtn:active {
+  transform: scale(0.97);
 }
 
 /* ── Scrambled word tile ── */
@@ -584,10 +612,6 @@
     width: 120px;
   }
 
-  .spacer {
-    display: none;
-  }
-
   .dots {
     display: none;
   }
@@ -614,4 +638,88 @@
     height: 44px;
     transform: translate(-50%, -50%);
   }
+}
+
+/* ── TV mode: full screen, sized for a room to read from the back ──
+   Every size scales with the viewport so one rule fits a laptop on a
+   projector and a 4K television alike. */
+/* A fixed layer over the whole viewport: Stage's play layout caps the width
+   and zeroes card padding, and TV mode needs every pixel. It sits above the
+   theme toggle (100) but below the reaction overlay (200), so reactions
+   still play over it. (.card.tv outranks Stage's .playInner > div.) */
+.card.tv {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  max-width: none;
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--color-bg);
+  border-radius: 0;
+  box-shadow: none;
+  padding: clamp(16px, 2.5vw, 48px) clamp(16px, 4vw, 80px);
+  gap: clamp(16px, 2.5vh, 40px);
+  justify-content: center;
+}
+
+.card.tv::before {
+  display: none;
+}
+
+.tv .backBtn,
+.tv .dots {
+  display: none;
+}
+
+.tv .progress {
+  font-size: clamp(1rem, 1.8vw, 1.8rem);
+}
+
+.tv .scrambledTile {
+  padding: clamp(28px, 6vh, 80px) clamp(16px, 3vw, 48px);
+}
+
+.tv .scrambledText {
+  font-size: clamp(3rem, 9vw, 11rem);
+}
+
+.tv .clueText {
+  font-size: clamp(1.2rem, 2.4vw, 2.6rem);
+}
+
+.tv .clueBtn {
+  font-size: clamp(1rem, 1.6vw, 1.6rem);
+}
+
+.tv .answerLabel {
+  font-size: clamp(0.8rem, 1.2vw, 1.3rem);
+}
+
+.tv .answerTile {
+  font-size: clamp(1.8rem, 5vw, 5.5rem);
+  min-height: 1.6em;
+}
+
+.tv .timerTile {
+  width: clamp(140px, 16vw, 320px);
+}
+
+.tv .timerText {
+  font-size: clamp(2rem, 4.5vw, 5rem);
+}
+
+.tv .timerAdj {
+  width: clamp(36px, 3.2vw, 64px);
+  height: clamp(36px, 3.2vw, 64px);
+  font-size: clamp(1.15rem, 2vw, 2rem);
+}
+
+.tv .ctrlBtn {
+  font-size: clamp(0.92rem, 1.6vw, 1.7rem);
+  padding-top: clamp(12px, 2vh, 28px);
+  padding-bottom: clamp(12px, 2vh, 28px);
+}
+
+.tv .navBtn {
+  font-size: clamp(0.88rem, 1.4vw, 1.5rem);
 }

@@ -136,53 +136,6 @@
   line-height: 1;
 }
 
-.input {
-  width: 100%;
-  padding: 14px 16px;
-  font-family: var(--font-main);
-  /* ≥16px or iOS Safari zooms the page on focus */
-  font-size: 1.05rem;
-  font-weight: 500;
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius);
-  background: var(--color-surface);
-  color: var(--color-text);
-  outline: none;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast),
-    background-color var(--transition-fast);
-}
-
-.input::placeholder {
-  color: var(--color-text-light);
-}
-
-.input:focus {
-  border-color: var(--color-primary);
-  background: var(--color-card);
-  box-shadow: var(--ring);
-}
-
-.inputError,
-.inputError:focus {
-  border-color: var(--color-danger);
-  animation: shake 0.35s ease;
-}
-
-.hintRow {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-xs);
-  font-size: 0.8rem;
-}
-
-.initials {
-  font-family: var(--font-display);
-  font-weight: 700;
-  letter-spacing: var(--tracking-wide);
-  color: var(--color-primary);
-}
-
 .hint {
   color: var(--color-text-muted);
 }
@@ -190,12 +143,6 @@
 .error {
   color: var(--color-danger);
   font-weight: 600;
-}
-
-.count {
-  color: var(--color-text-light);
-  font-variant-numeric: tabular-nums;
-  flex-shrink: 0;
 }
 
 .submit {
