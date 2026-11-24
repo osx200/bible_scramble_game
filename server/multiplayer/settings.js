@@ -3,6 +3,7 @@
 // trusted: every field is whitelisted, typed and bounded here.
 import { parsePresetName } from '../../src/data/presetNames.js'
 import { getMode } from './modes/index.js'
+import { RECALL_SECONDS } from './modes/recall.js'
 
 export const MP_MAX_PLAYERS = Number(process.env.MP_MAX_PLAYERS) || 50
 const ROUND_CHOICES = [5, 10, 15, 20]
@@ -40,6 +41,18 @@ export function validateSettings(input, { cleanName, isBlocked }) {
   if (settings.firstCorrect) {
     settings.speedBonus = false
     settings.reveal = 'instant'
+  }
+
+  // Book Recall race: one long round (1 to 5 minutes), answers counted live.
+  // Race, speed bonus and auto-advance mean nothing there; the host moves to
+  // the final results after people have looked at what they missed.
+  if (mode.multi) {
+    settings.seconds = RECALL_SECONDS.includes(input.seconds) ? input.seconds : 120
+    settings.rounds = 1
+    settings.firstCorrect = false
+    settings.speedBonus = false
+    settings.reveal = 'round'
+    settings.autoAdvance = false
   }
 
   if (mode.id === 'unscramble') {

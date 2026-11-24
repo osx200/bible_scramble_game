@@ -3,3 +3,7 @@ certs/
 server/data/
 server/node_modules/
 .claude/skills/
+
+# Secrets (ADMIN_TOKEN etc.) live in .env on the server, never in git
+.env
+.env.*

@@ -950,3 +950,61 @@
     animation: reconnectIn 150ms ease 800ms both !important;
   }
 }
+
+/* ── Book Recall race (RecallRace.jsx) ──────────────────────── */
+.recallMain {
+  align-items: stretch;
+}
+
+.clockLow {
+  color: var(--color-danger);
+}
+
+.playOf {
+  font-size: 1.1rem;
+  color: var(--color-text-muted);
+}
+
+.recallInput {
+  display: grid;
+  gap: var(--spacing-xs);
+  width: 100%;
+}
+
+.recallNote {
+  font-size: 0.88rem;
+  color: var(--color-text-muted);
+}
+
+.recallGrid {
+  width: 100%;
+}
+
+.chipMissed {
+  border: 1.5px dashed var(--color-border-strong);
+  color: var(--color-text-muted);
+  background: transparent;
+}
+
+.recallStage {
+  display: grid;
+  justify-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-xl) 0;
+}
+
+.recallReveal {
+  display: grid;
+  gap: var(--spacing-sm);
+  width: 100%;
+}
+
+.recallReveal .recallGrid {
+  text-align: left;
+}
+
+.recallNobody {
+  font-size: 0.92rem;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}

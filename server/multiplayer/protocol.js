@@ -3,7 +3,7 @@
 //
 // Client → server:
 //   resume        { code, token, reconnect? }   must be the first message
-//   answer        { text }
+//   answer        { text } or { texts: [≤10] } (Book Recall: several books per phrase)
 //   set_team      { teamId }
 //   host only:    start · pause · resume_game · skip · reveal · next · end ·
 //                 restart · close · kick { playerId } · accept { playerId, accept } ·
@@ -20,7 +20,9 @@ const isStr = (v, max) => typeof v === 'string' && v.length > 0 && v.length <= m
 
 const SCHEMAS = {
   resume: (m) => isStr(m.code, 20) && isStr(m.token, 64),
-  answer: (m) => isStr(m.text, 200),
+  // `texts`: Book Recall, where one spoken phrase can name several books
+  answer: (m) => isStr(m.text, 200)
+    || (Array.isArray(m.texts) && m.texts.length > 0 && m.texts.length <= 10 && m.texts.every((t) => isStr(t, 60))),
   set_team: (m) => isStr(m.teamId, 8),
   start: () => true,
   pause: () => true,

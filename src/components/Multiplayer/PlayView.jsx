@@ -5,6 +5,7 @@ import { WORD_SETS } from '../../data/wordSets.js'
 import Stage from '../Stage/Stage.jsx'
 import Button from '../shared/Button.jsx'
 import { Countdown, Standings, useCountdown, verdictLabel } from './parts.jsx'
+import RecallRace from './RecallRace.jsx'
 import tiles from '../ScrambledWord/ScrambledWord.module.css'
 import styles from './Multiplayer.module.css'
 
@@ -16,6 +17,8 @@ export default function PlayView({ mp, onLeave }) {
   const seconds = useCountdown(round, clockOffset)
   const me = players.find((p) => p.id === you.playerId)
 
+  // Book Recall is one long round with many answers each: its own screen
+  if (s.mode === 'recall') return <RecallRace mp={mp} onLeave={onLeave} />
   if (!round) return null
   const isPlayer = Boolean(you.playerId)
 

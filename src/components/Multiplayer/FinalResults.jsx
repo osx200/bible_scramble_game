@@ -12,16 +12,20 @@ import styles from './Multiplayer.module.css'
 /** Final rankings. Winners get the trophy reaction and confetti; a tie at the top gets 🤝 */
 export default function FinalResults({ mp, onLeave }) {
   const { snapshot, send } = mp
-  const { you, players, teams } = snapshot
+  const { you, players, teams, room } = snapshot
+  const recall = room.settings.mode === 'recall'
   const top = players.filter((p) => p.rank === 1)
-  const teamTie = teams && teams.length > 1 && teams[0].score === teams[1].score
-  const tie = teams ? teamTie : top.length > 1
+  // The server ranks ties (Book Recall: an equal count goes to whoever got there first)
+  const topTeams = teams ? teams.filter((t) => (t.rank ?? (t.score === teams[0].score ? 1 : 2)) === 1) : []
+  const tie = teams ? topTeams.length > 1 : top.length > 1
   const winner = teams ? teams[0]?.name : top[0]?.name
 
   // Players share their own place; a host who only ran the screen shares the result
   const me = players.find((p) => p.id === you.playerId)
   const shareMessage = me
-    ? `${me.name} finished #${me.rank} of ${players.length} with ${me.score} points in a live game on Bible Games!`
+    ? recall
+      ? `${me.name} finished #${me.rank} of ${players.length}, naming ${me.score} books of the Bible in a live Book Recall race on Bible Games!`
+      : `${me.name} finished #${me.rank} of ${players.length} with ${me.score} points in a live game on Bible Games!`
     : tie ? 'We just played a live game on Bible Games, and it ended in a tie!'
       : `${winner} won our live game on Bible Games!`
 
@@ -38,12 +42,12 @@ export default function FinalResults({ mp, onLeave }) {
           <p className={styles.resultEmoji} aria-hidden="true">{tie ? '🤝' : '🏆'}</p>
           <h1>
             {tie
-              ? `A tie between ${teams ? teams.filter((t) => t.score === teams[0].score).map((t) => t.name).join(' and ') : top.map((p) => p.name).join(' and ')}!`
+              ? `A tie between ${(teams ? topTeams : top).map((x) => x.name).join(' and ')}!`
               : `${winner} wins!`}
           </h1>
           <p className={styles.lead}>Final standings for this game. They don’t count toward the monthly leaderboard.</p>
 
-          <Standings players={players} teams={teams} youId={you.playerId} />
+          <Standings players={players} teams={teams} youId={you.playerId} metaLabel={recall ? (p) => `${p.score} ${p.score === 1 ? 'book' : 'books'}` : undefined} />
 
           <ShareScore game={gameKey('multiplayer')} message={shareMessage} />
 

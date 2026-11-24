@@ -44,8 +44,18 @@ export function fetchLeaderboard(board) {
  * → { ok, month, rank } — rank is 1–5 when this game made the board, else null.
  * Reusing an id is a no-op on the server, so a double submit is harmless.
  */
-export function submitScore(entry) {
-  return request('/api/scores', { method: 'POST', body: JSON.stringify(entry) })
+export async function submitScore(entry) {
+  const gameId = await currentGame
+  return request('/api/scores', { method: 'POST', body: JSON.stringify({ ...entry, gameId }) })
+}
+
+// The server only accepts a score with a ticket from the start of that game
+// (server/index.js § Game tickets). One game runs at a time per tab, so the
+// ticket is kept here: beginGame() when a game starts, submitScore() sends it.
+let currentGame = Promise.resolve(null)
+
+export function beginGame() {
+  currentGame = request('/api/games', { method: 'POST', body: '{}' }).then((r) => (r.ok ? r.gameId : null))
 }
 
 /** "2026-10" → "October 2026" */

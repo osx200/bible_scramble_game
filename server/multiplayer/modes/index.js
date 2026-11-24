@@ -12,7 +12,10 @@
 // here — not new multiplayer infrastructure.
 import { unscramble } from './unscramble.js'
 import { quiz } from './quiz.js'
+import { recall } from './recall.js'
 
-export const MODES = { unscramble, quiz }
+// `multi: true` (Book Recall) = one long round where each player answers many
+// times; rooms.js handles it with recallAnswer() and judgeBook() instead of judge().
+export const MODES = { unscramble, quiz, recall }
 
 export const getMode = (id) => MODES[id] ?? null

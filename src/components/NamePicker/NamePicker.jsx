@@ -1,20 +1,42 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import {
   SOLO_FIRST, SOLO_SECOND, GROUP_NAMES, FRUIT_COUNT, FRUIT_REF,
   parsePresetName, soloName, randomItem,
 } from '../../data/presetNames.js'
 import styles from './NamePicker.module.css'
 
-/** A wrapping row of single-choice chips */
+const ARROW_STEP = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }
+
+/**
+ * A wrapping row of single-choice chips. One Tab stop per row (the chosen
+ * chip, else the first); arrow keys, Home and End move the choice, like the
+ * setup screens' radio groups (Setup.jsx useRovingRadios).
+ */
 function Chips({ label, options, value, onChange }) {
+  const rowRef = useRef(null)
+  const index = options.indexOf(value)
+
+  function onKeyDown(e) {
+    const step = ARROW_STEP[e.key]
+    let next
+    if (step) next = ((index === -1 ? (step > 0 ? -1 : 0) : index) + step + options.length) % options.length
+    else if (e.key === 'Home') next = 0
+    else if (e.key === 'End') next = options.length - 1
+    else return
+    e.preventDefault()
+    onChange(options[next])
+    rowRef.current?.querySelectorAll('[role="radio"]')[next]?.focus()
+  }
+
   return (
-    <div className={styles.chips} role="radiogroup" aria-label={label}>
-      {options.map((opt) => (
+    <div ref={rowRef} className={styles.chips} role="radiogroup" aria-label={label} onKeyDown={onKeyDown}>
+      {options.map((opt, i) => (
         <button
           key={opt}
           type="button"
           role="radio"
           aria-checked={value === opt}
+          tabIndex={i === (index === -1 ? 0 : index) ? 0 : -1}
           className={`${styles.chip} ${value === opt ? styles.chipActive : ''}`}
           onClick={() => onChange(opt)}
         >

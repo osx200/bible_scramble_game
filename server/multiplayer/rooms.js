@@ -25,6 +25,17 @@ export const hashToken = (token) => createHash('sha256').update(String(token)).d
 export const newToken = () => randomBytes(24).toString('base64url')
 const newId = () => randomBytes(6).toString('base64url')
 
+// A throw inside a timer callback is uncaught and would stop the whole
+// process, ending every live game. Room timers go through these instead.
+function guard(fn) {
+  try {
+    fn()
+  } catch (err) {
+    console.error('multiplayer timer failed:', err)
+  }
+}
+const later = (fn, ms) => setTimeout(() => guard(fn), ms)
+
 const rooms = new Map()
 let db = null // prepared statements, set by initRooms()
 
@@ -33,7 +44,7 @@ export function initRooms(statements) {
   // Live rooms only exist in memory: anything SQLite still thinks is running
   // died with the previous process. (No cross-restart recovery is claimed.)
   db.interruptAll.run(Date.now())
-  setInterval(sweep, 30 * 1000).unref()
+  setInterval(() => guard(sweep), 30 * 1000).unref()
 }
 
 export const getRoom = (code) => rooms.get(code) ?? null
@@ -120,7 +131,7 @@ class Room {
     const id = newId()
     const player = {
       id, name, tokenHash, teamId: this.validTeam(teamId) ? teamId : null,
-      joinedAt: Date.now(), score: 0, correct: 0, streak: 0, bestStreak: 0, lastDelta: 0,
+      joinedAt: Date.now(), score: 0, correct: 0, streak: 0, bestStreak: 0, lastDelta: 0, lastScoredAt: 0,
     }
     this.players.set(id, player)
     if (isHost) this.hostPlayerId = id
@@ -162,7 +173,7 @@ class Room {
   onHostAway() {
     if (this.status === 'playing' && !this.round?.paused) this.pause(true)
     clearTimeout(this.hostGraceTimer)
-    this.hostGraceTimer = setTimeout(() => this.transferHost(), HOST_GRACE_MS)
+    this.hostGraceTimer = later(() => this.transferHost(), HOST_GRACE_MS)
   }
 
   /** Host gone past the grace period: hand control to the longest-standing connected player */
@@ -193,7 +204,7 @@ class Room {
         if (!p.teamId) p.teamId = this.smallestTeam()
       }
     }
-    for (const p of this.participants) Object.assign(p, { score: 0, correct: 0, streak: 0, bestStreak: 0, lastDelta: 0 })
+    for (const p of this.participants) Object.assign(p, { score: 0, correct: 0, streak: 0, bestStreak: 0, lastDelta: 0, lastScoredAt: 0 })
     this.status = 'playing'
     this.index = -1
     db.setStatus.run('playing', null, this.code)
@@ -222,10 +233,11 @@ class Room {
       paused: false,
       pausedRemaining: 0,
       answers: new Map(), // playerId → { text, at, verdict }
+      lists: new Map(), // Book Recall: listKey → { names: Set, entries: [{ name, by, at }] }
       results: null,
       skipped: false,
     }
-    this.timer = setTimeout(() => this.closeRound(), roundMs)
+    this.timer = later(() => this.closeRound(), roundMs)
     this.broadcast()
   }
 
@@ -246,9 +258,9 @@ class Room {
     r.paused = false
     if (r.phase === 'open') {
       r.deadline = Date.now() + r.pausedRemaining
-      this.timer = setTimeout(() => this.closeRound(), r.pausedRemaining)
+      this.timer = later(() => this.closeRound(), r.pausedRemaining)
     } else if (r.phase === 'revealed' && this.settings.autoAdvance) {
-      this.timer = setTimeout(() => this.openNextRound(), this.advanceMs)
+      this.timer = later(() => this.openNextRound(), this.advanceMs)
     }
     this.notice('Game resumed')
     this.broadcast()
@@ -276,6 +288,13 @@ class Room {
   maybeCloseEarly() {
     const r = this.round
     if (!r || r.phase !== 'open' || r.paused) return
+    if (this.mode.multi) {
+      // Book Recall ends early only when every list has every book
+      const keys = new Set(this.participants.map((p) => this.listKey(p)))
+      const total = r.data.targets.length
+      if (keys.size && [...keys].every((k) => (r.lists.get(k)?.names.size ?? 0) >= total)) this.closeRound()
+      return
+    }
     if (this.settings.firstCorrect) {
       // Race: the first correct answer ends it. "Everyone answered" means
       // nothing when wrong guesses may be retried.
@@ -306,9 +325,18 @@ class Room {
     r.paused = false
     r.results = []
     r.winner = null
+    if (this.mode.multi) {
+      // Book Recall scored as it went: the results are just the final counts
+      for (const p of this.participants) {
+        p.lastDelta = 0
+        r.results.push({ playerId: p.id, name: p.name, verdict: 'recall', points: p.score, text: null })
+      }
+      this.broadcast()
+      return null
+    }
     if (this.settings.firstCorrect) {
       this.scoreRace(r)
-      if (this.settings.autoAdvance) this.timer = setTimeout(() => this.openNextRound(), this.advanceMs)
+      if (this.settings.autoAdvance) this.timer = later(() => this.openNextRound(), this.advanceMs)
       this.broadcast()
       return null
     }
@@ -326,7 +354,7 @@ class Room {
       p.lastDelta = points
       r.results.push({ playerId: p.id, name: p.name, verdict: r.skipped ? 'skipped' : verdict, points, text: a?.text ?? null })
     }
-    if (this.settings.autoAdvance) this.timer = setTimeout(() => this.openNextRound(), this.advanceMs)
+    if (this.settings.autoAdvance) this.timer = later(() => this.openNextRound(), this.advanceMs)
     this.broadcast()
     return null
   }
@@ -358,6 +386,7 @@ class Room {
   skip() {
     const r = this.round
     if (!r || r.phase === 'revealed') return 'Nothing to skip'
+    if (this.mode.multi) return 'Book Recall has one round: use “End round now” instead'
     r.skipped = true
     this.notice('Question skipped: no points this round')
     return this.revealRound()
@@ -391,7 +420,7 @@ class Room {
     this.round = null
     this.rounds = []
     this.index = -1
-    for (const p of this.participants) Object.assign(p, { score: 0, correct: 0, streak: 0, bestStreak: 0, lastDelta: 0 })
+    for (const p of this.participants) Object.assign(p, { score: 0, correct: 0, streak: 0, bestStreak: 0, lastDelta: 0, lastScoredAt: 0 })
     db.setStatus.run('lobby', null, this.code)
     this.notice('Back to the lobby for a new game')
     this.broadcast()
@@ -405,6 +434,15 @@ class Room {
     this.players.delete(playerId)
     this.kickedNames.add(presetBase(p.name).toLowerCase())
     this.round?.answers.delete(playerId)
+    // Book Recall: their books leave with them (their points went too), so a
+    // shared team list still matches the team's score
+    if (this.round?.lists) {
+      this.round.lists.delete(`p:${playerId}`)
+      for (const list of this.round.lists.values()) {
+        list.entries = list.entries.filter((e) => e.by !== playerId)
+        list.names = new Set(list.entries.map((e) => e.name))
+      }
+    }
     for (const c of [...this.conns]) {
       if (c.playerId === playerId) {
         c.send({ type: 'closed', reason: 'kicked', message: 'The host removed you from this game.' })
@@ -454,6 +492,8 @@ class Room {
     if (r.paused) return 'The game is paused'
     if (Date.now() > r.deadline) return 'Time is up'
     if (!this.players.has(playerId)) return 'You are not playing in this game'
+    if (this.mode.multi) return this.recallAnswer(this.players.get(playerId), text)
+    if (Array.isArray(text)) return 'Send one answer at a time'
     // Race rounds allow another guess after a wrong one; otherwise one answer each
     const prev = r.answers.get(playerId)
     if (prev && !this.settings.firstCorrect) return 'You have already answered this round'
@@ -472,6 +512,58 @@ class Room {
     return null
   }
 
+  // ── Book Recall race ────────────────────────────────────────
+  /** Whose list a player adds to: their team's shared one, or their own */
+  listKey(p) {
+    return this.settings.teams ? `t:${p.teamId}` : `p:${p.id}`
+  }
+
+  listLabel(key) {
+    const id = key.slice(2)
+    if (key.startsWith('t:')) return this.settings.teams?.find((t) => t.id === id)?.name ?? 'Team'
+    return this.players.get(id)?.name ?? 'Player'
+  }
+
+  /**
+   * One phrase's books (one typed name, or several spoken ones). Each new
+   * book is +1 for the player who named it, straight away; a team's score
+   * (the sum of its members) is then the size of its shared list. Returns an
+   * error only when nothing counted, so a spoken "Genesis Exodus" with one
+   * repeat still adds the other quietly.
+   */
+  recallAnswer(player, input) {
+    const r = this.round
+    const texts = (Array.isArray(input) ? input : [input])
+      .map((t) => String(t).replace(/\s+/g, ' ').trim().slice(0, 60))
+      .filter(Boolean)
+    if (!texts.length) return 'Type a book first'
+    // Someone who joined mid-game without a team gets the smallest one
+    if (this.settings.teams && !this.validTeam(player.teamId)) player.teamId = this.smallestTeam()
+    const key = this.listKey(player)
+    let list = r.lists.get(key)
+    if (!list) {
+      list = { names: new Set(), entries: [] }
+      r.lists.set(key, list)
+    }
+    let added = 0
+    let firstError = null
+    for (const text of texts) {
+      const res = this.mode.judgeBook(r.data, text, (name) => list.names.has(name))
+      if (res.error) { firstError ??= res.error; continue }
+      const at = Date.now()
+      list.names.add(res.name)
+      list.entries.push({ name: res.name, by: player.id, at })
+      player.score++
+      player.correct++
+      player.lastScoredAt = at
+      added++
+    }
+    if (!added) return firstError
+    this.broadcast()
+    this.maybeCloseEarly()
+    return null
+  }
+
   setTeam(playerId, teamId) {
     if (this.status !== 'lobby') return 'Teams are fixed once the game starts'
     const p = this.players.get(playerId)
@@ -483,12 +575,17 @@ class Room {
 
   // ── Views ───────────────────────────────────────────────────
   standings() {
-    const sorted = this.participants.slice().sort((a, b) => b.score - a.score || b.correct - a.correct || a.joinedAt - b.joinedAt)
+    // Book Recall: an equal count goes to whoever reached it first
+    const multi = Boolean(this.mode.multi)
+    const sorted = this.participants.slice().sort((a, b) => b.score - a.score
+      || (multi ? a.lastScoredAt - b.lastScoredAt : b.correct - a.correct)
+      || a.joinedAt - b.joinedAt)
+    const rankKey = (p) => (multi ? `${p.score}:${p.lastScoredAt}` : p.score)
     let rank = 0
     let prev = null
     return sorted.map((p, i) => {
-      if (prev === null || p.score !== prev) rank = i + 1 // ties share a rank (1, 1, 3)
-      prev = p.score
+      if (prev === null || rankKey(p) !== prev) rank = i + 1 // ties share a rank (1, 1, 3)
+      prev = rankKey(p)
       return {
         id: p.id, name: p.name, teamId: p.teamId, score: p.score, correct: p.correct,
         streak: p.streak, bestStreak: p.bestStreak, lastDelta: p.lastDelta, rank,
@@ -499,13 +596,26 @@ class Room {
 
   teamStandings() {
     if (!this.settings.teams) return null
-    const teams = this.settings.teams.map((t, i) => ({
-      ...t,
-      color: TEAM_COLORS[i % TEAM_COLORS.length],
-      score: this.participants.filter((p) => p.teamId === t.id).reduce((s, p) => s + p.score, 0),
-      members: this.participants.filter((p) => p.teamId === t.id).length,
-    }))
-    return teams.sort((a, b) => b.score - a.score)
+    const multi = Boolean(this.mode.multi)
+    const teams = this.settings.teams.map((t, i) => {
+      const members = this.participants.filter((p) => p.teamId === t.id)
+      return {
+        ...t,
+        color: TEAM_COLORS[i % TEAM_COLORS.length],
+        score: members.reduce((s, p) => s + p.score, 0),
+        members: members.length,
+        // When the team reached its score (Book Recall's tie-break)
+        lastAt: multi ? Math.max(0, ...members.map((p) => p.lastScoredAt)) : 0,
+      }
+    })
+    teams.sort((a, b) => b.score - a.score || a.lastAt - b.lastAt)
+    // Equal teams share a rank; FinalResults calls a tie on two rank-1 teams
+    let rank = 0
+    return teams.map((t, i) => {
+      const prev = teams[i - 1]
+      if (!prev || prev.score !== t.score || prev.lastAt !== t.lastAt) rank = i + 1
+      return { ...t, rank }
+    })
   }
 
   snapshotFor(conn) {
@@ -540,6 +650,21 @@ class Room {
         responses: host && showTexts
           ? [...r.answers.entries()].map(([id, a]) => ({ playerId: id, name: this.players.get(id)?.name, text: a.text, verdict: a.verdict, decided: Boolean(a.decided), at: a.at }))
           : null,
+      }
+
+      if (this.mode.multi) {
+        // A player sees only their own list (their team's, in teams) while the
+        // round runs. A presenting host sees counts only: the big screen is in
+        // view of the players. Everyone may compare lists once it's over.
+        const myList = me ? r.lists.get(this.listKey(me)) : null
+        round.recall = {
+          mine: myList
+            ? myList.entries.map((e) => ({ name: e.name, by: this.players.get(e.by)?.name ?? null, yours: e.by === me.id }))
+            : [],
+          lists: r.phase === 'revealed'
+            ? [...r.lists.entries()].map(([key, l]) => ({ key, label: this.listLabel(key), names: l.entries.map((e) => e.name) }))
+            : null,
+        }
       }
     }
 

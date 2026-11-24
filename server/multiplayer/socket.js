@@ -55,7 +55,18 @@ export function attachMultiplayerSockets(server, { validateSettings, statusOf })
     })
     ws.on('error', () => {})
 
+    // An exception thrown inside a socket listener is uncaught and would stop
+    // the whole process, ending every live game: contain it to this message
     ws.on('message', (raw) => {
+      try {
+        onMessage(raw)
+      } catch (err) {
+        console.error('multiplayer message failed:', err)
+        conn.send({ type: 'error', message: 'Something went wrong with that action. Please try again.' })
+      }
+    })
+
+    function onMessage(raw) {
       // Flood control: drop bursts, hang up on sustained abuse
       const now = Date.now()
       conn.recent = conn.recent.filter((t) => now - t < 1000)
@@ -77,7 +88,7 @@ export function attachMultiplayerSockets(server, { validateSettings, statusOf })
         conn.actionIds = [...conn.actionIds.slice(-49), msg.actionId]
       }
       handleAction(conn, msg)
-    })
+    }
   }
 
   function handleResume(conn, msg, resumeTimer) {
@@ -112,7 +123,7 @@ export function attachMultiplayerSockets(server, { validateSettings, statusOf })
     }
     let error = null
     switch (msg.type) {
-      case 'answer': error = room.answer(conn.playerId, msg.text); break
+      case 'answer': error = room.answer(conn.playerId, msg.texts ?? msg.text); break
       case 'set_team': error = room.setTeam(conn.playerId, msg.teamId); break
       case 'start': error = room.start(); break
       case 'pause': error = room.pause(); break

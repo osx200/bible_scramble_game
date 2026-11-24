@@ -4,8 +4,8 @@ import styles from './WelcomeIntro.module.css'
 /**
  * The privacy page, shown from Menu ("Privacy") and from the first-visit
  * Welcome footer. Keep it in step with what the server actually stores:
- * server/index.js (scores, analytics counters, mp_sessions/mp_players) and
- * the log rotation in docker-compose.yml.
+ * server/index.js (scores, analytics counters, mp_sessions/mp_players and
+ * their 30-day purge, MP_KEEP_MS) and the log rotation in docker-compose.yml.
  */
 export default function Privacy() {
   return (
@@ -29,12 +29,15 @@ export default function Privacy() {
       <h2>On our server</h2>
       <ul>
         <li>
-          <strong>Leaderboard:</strong> the best Word Unscramble score for each nickname, with its
-          word set, difficulty and date. Only the top scores of the month are shown.
+          <strong>Leaderboard:</strong> each Word Unscramble score above zero, with its nickname,
+          word set, difficulty and date. Only each nickname’s best of the month is shown, in the
+          top five. Scores are kept so earlier months’ boards can still be shown; ask below to have
+          one removed.
         </li>
         <li>
-          <strong>Multiplayer:</strong> games run in memory. When one ends, the nicknames and
-          final scores are kept; custom quiz content is never saved.
+          <strong>Multiplayer:</strong> games run in memory. When one ends, the nicknames, the game
+          settings and the final scores are kept for 30 days, then deleted. Custom quiz content is
+          never saved.
         </li>
         <li>
           <strong>Visit counts:</strong> simple daily totals (how many visits, which games were

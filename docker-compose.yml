@@ -44,6 +44,10 @@ services:
       BOARD_TZ: ${BOARD_TZ:-UTC}
       # Optional multiplayer room size cap (default 50)
       MP_MAX_PLAYERS: ${MP_MAX_PLAYERS:-50}
+      # Proxies in front of the API that append to X-Forwarded-For: the VM's
+      # host nginx + this compose file's nginx. The API reads the visitor's
+      # address from the right, so a forged header can't dodge rate limits.
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-2}
     volumes:
       - leaderboard-data:/data
 

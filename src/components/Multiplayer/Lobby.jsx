@@ -68,6 +68,14 @@ export default function Lobby({ mp, onLeave }) {
           <img className={styles.qr} src={qrUrl(room.code)} alt={`QR code that opens ${link}`} width="168" height="168" />
         </div>
 
+        {s.mode === 'recall' ? (
+          <ul className={styles.facts} aria-label="Game settings">
+            <li>{room.modeLabel}</li>
+            <li>{s.seconds / 60} min to name as many books as you can</li>
+            <li>1 point per book</li>
+            {s.teams && <li>{s.teams.length} teams, one shared list each</li>}
+          </ul>
+        ) : (
         <ul className={styles.facts} aria-label="Game settings">
           <li>{room.modeLabel}</li>
           {s.mode === 'unscramble' && s.wordSet !== 'custom' && <li className={styles.cap}>{s.difficulty}</li>}
@@ -77,6 +85,7 @@ export default function Lobby({ mp, onLeave }) {
           {s.speedBonus && <li>Speed bonus</li>}
           {s.teams && <li>{s.teams.length} teams</li>}
         </ul>
+        )}
 
         <h2 className={styles.sectionTitle}>
           Players <span className={styles.count}>{players.length}</span>

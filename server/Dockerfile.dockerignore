@@ -11,3 +11,4 @@
 !src/utils/scramble.js
 !src/utils/scoring.js
 !src/utils/initials.js
+!src/utils/levenshtein.js

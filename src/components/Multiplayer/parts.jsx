@@ -33,7 +33,9 @@ const VERDICT_LABEL = { correct: 'Correct', wrong: 'Wrong', none: 'No answer', s
  * Live standings. `answeredIds` (open round) shows who has answered without
  * revealing what; `onKick` adds the host's remove button (lobby only).
  */
-export function Standings({ players, teams, youId, answeredIds, showDelta, onKick, compact = false }) {
+const defaultMeta = (p) => `${p.correct} correct${p.streak >= 2 ? ` · ${p.streak} in a row` : ''}`
+
+export function Standings({ players, teams, youId, answeredIds, showDelta, onKick, compact = false, metaLabel = defaultMeta }) {
   // Rows glide to their new rank when the order changes (after a reveal)
   const playerOrder = players.map((p) => p.id).join(',')
   const teamOrder = teams ? teams.map((t) => t.id).join(',') : ''
@@ -68,7 +70,7 @@ export function Standings({ players, teams, youId, answeredIds, showDelta, onKic
               {p.id === youId && <span className={styles.tag}>You</span>}
               {answeredIds?.includes(p.id) && <span className={`${styles.tag} ${styles.tagDone}`}>Answered</span>}
             </span>
-            {!compact && <span className={styles.playerMeta}>{p.correct} correct{p.streak >= 2 ? ` · ${p.streak} in a row` : ''}</span>}
+            {!compact && <span className={styles.playerMeta}>{metaLabel(p)}</span>}
             {!compact && <span className={styles.playerScore}>
               {p.score}
               {showDelta && p.lastDelta !== 0 && (

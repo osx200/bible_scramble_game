@@ -8,7 +8,8 @@
 //
 //   GET    /api/health
 //   GET    /api/leaderboard?board=individual|group[&month=YYYY-MM]
-//   POST   /api/scores          { id, board, name, score, correct, total, difficulty, wordSet }
+//   POST   /api/games           → { gameId }  a ticket, asked for when a game starts
+//   POST   /api/scores          { id, gameId, board, name, score, correct, total, difficulty, wordSet }
 //   DELETE /api/scores/:id      header X-Admin-Token: $ADMIN_TOKEN
 //   POST   /api/hit             { event, detail }  anonymous daily counters (see Analytics)
 //   GET    /api/stats?days=30   header X-Admin-Token: $ADMIN_TOKEN
@@ -18,7 +19,7 @@
 // table so a "last month's champion" view stays possible.
 
 import http from 'node:http'
-import { createHash, randomBytes } from 'node:crypto'
+import { createHash, randomBytes, timingSafeEqual } from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -139,6 +140,24 @@ initRooms({
 })
 const mpStatusOf = (code) => mpStatement.get(code)?.status ?? null
 
+// Retention (the Privacy page says 30 days): multiplayer records go a month
+// after the game was created. Live rooms never last that long (lobbies
+// expire after 3 h), so only finished history is removed.
+const MP_KEEP_MS = 30 * 86_400_000
+const purgeMpPlayers = db.prepare('DELETE FROM mp_players WHERE session_code IN (SELECT code FROM mp_sessions WHERE created_at < ?)')
+const purgeMpSessions = db.prepare('DELETE FROM mp_sessions WHERE created_at < ?')
+function purgeOldMultiplayer() {
+  try {
+    const cutoff = Date.now() - MP_KEEP_MS
+    purgeMpPlayers.run(cutoff)
+    purgeMpSessions.run(cutoff)
+  } catch (err) {
+    console.error('multiplayer purge failed:', err)
+  }
+}
+purgeOldMultiplayer()
+setInterval(purgeOldMultiplayer, 6 * 60 * 60 * 1000).unref()
+
 // ── Helpers ────────────────────────────────────────────────
 
 const monthFormat = new Intl.DateTimeFormat('en-CA', {
@@ -199,15 +218,27 @@ function readJson(req, maxBytes = MAX_BODY) {
   })
 }
 
-// Best-effort only: X-Forwarded-For can be forged, and if the proxy in front
-// doesn't set it every player shares one bucket. Good enough to stop a script
-// hammering the board; not a security boundary.
 const postsByIp = new Map()
 
+// How many proxies in front of this server append to X-Forwarded-For:
+// 2 on the VM (host nginx + container nginx), 1 on the home-network setup
+// (container nginx only), 0 when nothing proxies (npm run api; Vite's dev
+// proxy adds no header). Set in docker-compose.yml / docker-compose.lan.yml.
+const TRUSTED_PROXIES = Math.max(0, Math.min(Number.parseInt(process.env.TRUSTED_PROXIES ?? '0', 10) || 0, 5))
+
+/**
+ * The visitor's address, for rate limits and the daily visitor count. Each
+ * trusted proxy APPENDS the address it was reached from, so the visitor is
+ * the entry the outermost one added: counted from the RIGHT. Anything further
+ * left was sent by the visitor and could be made up, so it's never used.
+ */
 function clientIp(req) {
-  const fwd = req.headers['x-forwarded-for']
-  if (typeof fwd === 'string' && fwd) return fwd.split(',')[0].trim()
-  return req.socket.remoteAddress || 'unknown'
+  const socketIp = req.socket.remoteAddress || 'unknown'
+  if (!TRUSTED_PROXIES) return socketIp
+  const hops = String(req.headers['x-forwarded-for'] || '').split(',').map((h) => h.trim()).filter(Boolean)
+  // Fewer entries than proxies: the front proxy didn't send the header, so
+  // the nearest address is the best there is (everyone shares one bucket)
+  return hops[hops.length - TRUSTED_PROXIES] ?? hops[0] ?? socketIp
 }
 
 function rateLimited(ip) {
@@ -247,11 +278,57 @@ function getLeaderboard(url, res) {
   send(res, 200, { board, month, entries })
 }
 
+// ── Game tickets ───────────────────────────────────────────
+// The browser runs Word Unscramble, so a score is only as honest as the
+// browser reporting it. A ticket makes faking slower and bounded: the game
+// asks for one when it starts, and a score needs a ticket that is old enough
+// for the rounds it claims (each round shows its result for 1.5 s, so 1 s a
+// round is a safe floor) and may post at most one score per team. Tickets
+// live in memory: a server restart mid-game just means that game isn't scored.
+const TICKET_TTL_MS = 3 * 60 * 60 * 1000
+const MIN_MS_PER_ROUND = 1000
+const MAX_SCORES_PER_TICKET = 6 // TeamRegister's MAX_TEAMS
+const MAX_TICKETS = 50_000 // memory bound
+const TICKETS_PER_WINDOW = 60 // per visitor per RATE_WINDOW_MS
+const tickets = new Map() // id → { at, scoreIds: Set }
+const ticketsByIp = new Map()
+
+function newTicket(req, res) {
+  const ip = clientIp(req)
+  const now = Date.now()
+  const recent = (ticketsByIp.get(ip) || []).filter((t) => now - t < RATE_WINDOW_MS)
+  if (recent.length >= TICKETS_PER_WINDOW) return send(res, 429, { error: 'Too many games started. Please try again later.' })
+  recent.push(now)
+  ticketsByIp.set(ip, recent)
+  if (tickets.size >= MAX_TICKETS) tickets.delete(tickets.keys().next().value) // oldest first
+  const gameId = randomBytes(12).toString('base64url')
+  tickets.set(gameId, { at: now, scoreIds: new Set() })
+  send(res, 201, { gameId })
+}
+
+/** → null when this score may use the ticket, else an error message */
+function useTicket(gameId, scoreId, total) {
+  const ticket = typeof gameId === 'string' ? tickets.get(gameId) : null
+  if (!ticket || Date.now() - ticket.at > TICKET_TTL_MS) return 'This game can’t be scored (it started too long ago, or before a server restart)'
+  if (Date.now() - ticket.at < total * MIN_MS_PER_ROUND) return 'That game finished too quickly to count'
+  if (!ticket.scoreIds.has(scoreId) && ticket.scoreIds.size >= MAX_SCORES_PER_TICKET) return 'This game has already posted its scores'
+  ticket.scoreIds.add(scoreId)
+  return null
+}
+
+setInterval(() => {
+  const now = Date.now()
+  for (const [id, t] of tickets) if (now - t.at > TICKET_TTL_MS) tickets.delete(id)
+  for (const [ip, times] of ticketsByIp) {
+    if (!times.some((t) => now - t < RATE_WINDOW_MS)) ticketsByIp.delete(ip)
+  }
+}, RATE_WINDOW_MS).unref()
+
 async function postScore(req, res) {
   if (rateLimited(clientIp(req))) return send(res, 429, { error: 'Too many scores. Please try again later.' })
 
   const body = await readJson(req)
-  const { id, board, score, correct, total, difficulty, wordSet } = body ?? {}
+  const { id, board, score, correct, total, difficulty, wordSet, gameId } = body ?? {}
   // Preset nicknames only (src/data/presetNames.js): solo names on the
   // individual board, group / team names on the group board
   const name = parsePresetName(cleanName(body?.name) ?? '', board === 'group' ? 'group' : 'individual')?.name ?? null
@@ -272,6 +349,9 @@ async function postScore(req, res) {
   // Zero or negative totals are legal games but never belong on a top-5
   if (score <= 0) return send(res, 200, { month, rank: null })
 
+  const ticketError = useTicket(gameId, id, total)
+  if (ticketError) return send(res, 400, { error: ticketError })
+
   insertScore.run(
     id, board, name, nameKey(name), score, correct, total,
     difficulty, DIFFICULTIES[difficulty], wordSet, month, Date.now(),
@@ -284,9 +364,37 @@ async function postScore(req, res) {
   send(res, 200, { month, rank: index === -1 ? null : index + 1 })
 }
 
+// ── Admin token ────────────────────────────────────────────
+// Compared as SHA-256 digests with timingSafeEqual (equal lengths, constant
+// time), and wrong guesses are limited per visitor so it can't be brute-forced.
+const ADMIN_DIGEST = ADMIN_TOKEN ? createHash('sha256').update(ADMIN_TOKEN).digest() : null
+const ADMIN_MAX_FAILS = 10 // per RATE_WINDOW_MS
+const adminFailsByIp = new Map()
+
+/** → null when allowed, else [status, message] */
+function adminCheck(req, disabledMessage) {
+  if (!ADMIN_DIGEST) return [403, disabledMessage]
+  const ip = clientIp(req)
+  const now = Date.now()
+  const fails = (adminFailsByIp.get(ip) || []).filter((t) => now - t < RATE_WINDOW_MS)
+  if (fails.length >= ADMIN_MAX_FAILS) return [429, 'Too many wrong tokens. Please wait a few minutes.']
+  const given = createHash('sha256').update(String(req.headers['x-admin-token'] ?? '')).digest()
+  if (timingSafeEqual(given, ADMIN_DIGEST)) return null
+  fails.push(now)
+  adminFailsByIp.set(ip, fails)
+  return [403, 'Wrong admin token']
+}
+
+setInterval(() => {
+  const now = Date.now()
+  for (const [ip, times] of adminFailsByIp) {
+    if (!times.some((t) => now - t < RATE_WINDOW_MS)) adminFailsByIp.delete(ip)
+  }
+}, RATE_WINDOW_MS).unref()
+
 function removeScore(req, res, id) {
-  if (!ADMIN_TOKEN) return send(res, 403, { error: 'Admin delete is disabled' })
-  if (req.headers['x-admin-token'] !== ADMIN_TOKEN) return send(res, 403, { error: 'Forbidden' })
+  const denied = adminCheck(req, 'Admin delete is disabled')
+  if (denied) return send(res, denied[0], { error: denied[1] })
   const { changes } = deleteScore.run(id)
   send(res, changes ? 200 : 404, changes ? { deleted: id } : { error: 'Not found' })
 }
@@ -399,8 +507,8 @@ async function postHit(req, res) {
 }
 
 function getStats(req, url, res) {
-  if (!ADMIN_TOKEN) return send(res, 403, { error: 'Stats are disabled (no ADMIN_TOKEN set)' })
-  if (req.headers['x-admin-token'] !== ADMIN_TOKEN) return send(res, 403, { error: 'Wrong admin token' })
+  const denied = adminCheck(req, 'Stats are disabled (no ADMIN_TOKEN set)')
+  if (denied) return send(res, denied[0], { error: denied[1] })
   const days = Math.min(Math.max(Number(url.searchParams.get('days')) || 30, 1), 366)
   const since = dayFormat.format(new Date(Date.now() - (days - 1) * 86_400_000))
   send(res, 200, { since, today: today(), visitors: statsVisitors.all(since), events: statsEvents.all(since) })
@@ -413,6 +521,7 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === 'GET' && pathname === '/api/health') return send(res, 200, { ok: true })
     if (req.method === 'GET' && pathname === '/api/leaderboard') return getLeaderboard(url, res)
+    if (req.method === 'POST' && pathname === '/api/games') return newTicket(req, res)
     if (req.method === 'POST' && pathname === '/api/scores') return await postScore(req, res)
     const del = pathname.match(/^\/api\/scores\/([a-z0-9]{8,40})$/)
     if (req.method === 'DELETE' && del) return removeScore(req, res, del[1])

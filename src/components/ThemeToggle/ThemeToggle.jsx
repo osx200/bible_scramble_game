@@ -1,12 +1,18 @@
 import { useState, useEffect } from 'react'
 import styles from './ThemeToggle.module.css'
 
+// Storage can throw (site data blocked in the browser): the theme then just
+// isn't remembered, instead of the whole app failing to render
+function loadTheme() {
+  try { return localStorage.getItem('theme') === 'dark' } catch { return false }
+}
+
 export default function ThemeToggle() {
-  const [dark, setDark] = useState(() => localStorage.getItem('theme') === 'dark')
+  const [dark, setDark] = useState(loadTheme)
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light')
-    localStorage.setItem('theme', dark ? 'dark' : 'light')
+    try { localStorage.setItem('theme', dark ? 'dark' : 'light') } catch {}
   }, [dark])
 
   return (

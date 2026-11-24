@@ -8,7 +8,8 @@ same question, same timer, server-calculated scores.
 
 1. Menu → **Play With Others** → **Create a game**.
 2. Choose:
-   - the game (Bible Books, Prophets & Disciples, Biblical Couples or Grand Mix)
+   - the game (Bible Books, Prophets & Disciples, Biblical Couples, Grand Mix, or the
+     **Book Recall** race; see below, which instead asks for the books (all / OT / NT) and a time of 1 to 5 min)
    - difficulty and category
    - rounds (5/10/15/20) and seconds per round
    - when players see whether they were right (after each round, or straight away)
@@ -85,15 +86,34 @@ Browser ──HTTPS──> host nginx ──> container nginx ──> game serve
   - Anything else goes to a **review** step, where the host clicks Accept or Wrong before the
     reveal.
   - The host can only decide those unclear answers, never change other scores.
+- **Book Recall race** (`modes/recall.js`, mode `recall`, client `RecallRace.jsx`): one
+  round of 1, 2, 3 or 5 minutes in which everyone names as many books as they can (typing, or
+  hands-free voice where one phrase may hold several books: `answer {texts: [≤10]}`).
+  - Judged with solo Recall's forgiving matcher (`matchBookNameForgiving`): small typos
+    count, numbered books must be exact. Books outside the chosen testament, repeats and
+    non-books are refused with an `error` the answer box shows inline.
+  - **1 point per book**, added the moment it is accepted (`recallAnswer` in `rooms.js`), so
+    the board is live. Equal counts rank by who reached them first (`lastScoredAt`; teams
+    use their latest member's time, and `teams[]` now carries `rank`).
+  - **Teams share one list** per team (`listKey`); a teammate's book is a repeat. Kicking a
+    player removes their books from the list along with their points.
+  - **Privacy of lists**: `snapshot.round.recall.mine` is the viewer's own list (their
+    team's) only. A presenting host gets counts only, because the big screen is in view of
+    the players. `recall.lists` (everyone's) appears after the round, for "nobody named…".
+  - The round ends at the deadline, on **End round now**, or when every list is complete.
+    No auto-advance and no Skip: the host presses **See final results**.
+  - The server forces `rounds: 1`, `firstCorrect`/`speedBonus` off, `reveal: 'round'`,
+    `autoAdvance: false`, and `seconds` from `RECALL_SECONDS`.
 - **Game modes are pluggable** (`server/multiplayer/modes/`): each mode supplies `prepare`,
   `publicRound`, `judge`, `reveal`. Adding Bible Trivia or the Christmas games means adding
-  a mode file, not new multiplayer infrastructure.
+  a mode file, not new multiplayer infrastructure. A `multi: true` mode (Book Recall) takes
+  many answers per player through `judgeBook` and `rooms.js` `recallAnswer` instead of `judge`.
 
 ### Protocol (WebSocket JSON)
 
 | Direction | Messages |
 |---|---|
-| client → server | `resume {code, token}` (first message), `answer {text}`, `set_team {teamId}` |
+| client → server | `resume {code, token}` (first message), `answer {text}` (or `{texts}` in Book Recall), `set_team {teamId}` |
 | host only | `start`, `pause`, `resume_game`, `skip`, `reveal`, `next`, `end`, `restart`, `close`, `kick {playerId}`, `accept {playerId, accept}`, `update_settings {settings}` |
 | server → client | `snapshot` (full state for that viewer), `notice` (joined / left / paused / host changed), `error`, `closed` (room over or player removed) |
 
@@ -145,6 +165,7 @@ Every client action carries an `actionId`; a repeated id is acknowledged but nev
 | Situation | What happens |
 |---|---|
 | Game finishes | Results stay viewable for 30 min; the record stays `finished` in SQLite |
+| 30 days after creation | The SQLite records (`mp_sessions`, `mp_players`) are deleted (`MP_KEEP_MS` in `server/index.js`, promised on the Privacy page) |
 | Host closes the room | Everyone sees "The host closed this game"; status `closed` |
 | Nobody connected for 15 min | Room closed as `abandoned` |
 | Lobby never started within 3 h | Room closed as `expired` |

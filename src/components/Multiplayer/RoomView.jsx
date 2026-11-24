@@ -15,8 +15,10 @@ export default function RoomView({ code, token, onLeave, onSeatInvalid }) {
   const { snapshot, connection, closed, lastError } = mp
 
   // Server refusals ("Only the host can do that", "Time is up") as notices
+  // (Book Recall shows its own refusals under the answer box instead)
   useEffect(() => {
-    if (lastError) pushNotice({ text: lastError.message, tone: 'warn' })
+    const recallAnswer = lastError?.action === 'answer' && snapshot?.room.settings.mode === 'recall'
+    if (lastError && !recallAnswer) pushNotice({ text: lastError.message, tone: 'warn' })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastError])
 

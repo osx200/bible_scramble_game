@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useReducer } from 'react'
+import React, { createContext, useContext, useEffect, useReducer, useRef } from 'react'
+import { beginGame } from '../utils/leaderboardApi.js'
 import { DIFFICULTY_CONFIG, pointsFor } from '../utils/scoring.js'
 import { selectWords } from '../utils/wordFilter.js'
 import { getWordSet } from '../data/wordSets.js'
@@ -362,8 +363,20 @@ function reducer(state, action) {
   }
 }
 
+// Phases inside a running game (solo rounds, or teams taking turns)
+const IN_GAME = ['playing', 'team-transition']
+
 export function GameProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState)
+
+  // A game just began: get the leaderboard ticket its score will need
+  const prevPhase = useRef(state.phase)
+  useEffect(() => {
+    const was = prevPhase.current
+    prevPhase.current = state.phase
+    if (IN_GAME.includes(state.phase) && !IN_GAME.includes(was)) beginGame()
+  }, [state.phase])
+
   return (
     <GameContext.Provider value={{ state, dispatch }}>
       {children}

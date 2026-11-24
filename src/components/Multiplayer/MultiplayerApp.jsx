@@ -107,6 +107,11 @@ const ROUNDS = [5, 10, 15, 20]
 const TIMES = [15, 20, 30, 45, 60, 90]
 const cap = (w) => w[0].toUpperCase() + w.slice(1)
 
+// Book Recall race: one round of 1 to 5 minutes (server/multiplayer/modes/recall.js)
+const RECALL_TIMES = [60, 120, 180, 300]
+const RECALL_CARD = { value: 'recall', title: 'Book Recall', desc: 'Name as many books of the Bible as you can before time runs out' }
+const BOOKS_LABEL = { all: 'All 66 books', OT: 'Old Testament', NT: 'New Testament' }
+
 const RACE_OPTIONS = [
   { value: false, title: 'Wait for the timer', desc: 'Everyone gets the full time to answer' },
   { value: true, title: 'First correct answer wins', desc: 'A race: first right scores, then move on' },
@@ -121,6 +126,7 @@ function CreateGame({ launch, onCreated, onBack }) {
   const [category, setCategory] = useState('all')
   const [rounds, setRounds] = useState(10)
   const [seconds, setSeconds] = useState(30)
+  const [recallSeconds, setRecallSeconds] = useState(120)
   const [useTeams, setUseTeams] = useState(false)
   const [teamNames, setTeamNames] = useState(() => freeGroupNames(2))
   const [reveal, setReveal] = useState('round')
@@ -131,9 +137,11 @@ function CreateGame({ launch, onCreated, onBack }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
-  const mode = custom === 'questions' ? 'quiz' : 'unscramble'
+  const mode = custom === 'questions' ? 'quiz' : wordSet === 'recall' ? 'recall' : 'unscramble'
+  const isRecall = mode === 'recall'
   const showCategory = mode === 'unscramble' && wordSet !== 'custom' && wordSet !== 'couples'
-  const setLabel = custom === 'words' ? 'Your words' : custom === 'questions' ? 'Your quiz' : WORD_SET_LIST.find((w) => w.id === wordSet)?.label
+  const setLabel = custom === 'words' ? 'Your words' : custom === 'questions' ? 'Your quiz'
+    : isRecall ? RECALL_CARD.title : WORD_SET_LIST.find((w) => w.id === wordSet)?.label
 
   async function submit(e) {
     e.preventDefault()
@@ -143,8 +151,9 @@ function CreateGame({ launch, onCreated, onBack }) {
       hostName: profile?.name,
       hostKind: profile?.kind ?? 'individual',
       settings: {
-        mode, wordSet, difficulty, category: showCategory ? category : 'all', rounds, seconds,
-        reveal, speedBonus, firstCorrect, minPlayers, hostPlays, autoAdvance: true,
+        mode, wordSet, difficulty, category: showCategory || isRecall ? category : 'all', rounds,
+        seconds: isRecall ? recallSeconds : seconds,
+        reveal, speedBonus, firstCorrect: isRecall ? false : firstCorrect, minPlayers, hostPlays, autoAdvance: true,
         teams: useTeams ? teamNames : null,
       },
       payload: launch ? { words: launch.words, questions: launch.questions } : undefined,
@@ -154,19 +163,30 @@ function CreateGame({ launch, onCreated, onBack }) {
     onCreated(res.code, { token: res.token, role: 'host' })
   }
 
-  const summary = [
-    `Host ${profile?.name ?? '?'}`,
-    setLabel,
-    mode === 'unscramble' && !custom && cap(difficulty),
-    mode === 'unscramble' && `${rounds} rounds`,
-    `${seconds}s each`,
-    firstCorrect ? 'Race' : null,
-    useTeams ? `${teamNames.length} teams` : null,
-    hostPlays ? 'You play too' : null,
-  ].filter(Boolean).join(' · ')
+  const summary = (isRecall
+    ? [
+        `Host ${profile?.name ?? '?'}`,
+        setLabel,
+        BOOKS_LABEL[category],
+        `${recallSeconds / 60} min`,
+        useTeams ? `${teamNames.length} teams, shared lists` : null,
+        hostPlays ? 'You play too' : null,
+      ]
+    : [
+        `Host ${profile?.name ?? '?'}`,
+        setLabel,
+        mode === 'unscramble' && !custom && cap(difficulty),
+        mode === 'unscramble' && `${rounds} rounds`,
+        `${seconds}s each`,
+        firstCorrect ? 'Race' : null,
+        useTeams ? `${teamNames.length} teams` : null,
+        hostPlays ? 'You play too' : null,
+      ]).filter(Boolean).join(' · ')
 
-  const changed = (showCategory && category !== 'all') + (rounds !== 10) + (seconds !== 30)
-    + (reveal !== 'round') + speedBonus + hostPlays + (minPlayers !== 2)
+  const changed = isRecall
+    ? hostPlays + (minPlayers !== 2)
+    : (showCategory && category !== 'all') + (rounds !== 10) + (seconds !== 30)
+      + (reveal !== 'round') + speedBonus + hostPlays + (minPlayers !== 2)
 
   return (
     <Stage art="abraham" wide>
@@ -184,11 +204,11 @@ function CreateGame({ launch, onCreated, onBack }) {
         error={error}
       >
 
-        {mode === 'unscramble' && !custom && (
+        {!custom && (
           <Field label="Game">
             <ChoiceCards
               label="Game"
-              options={WORD_SET_LIST.map((w) => ({ value: w.id, title: w.label, desc: w.cardDesc }))}
+              options={[...WORD_SET_LIST.map((w) => ({ value: w.id, title: w.label, desc: w.cardDesc })), RECALL_CARD]}
               value={wordSet}
               onChange={setWordSet}
             />
@@ -200,11 +220,22 @@ function CreateGame({ launch, onCreated, onBack }) {
           </Field>
         )}
 
-        <Field label="When someone gets it right" hint={firstCorrect ? 'Wrong guesses cost 2 points; players can try again.' : null}>
-          <ChoiceCards label="When someone gets it right" options={RACE_OPTIONS} value={firstCorrect} onChange={setFirstCorrect} />
-        </Field>
+        {isRecall ? (
+          <>
+            <Field label="Books">
+              <Segmented label="Books" options={[['all', 'All 66'], ['OT', 'Old Testament'], ['NT', 'New Testament']]} value={category} onChange={setCategory} />
+            </Field>
+            <Field label="Time" hint="One round. Each book a player names is 1 point; an equal count goes to whoever got there first.">
+              <Segmented label="Time" options={RECALL_TIMES.map((n) => [n, `${n / 60} min`])} value={recallSeconds} onChange={setRecallSeconds} />
+            </Field>
+          </>
+        ) : (
+          <Field label="When someone gets it right" hint={firstCorrect ? 'Wrong guesses cost 2 points; players can try again.' : null}>
+            <ChoiceCards label="When someone gets it right" options={RACE_OPTIONS} value={firstCorrect} onChange={setFirstCorrect} />
+          </Field>
+        )}
 
-        <Field label="Competition">
+        <Field label="Competition" hint={isRecall && useTeams ? 'Each team fills one shared list together; a book counts once per team.' : null}>
           <Segmented label="Competition" options={[[false, 'Everyone for themselves'], [true, 'Teams']]} value={useTeams} onChange={setUseTeams} />
           {useTeams && (
             <div className={styles.teamEditor}>
@@ -237,15 +268,17 @@ function CreateGame({ launch, onCreated, onBack }) {
               <Segmented label="Rounds" options={ROUNDS.map((n) => [n, String(n)])} value={rounds} onChange={setRounds} />
             </Field>
           )}
-          <Field label="Seconds per round">
-            <Segmented label="Seconds per round" options={TIMES.map((n) => [n, `${n}s`])} value={seconds} onChange={setSeconds} />
-          </Field>
-          {!firstCorrect && (
+          {!isRecall && (
+            <Field label="Seconds per round">
+              <Segmented label="Seconds per round" options={TIMES.map((n) => [n, `${n}s`])} value={seconds} onChange={setSeconds} />
+            </Field>
+          )}
+          {!firstCorrect && !isRecall && (
             <Field label="Show players if they were right">
               <Segmented label="Show players if they were right" options={[['round', 'After each round'], ['instant', 'Straight away']]} value={reveal} onChange={setReveal} />
             </Field>
           )}
-          {!firstCorrect && (
+          {!firstCorrect && !isRecall && (
             <Field label="Speed bonus" hint="Up to +10 extra for fast correct answers.">
               <Segmented label="Speed bonus" options={[[false, 'Off'], [true, 'On']]} value={speedBonus} onChange={setSpeedBonus} />
             </Field>
@@ -336,6 +369,7 @@ function JoinGame({ initialCode, onJoined, onBack }) {
               <div><dt>Players</dt><dd>{info.playerCount} joined</dd></div>
               {info.firstCorrect && <div><dt>Rounds</dt><dd>First correct answer wins</dd></div>}
               {info.mode === 'unscramble' && <div><dt>Difficulty</dt><dd className={styles.cap}>{info.difficulty}</dd></div>}
+              {info.mode === 'recall' && <div><dt>Time</dt><dd>{info.seconds / 60} min, name as many books as you can</dd></div>}
               <div><dt>Status</dt><dd>{info.status === 'lobby' ? 'Waiting to start' : 'In progress (you can still join)'}</dd></div>
             </dl>
             <Field label="You’ll join as" hint={<NameNote kind={profile?.kind} />}>

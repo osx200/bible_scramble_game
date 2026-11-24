@@ -17,7 +17,8 @@ COPY server/multiplayer ./multiplayer
 
 # Shared game data and logic, at the same relative path as in the repo
 COPY src/data /app/src/data
-COPY src/utils/wordFilter.js src/utils/scramble.js src/utils/scoring.js src/utils/initials.js /app/src/utils/
+# (levenshtein.js: canonicalBooks.js imports it, for Book Recall's typo matching)
+COPY src/utils/wordFilter.js src/utils/scramble.js src/utils/scoring.js src/utils/initials.js src/utils/levenshtein.js /app/src/utils/
 # src/ is ES modules (the repo root package.json says "type": "module")
 RUN echo '{ "type": "module" }' > /app/package.json
 
