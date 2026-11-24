@@ -22,13 +22,36 @@ export default function AnswerInput({ roundKey, onSubmit, disabled }) {
   const submitTimerRef          = useRef(null)
   const shakeTimerRef           = useRef(null)
 
-  // Reset + focus on each new round
+  // Reset on each new round
   useEffect(() => {
     clearTimeout(submitTimerRef.current)
     setValue('')
     setHeard(null)
-    if (!disabled) inputRef.current?.focus()
   }, [roundKey])
+
+  // Focus whenever the box is usable again. It is disabled while the round
+  // feedback shows (which drops focus), so focusing only on a new round
+  // would miss: the round changes while the box is still disabled.
+  useEffect(() => {
+    if (!disabled) inputRef.current?.focus()
+  }, [roundKey, disabled])
+
+  // Typing anywhere goes into the box: a letter or number pressed while focus
+  // is elsewhere (after clicking a hint, say) moves focus here first, and the
+  // browser then delivers that same keystroke to the box.
+  useEffect(() => {
+    function onKeyDown(e) {
+      const input = inputRef.current
+      if (!input || input.disabled || input.readOnly) return
+      if (e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1 || e.key === ' ') return
+      const el = document.activeElement
+      if (el === input) return
+      if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return
+      input.focus()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
 
   useEffect(() => () => {
     clearTimeout(submitTimerRef.current)
