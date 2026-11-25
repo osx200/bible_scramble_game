@@ -17,7 +17,7 @@ export default function Privacy() {
       <h2>No accounts</h2>
       <p>
         There is no sign-up, no password and no email address. You play under a nickname picked
-        from a list (like “Joyful Lion” or “Team Peace”), so no real names are ever entered.
+        from a list (like “Joy” or “Team Peace”), so no real names are ever entered.
       </p>
 
       <h2>On your device</h2>

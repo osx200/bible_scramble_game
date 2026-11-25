@@ -3,19 +3,15 @@
  * names reach the leaderboard or a multiplayer room. Shared by the client
  * and the game server (the server image copies all of src/data).
  *
- * Solo players combine one word from each list ("Joyful Lion"); groups and
- * teams pick one name. The first FRUIT_COUNT entries of SOLO_FIRST and
- * GROUP_NAMES are the fruit of the Spirit, in the order of Galatians 5:22-23.
+ * Solo players pick one word from SOLO_NAMES ("Joy"); groups and teams pick
+ * one of GROUP_NAMES. The first FRUIT_COUNT entries of each list are the
+ * fruit of the Spirit, in the order of Galatians 5:22-23.
  */
 
-export const SOLO_FIRST = [
-  'Loving', 'Joyful', 'Peaceful', 'Patient', 'Kind', 'Good', 'Faithful', 'Gentle', 'Self-Controlled',
-  'Brave', 'Mighty', 'Wise', 'Swift', 'Loyal', 'Shining', 'Bold', 'Bright', 'Humble', 'Cheerful', 'Fearless', 'Steady',
-]
-
-export const SOLO_SECOND = [
-  'Lion', 'Lamb', 'Dove', 'Eagle', 'Camel', 'Donkey', 'Whale', 'Sparrow', 'Shepherd',
-  'Fisherman', 'Builder', 'Trumpet', 'Harp', 'Star', 'Lamp', 'Olive Tree',
+export const SOLO_NAMES = [
+  'Love', 'Joy', 'Peace', 'Patience', 'Kindness', 'Goodness', 'Faithfulness', 'Gentleness', 'Self-Control',
+  'Grace', 'Hope', 'Faith', 'Mercy', 'Light', 'Truth', 'Praise', 'Glory',
+  'Blessing', 'Shalom', 'Wisdom', 'Psalm', 'Manna', 'Dove', 'Lamb',
 ]
 
 export const GROUP_NAMES = [
@@ -34,38 +30,22 @@ export const FRUIT_REF = 'Galatians 5:22-23'
 /** Added to a group name already taken in a room: "Team Joy Blue" */
 export const DUPLICATE_COLORS = ['Blue', 'Red', 'Green', 'Gold', 'Purple', 'Silver', 'Scarlet', 'White']
 
-/** Longest possible name with a suffix ("Self-Controlled Olive Tree 99") fits */
+/** Longest possible name with a suffix ("Team Faithfulness Scarlet") fits */
 export const PRESET_NAME_MAX = 32
 
 const lower = (s) => s.toLowerCase()
-const FIRST = new Map(SOLO_FIRST.map((w) => [lower(w), w]))
-const SECOND = new Map(SOLO_SECOND.map((w) => [lower(w), w]))
+const SOLO = new Map(SOLO_NAMES.map((w) => [lower(w), w]))
 const GROUPS = new Map(GROUP_NAMES.map((g) => [lower(g), g]))
 const COLORS = new Map(DUPLICATE_COLORS.map((c) => [lower(c), c]))
 
-export function soloName(first, second) {
-  return first && second ? `${first} ${second}` : ''
-}
-
-/** "joyful olive tree" → ['Joyful', 'Olive Tree'], or null */
-function splitSolo(name) {
-  const key = lower(name)
-  for (const [k, first] of FIRST) {
-    if (!key.startsWith(`${k} `)) continue
-    const second = SECOND.get(key.slice(k.length + 1))
-    if (second) return [first, second]
-  }
-  return null
-}
-
 /**
  * The canonical spelling of a preset name, plus any duplicate suffix, or null.
- * `{ base: 'Joyful Lion', suffix: '2', name: 'Joyful Lion 2' }`
+ * `{ base: 'Joy', suffix: '2', name: 'Joy 2' }`
  */
 export function parsePresetName(raw, kind, { allowSuffix = false } = {}) {
   if (typeof raw !== 'string') return null
   const name = raw.replace(/\s+/g, ' ').trim()
-  const whole = kind === 'group' ? GROUPS.get(lower(name)) : splitSolo(name)?.join(' ')
+  const whole = (kind === 'group' ? GROUPS : SOLO).get(lower(name))
   if (whole) return { base: whole, suffix: '', name: whole }
   if (!allowSuffix) return null
 
@@ -78,7 +58,7 @@ export function parsePresetName(raw, kind, { allowSuffix = false } = {}) {
     const color = COLORS.get(lower(tail))
     return base && color ? { base, suffix: color, name: `${base} ${color}` } : null
   }
-  const base = splitSolo(head)?.join(' ')
+  const base = SOLO.get(lower(head))
   return base && /^[2-9]$|^[1-9][0-9]$/.test(tail) ? { base, suffix: tail, name: `${base} ${tail}` } : null
 }
 
@@ -86,7 +66,7 @@ export function isPresetName(raw, kind, options) {
   return parsePresetName(raw, kind, options) !== null
 }
 
-/** "Joyful Lion 2" → "Joyful Lion", "Team Joy Blue" → "Team Joy"; else the name itself */
+/** "Joy 2" → "Joy", "Team Joy Blue" → "Team Joy"; else the name itself */
 export function presetBase(raw) {
   const parsed = parsePresetName(raw, 'individual', { allowSuffix: true })
     ?? parsePresetName(raw, 'group', { allowSuffix: true })
@@ -95,7 +75,7 @@ export function presetBase(raw) {
 
 /**
  * The base name if nobody has it, else the first free variant:
- * "Joyful Lion 2", "… 3" for solo players, "Team Joy Blue", "… Red" for groups.
+ * "Joy 2", "Joy 3" for solo players, "Team Joy Blue", "… Red" for groups.
  * `taken` is any iterable of names already in the room (case-insensitive).
  * Returns null only when every variant is in use.
  */
@@ -108,6 +88,16 @@ export function nextFreeName(base, kind, taken) {
   return variants.find((v) => !used.has(lower(v))) ?? null
 }
 
-export function randomItem(list) {
-  return list[Math.floor(Math.random() * list.length)]
+// ── Earlier two-word solo names ("Joyful Lion") ─────────────────
+// No longer offered, but leaderboard rows saved with them are still preset
+// nicknames, not typed names: the board shows them in full rather than as
+// initials (server/index.js getLeaderboard). Never accepted for new scores.
+const OLD_FIRST = ['loving', 'joyful', 'peaceful', 'patient', 'kind', 'good', 'faithful', 'gentle', 'self-controlled',
+  'brave', 'mighty', 'wise', 'swift', 'loyal', 'shining', 'bold', 'bright', 'humble', 'cheerful', 'fearless', 'steady']
+const OLD_SECOND = new Set(['lion', 'lamb', 'dove', 'eagle', 'camel', 'donkey', 'whale', 'sparrow', 'shepherd',
+  'fisherman', 'builder', 'trumpet', 'harp', 'star', 'lamp', 'olive tree'])
+
+export function isOldSoloName(raw) {
+  const key = lower(String(raw ?? '').replace(/\s+/g, ' ').trim())
+  return OLD_FIRST.some((f) => key.startsWith(`${f} `) && OLD_SECOND.has(key.slice(f.length + 1)))
 }

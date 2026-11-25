@@ -149,7 +149,7 @@ Every client action carries an `actionId`; a repeated id is acknowledged but nev
     group (`asGroup: true`). Team names must be group presets too
   - a name already in the room is made unique by the server instead of refused: "Joyful
     Lion 2" for solo names, "Team Joy Blue" for groups; the join response returns the
-    assigned `name`. A kicked name blocks its base ("Joyful Lion"), so "… 2" can't rejoin
+    assigned `name`. A kicked name blocks its base ("Joy"), so "… 2" can't rejoin
   - rooms are capped at `MP_MAX_PLAYERS` (default 50)
 - **Origin check:** browsers may only open the game socket from this site.
 - **No answer leaks:** answers and scripture references are only in snapshots after the

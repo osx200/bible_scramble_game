@@ -65,12 +65,11 @@ export default function Welcome() {
         ))}
       </div>
 
-      {/* key: a fresh picker per kind, so a half-made solo pick doesn't linger */}
-      <NamePicker key={kind} kind={kind} value={name} onChange={setName} />
+      <NamePicker kind={kind} value={name} onChange={setName} />
 
       {touched && !valid && (
         <p className={styles.error} role="alert">
-          {kind === 'group' ? 'Pick a group name' : 'Pick a first word and a second word'}
+          {kind === 'group' ? 'Pick a group name' : 'Pick a nickname'}
         </p>
       )}
 

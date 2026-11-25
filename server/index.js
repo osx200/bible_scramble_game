@@ -26,7 +26,7 @@ import { fileURLToPath } from 'node:url'
 import { DatabaseSync } from 'node:sqlite'
 import { isBlocked } from './blocklist.js'
 import { toInitials } from '../src/utils/initials.js'
-import { parsePresetName, PRESET_NAME_MAX } from '../src/data/presetNames.js'
+import { parsePresetName, isOldSoloName, PRESET_NAME_MAX } from '../src/data/presetNames.js'
 import { initRooms } from './multiplayer/rooms.js'
 import { handleMultiplayerHttp } from './multiplayer/http.js'
 import { attachMultiplayerSockets } from './multiplayer/socket.js'
@@ -273,7 +273,7 @@ function getLeaderboard(url, res) {
   // Privacy: names are preset nicknames now. Rows saved before that may hold
   // typed names, so on the individual board those still go out as initials
   if (board === 'individual') {
-    entries = entries.map((e) => (parsePresetName(e.name, 'individual') ? e : { ...e, name: toInitials(e.name) }))
+    entries = entries.map((e) => (parsePresetName(e.name, 'individual') || isOldSoloName(e.name) ? e : { ...e, name: toInitials(e.name) }))
   }
   send(res, 200, { board, month, entries })
 }

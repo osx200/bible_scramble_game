@@ -115,7 +115,7 @@ export async function handleMultiplayerHttp(req, res, url, helpers) {
     // Kicks are by base name, so "… 2" can't walk straight back in
     if (room.kickedNames.has(base.toLowerCase())) { send(res, 403, { error: 'The host removed that name from this game. Pick a different nickname from the Menu.' }); return true }
     if (room.full) { send(res, 409, { error: 'This game is full.' }); return true }
-    // Same nickname already here: "Joyful Lion 2" / "Team Joy Blue"
+    // Same nickname already here: "Joy 2" / "Team Joy Blue"
     const name = nextFreeName(base, kind, room.participants.map((p) => p.name))
     if (!name) { send(res, 409, { error: 'Too many players share that nickname. Pick a different one from the Menu.' }); return true }
     const token = newToken()

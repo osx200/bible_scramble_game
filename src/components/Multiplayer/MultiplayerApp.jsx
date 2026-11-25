@@ -91,7 +91,7 @@ function Home({ onCreate, onJoin, onBack }) {
 
 /**
  * Everyone plays under their profile's preset nickname. The server adds a
- * number ("Joyful Lion 2") or a colour ("Team Joy Blue") if it's taken.
+ * number ("Joy 2") or a colour ("Team Joy Blue") if it's taken.
  */
 function NameNote({ kind }) {
   return (
