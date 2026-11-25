@@ -174,7 +174,13 @@ export default function ModeratorPlay({ config, onBack, backLabel = '← Setup',
 
         {/* ── Scrambled word tile ── */}
         <div className={styles.scrambledTile}>
-          <span className={styles.scrambledText}>{word.scrambled}</span>
+          {/* --n: the longest word, so the CSS can shrink the text to keep it on one line */}
+          <span
+            className={styles.scrambledText}
+            style={{ '--n': Math.max(1, ...word.scrambled.split(' ').map((w) => w.length)) }}
+          >
+            {word.scrambled}
+          </span>
         </div>
 
         {/* ── Clue (custom words from the builder only) ── */}

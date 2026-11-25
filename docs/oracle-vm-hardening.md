@@ -505,6 +505,38 @@ renewal failing 60 days from now, quietly, is the common outcome when port 80 ge
 Uncomment the HSTS header only after HTTPS is confirmed working end to end. Browsers cache
 it for a year and there is no easy undo.
 
+### 6b-2. Switching to your own domain (Cloudflare)
+
+The site now runs on `playbiblegames.org` (registered with Cloudflare) instead of the DuckDNS
+name. The app never needs to know its domain: the container nginx answers any host
+(`server_name _`) and the CSP uses `wss://$host`. Only DNS, the host nginx and the certificate
+change. Nothing changes in Docker, `.env` or the database.
+
+1. **DNS (Cloudflare → DNS → Records):** `A @` and `A www`, both pointing to the VM's public IP,
+   with **Proxy status: DNS only (grey cloud)**. Check with `nslookup playbiblegames.org 1.1.1.1`.
+   It must return the VM's own IP, not a Cloudflare 104.x or 172.6x address.
+   - **Why not the orange cloud (proxied)?** Every visitor would then arrive from Cloudflare
+     addresses. That breaks rate limits and visitor counts unless the host nginx uses `real_ip`
+     with Cloudflare's IP list and `TRUSTED_PROXIES` changes.
+   - Cloudflare would also see visitor IPs, which the Privacy page would have to say.
+   - Its Rocket Loader and Web Analytics inject scripts that the CSP blocks.
+   - Turn the proxy on only as its own, deliberate change.
+2. **Host nginx:** in `/etc/nginx/sites-available/app`, change every
+   `server_name bible-games.duckdns.org;` to `server_name playbiblegames.org www.playbiblegames.org;`.
+   The DuckDNS name was only ever a test address, so it was dropped entirely, with no redirect.
+3. **Certificate:** run
+   `sudo certbot --nginx --cert-name playbiblegames.org -d playbiblegames.org -d www.playbiblegames.org`.
+   This issues the certificate and repoints `ssl_certificate` at it.
+   - Remove certbot's leftover `if ($host = bible-games.duckdns.org) { … }` blocks.
+     `grep duckdns` on the file must come back empty.
+   - Then run `sudo nginx -t && sudo systemctl reload nginx`.
+   - Delete the old certificate with `sudo certbot delete --cert-name bible-games.duckdns.org`.
+   - Check renewal with `sudo certbot renew --dry-run`.
+4. **Check:** `curl -I https://playbiblegames.org` returns 200 with the security headers.
+   `curl -i https://playbiblegames.org/api/mp/ws` returns 426. Test the microphone once.
+5. **DuckDNS itself:** remove any DuckDNS updater (`crontab -l`, `~/duckdns/`), and delete the
+   subdomain on duckdns.org.
+
 ---
 
 ### 6c. Log retention (the privacy page promises 7 days)

@@ -1,14 +1,48 @@
+/* Tiles shrink to fit: the wrapper is a size container, and each tile is
+   the smaller of its preferred size and an equal share of the wrapper's
+   width for the longest word (--n, set inline on .group). Nothing spills
+   off the screen. Tiles stop shrinking at --tile-min so letters stay
+   readable; a word too long even for that wraps (its letters are
+   scrambled anyway). */
 .wrapper {
+  container-type: inline-size;
+  width: 100%;
+  min-width: 0;
   text-align: center;
   padding: var(--spacing-lg) 0;
+  --gap: clamp(6px, 0.8vw, 12px);
+  --tile-w: clamp(52px, 5.4vw, 104px);
+  --tile-h: clamp(60px, 6.3vw, 120px);
+  --tile-font: clamp(1.7rem, 3vw, 3.4rem);
+  --prefix-font: 1.4rem;
+  --tile-min: 26px;
 }
 
 .group {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  /* rows, then the wider space between words */
+  gap: var(--gap) calc(var(--gap) * 2);
   justify-content: center;
   margin-bottom: var(--spacing-sm);
+  /* 2px spare so sub-pixel rounding can't push the last tile to a new line */
+  --fit: calc((100cqi - 2px - (var(--n, 1) - 1) * var(--gap)) / var(--n, 1));
+}
+
+/* One word: its letters stay together on one line whenever they fit.
+   A long word is two .half spans, so if it must wrap it breaks into two
+   even rows, never leaving one letter on its own. */
+.word {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 100%;
+  gap: var(--gap);
+}
+
+.half {
+  display: inline-flex;
+  gap: var(--gap);
 }
 
 /* ── Couples prompt: "MOSES & ______" ── */
@@ -39,24 +73,22 @@
   overflow-wrap: anywhere;
 }
 
-/* Space between word groups */
-.wordGap {
-  width: 12px;
-}
-
 .tile {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  /* Scales with the screen: big enough to read on a projector */
-  width: clamp(52px, 5.4vw, 104px);
-  height: clamp(60px, 6.3vw, 120px);
+  /* Scales with the screen (big enough for a projector), but never wider
+     than the space the longest word allows */
+  width: max(var(--tile-min), min(var(--tile-w), var(--fit)));
+  height: max(var(--tile-min) * 1.16, min(var(--tile-h), var(--fit) * 1.16));
   background: var(--color-tile-bg);
   border: 2px solid var(--color-tile-border);
   border-radius: var(--radius);
   font-family: var(--font-display);
-  font-size: clamp(1.7rem, 3vw, 3.4rem);
+  font-size: max(var(--tile-min) * 0.6, min(var(--tile-font), var(--fit) * 0.6));
   font-weight: 800;
+  line-height: 1;
   color: var(--color-primary);
   text-transform: uppercase;
   box-shadow: var(--shadow-sm), inset 0 -3px 0 var(--color-tile-border);
@@ -75,7 +107,7 @@
   background: var(--color-primary-tint);
   border-color: color-mix(in srgb, var(--color-primary) 22%, transparent);
   color: var(--color-primary-light);
-  font-size: 1.4rem;
+  font-size: max(var(--tile-min) * 0.45, min(var(--prefix-font), var(--fit) * 0.45));
 }
 
 .hint {
@@ -87,44 +119,25 @@
 @media (max-width: 700px) {
   .wrapper {
     padding: var(--spacing-md) 0;
+    --gap: 6px;
+    --tile-w: 46px;
+    --tile-h: 54px;
+    --tile-font: 1.3rem;
+    --prefix-font: 1rem;
   }
 
   .pairPrompt {
     font-size: 1.25rem;
   }
-
-  .group {
-    gap: 8px;
-  }
-
-  .wordGap {
-    width: 8px;
-  }
-
-  .tile {
-    width: 46px;
-    height: 54px;
-    font-size: 1.3rem;
-  }
-
-  .tile.prefix {
-    font-size: 1rem;
-  }
 }
 
-/* Very small screens — phones < 400px wide */
+/* Very small screens: phones under 400px wide */
 @media (max-width: 400px) {
-  .group {
-    gap: 5px;
-  }
-
-  .tile {
-    width: 38px;
-    height: 46px;
-    font-size: 1.1rem;
-  }
-
-  .tile.prefix {
-    font-size: 0.9rem;
+  .wrapper {
+    --gap: 4px;
+    --tile-w: 38px;
+    --tile-h: 46px;
+    --tile-font: 1.1rem;
+    --prefix-font: 0.9rem;
   }
 }

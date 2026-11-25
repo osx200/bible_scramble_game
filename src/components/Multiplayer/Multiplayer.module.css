@@ -493,6 +493,8 @@
   gap: var(--spacing-md);
   padding-bottom: var(--spacing-md);
   border-bottom: 2px solid var(--color-text);
+  /* Room for the floating theme toggle (16px + 40px) over the score */
+  padding-right: 56px;
 }
 
 .playRound {
@@ -615,11 +617,6 @@
   letter-spacing: -0.02em;
   text-align: center;
   text-wrap: balance;
-}
-
-.tileWord {
-  display: inline-flex;
-  gap: inherit;
 }
 
 .clue {
@@ -890,7 +887,7 @@
 /* ── Phones and tablets ── */
 @media (max-width: 900px) {
   .playGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .playSide {
@@ -909,8 +906,8 @@
 
   .playTop {
     grid-template-columns: auto auto;
-    /* Room for the floating theme toggle in the top-right corner */
-    padding-right: 52px;
+    /* Room for the floating theme toggle (10px + 44px on phones) */
+    padding-right: 56px;
   }
 
   .playCode {

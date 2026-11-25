@@ -6,6 +6,7 @@ import Stage from '../Stage/Stage.jsx'
 import Button from '../shared/Button.jsx'
 import { Countdown, Standings, useCountdown, verdictLabel } from './parts.jsx'
 import RecallRace from './RecallRace.jsx'
+import { TileWords } from '../ScrambledWord/ScrambledWord.jsx'
 import tiles from '../ScrambledWord/ScrambledWord.module.css'
 import styles from './Multiplayer.module.css'
 
@@ -88,8 +89,6 @@ function Prompt({ round }) {
     return <p className={styles.question}>{p.question}</p>
   }
   const words = p.scrambled.split(' ')
-  // Same cascade as the single-device board: 25ms apart, capped at 300ms
-  let letterIndex = 0
   return (
     <div className={tiles.wrapper}>
       {p.partner && (
@@ -99,17 +98,7 @@ function Prompt({ round }) {
             : <><span className={tiles.pairBlank}>{p.blank}</span> &amp; <span className={tiles.pairName}>{p.partner}</span></>}
         </p>
       )}
-      <div className={tiles.group}>
-        {words.map((word, wi) => (
-          <span key={wi} className={styles.tileWord}>
-            {word.split('').map((ch, ci) => (
-              <span key={`${round.index}-${wi}-${ci}`} className={`${tiles.tile} ${/^\d+$/.test(word) ? tiles.prefix : ''}`} style={{ animationDelay: `${Math.min(letterIndex++ * 25, 300)}ms` }}>
-                {ch.toUpperCase()}
-              </span>
-            ))}
-          </span>
-        ))}
-      </div>
+      <TileWords words={words} animKey={round.index} />
       <p className={tiles.hint}>
         {p.partner ? `Unscramble the name of ${p.partner}’s spouse` : p.wordCount > 1 ? `${p.wordCount}-word name` : 'Unscramble the letters'}
       </p>
